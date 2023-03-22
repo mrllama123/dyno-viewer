@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "dyn-cli"
+version = "0.1.0"
+description = ""
+authors = ["Rowan Self <piesrule123@gmail.com>"]
+readme = "README.md"
+packages = [{include = "dyn_cli"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+
+
+[tool.poetry.group.dev.dependencies]
+textual = "^0.15.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
