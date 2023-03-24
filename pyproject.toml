@@ -8,10 +8,22 @@ packages = [{include = "dyn_cli"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
+textual = "^0.15.1"
+boto3 = "^1.26.96"
+simplejson = "^3.18.4"
+dynamodb-json = "^1.3"
+pandas = "^1.5.3"
 
 
 [tool.poetry.group.dev.dependencies]
 textual = "^0.15.1"
+black = "^23.1.0"
+ipykernel = "^6.22.0"
+
+
+[tool.poetry.scripts]
+
+run_app = 'dyn_cli.app:main'
 
 [build-system]
 requires = ["poetry-core"]
