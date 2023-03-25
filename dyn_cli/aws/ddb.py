@@ -8,6 +8,8 @@ import boto3
 from boto3.dynamodb.conditions import Attr, Key
 from dynamodb_json import json_util as dyn_json
 
+from boto3.session import Session
+
 
 LOG_LEVEL = logging.INFO
 
@@ -32,16 +34,28 @@ def batch(payloads, max_submit):
         yield payloads[i : i + max_submit]
 
 
-def get_table(table_name, region_name):
-    return boto3.resource("dynamodb", region_name=region_name).Table(table_name)
+def get_table(table_name, region_name, profile_name):
+    return (
+        Session(profile_name=profile_name)
+        .resource("dynamodb", region_name=region_name)
+        .Table(table_name)
+    )
 
 
-def get_table_client(table, region_name="ap-southeast-2"):
-    return get_table(table, region_name) if isinstance(table, str) else table
+def get_table_client(table, region_name="ap-southeast-2", profile_name="default"):
+    return (
+        get_table(table, region_name, profile_name) if isinstance(table, str) else table
+    )
 
 
-def get_ddb_client(client=None, region_name="ap-southeast-2"):
-    return client if client else boto3.client("dynamodb", region_name=region_name)
+def get_ddb_client(client=None, region_name="ap-southeast-2", profile_name="default"):
+    return (
+        client
+        if client
+        else Session(profile_name=profile_name).client(
+            "dynamodb", region_name=region_name
+        )
+    )
 
 
 def get_item(table, item_key, return_none=False, consistent_read=False):
