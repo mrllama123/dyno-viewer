@@ -32,18 +32,16 @@ def batch(payloads, max_submit):
         yield payloads[i : i + max_submit]
 
 
-
-def get_table(table_name):
-    return boto3.resource("dynamodb").Table(table_name)
-
-
-def get_table_client(table):
-    return get_table(table) if isinstance(table, str) else table
+def get_table(table_name, region_name):
+    return boto3.resource("dynamodb", region_name=region_name).Table(table_name)
 
 
+def get_table_client(table, region_name="ap-southeast-2"):
+    return get_table(table, region_name) if isinstance(table, str) else table
 
-def get_ddb_client(client=None):
-    return client if client else boto3.client("dynamodb")
+
+def get_ddb_client(client=None, region_name="ap-southeast-2"):
+    return client if client else boto3.client("dynamodb", region_name=region_name)
 
 
 def get_item(table, item_key, return_none=False, consistent_read=False):
