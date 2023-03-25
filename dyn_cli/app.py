@@ -36,8 +36,8 @@ class DynTable(Widget):
         table.add_columns(*self.data_table.columns.tolist())
         table.add_rows(self.data_table.values.tolist())
 
-    def change_table_data(self, table_name, region):
-        dyn_table_client = get_table_client(table_name, region)
+    def change_table_data(self, table_name, region, profile):
+        dyn_table_client = get_table_client(table_name, region, profile)
         table = self.query_one(DataTable)
         results, next_token = scan_items(dyn_table_client, paginate=False, Limit=10)
         self.data_table = pd.DataFrame(results)
@@ -96,14 +96,40 @@ class RegionSelectScreen(Screen):
         self.app.pop_screen()
 
 
+class ProfileSelectScreen(Screen):
+    BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
+
+    class ProfileSelected(Message):
+        """"""
+
+        def __init__(self, profile: str) -> None:
+            self.profile = profile
+            super().__init__()
+
+    def compose(self) -> ComposeResult:
+        profiles = self.parent.profiles
+        yield ListView(
+            *[ListItem(Label(profile), id=profile) for profile in profiles],
+            id="profiles",
+        )
+
+    async def on_list_view_selected(self, selected) -> None:
+        self.post_message(self.ProfileSelected(selected.item.id))
+        self.app.pop_screen()
+
+
 class DynCli(App):
     BINDINGS = [
         ("x", "exit", "Exit"),
-        # ("p", "profile", "Profile")
+        ("p", "push_screen('profile')", "Profile"),
         ("t", "push_screen('tableSelect')", "Table"),
         ("r", "push_screen('regionSelect')", "Region"),
     ]
-    SCREENS = {"tableSelect": TableSelectScreen(), "regionSelect": RegionSelectScreen()}
+    SCREENS = {
+        "tableSelect": TableSelectScreen(),
+        "regionSelect": RegionSelectScreen(),
+        "profile": ProfileSelectScreen(),
+    }
 
     profiles = reactive(get_available_profiles())
 
@@ -117,8 +143,6 @@ class DynCli(App):
         yield Footer()
         yield Horizontal(Label(self.table_name), DynTable())
 
-
-
     # on methods
 
     async def on_region_select_screen_region_selected(
@@ -131,6 +155,11 @@ class DynCli(App):
     ) -> None:
         self.table_name = table_name.table
 
+    async def on_profile_select_screen_profile_selected(
+        self, selected_profile: ProfileSelectScreen.ProfileSelected
+    ) -> None:
+        self.aws_profile = selected_profile.profile
+
     # action methods
 
     async def action_exit(self) -> None:
@@ -142,12 +171,29 @@ class DynCli(App):
         """update DynTable with new table data"""
         if new_table_name != "":
             table = self.query_one(DynTable)
-            table.change_table_data(new_table_name, self.aws_region)
+            table.change_table_data(new_table_name, self.aws_region, self.aws_profile)
 
     def watch_aws_region(self, old_region_name: str, new_region_name: str) -> None:
         if old_region_name != new_region_name:
             table = self.query_one(DynTable)
-            
+
+            # TODO  move to func
+            dyn_client = get_ddb_client(
+                region_name=self.aws_region, profile_name=self.aws_profile
+            )
+            dynamodb_tables = dyn_client.list_tables()["TableNames"]
+
+            if self.table_name not in dynamodb_tables:
+                table.clear_table()
+            else:
+                table.change_table_data(
+                    self.table_name, new_region_name, self.aws_profile
+                )
+
+    def watch_aws_profile(self, old_aws_profile: str, new_aws_profile: str) -> None:
+        if old_aws_profile != new_aws_profile:
+            table = self.query_one(DynTable)
+
             # TODO  move to func
             dyn_client = get_ddb_client(region_name=self.aws_region)
             dynamodb_tables = dyn_client.list_tables()["TableNames"]
@@ -155,7 +201,9 @@ class DynCli(App):
             if self.table_name not in dynamodb_tables:
                 table.clear_table()
             else:
-                table.change_table_data(self.table_name, new_region_name)
+                table.change_table_data(
+                    self.table_name, self.aws_region, self.aws_profile
+                )
 
 
 def main() -> None:
