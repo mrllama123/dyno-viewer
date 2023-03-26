@@ -17,6 +17,7 @@ from textual.screen import Screen
 from textual.widget import Widget
 from textual.containers import Horizontal, Vertical
 from textual.message import Message
+from rich.text import Text, TextType
 import textual.events as events
 from dyn_cli.aws.session import get_available_profiles, get_all_regions
 import boto3
@@ -32,7 +33,6 @@ class DynTable(Widget):
 
     async def on_mount(self) -> None:
         table = self.query_one(DataTable)
-
         table.add_columns(*self.data_table.columns.tolist())
         table.add_rows(self.data_table.values.tolist())
 
@@ -50,6 +50,43 @@ class DynTable(Widget):
         table = self.query_one(DataTable)
         table.clear()
 
+
+class DataDynTable(DataTable):
+    # data_table = pd.DataFrame()
+
+    def add_columns(self, dyn_data: list[dict]) -> list[any]:
+        cols = { attr for item in dyn_data for attr in item.keys() } 
+        return super().add_columns(*cols)
+    
+    def 
+    
+    def add_rows(self, dyn_data: list[dict]) -> list[any]:
+        
+        return super().add_rows(rows)
+
+
+    # def compose(self) -> ComposeResult:
+    #     yield DataTable()
+
+    # async def on_mount(self) -> None:
+    #     table = self.query_one(DataTable)
+
+    #     table.add_columns(*self.data_table.columns.tolist())
+    #     table.add_rows(self.data_table.values.tolist())
+
+    # def change_table_data(self, table_name, region, profile):
+    #     dyn_table_client = get_table_client(table_name, region, profile)
+    #     table = self.query_one(DataTable)
+    #     results, next_token = scan_items(dyn_table_client, paginate=False, Limit=10)
+    #     self.data_table = pd.DataFrame(results)
+
+    #     table.clear()
+    #     table.add_columns(*self.data_table.columns.tolist())
+    #     table.add_rows(self.data_table.values.tolist())
+
+    # def clear_table(self):
+    #     table = self.query_one(DataTable)
+    #     table.clear()
 
 class TableSelectScreen(Screen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
