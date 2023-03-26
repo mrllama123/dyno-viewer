@@ -52,41 +52,15 @@ class DynTable(Widget):
 
 
 class DataDynTable(DataTable):
-    # data_table = pd.DataFrame()
-
     def add_columns(self, dyn_data: list[dict]) -> list[any]:
-        cols = { attr for item in dyn_data for attr in item.keys() } 
+        cols = {attr for item in dyn_data for attr in item.keys()}
         return super().add_columns(*cols)
-    
-    def 
-    
+
     def add_rows(self, dyn_data: list[dict]) -> list[any]:
-        
+        cols = [str(col.label) for col in self.columns.values()]
+        rows = [{col: item.get(col) for col in cols} for item in dyn_data]
         return super().add_rows(rows)
 
-
-    # def compose(self) -> ComposeResult:
-    #     yield DataTable()
-
-    # async def on_mount(self) -> None:
-    #     table = self.query_one(DataTable)
-
-    #     table.add_columns(*self.data_table.columns.tolist())
-    #     table.add_rows(self.data_table.values.tolist())
-
-    # def change_table_data(self, table_name, region, profile):
-    #     dyn_table_client = get_table_client(table_name, region, profile)
-    #     table = self.query_one(DataTable)
-    #     results, next_token = scan_items(dyn_table_client, paginate=False, Limit=10)
-    #     self.data_table = pd.DataFrame(results)
-
-    #     table.clear()
-    #     table.add_columns(*self.data_table.columns.tolist())
-    #     table.add_rows(self.data_table.values.tolist())
-
-    # def clear_table(self):
-    #     table = self.query_one(DataTable)
-    #     table.clear()
 
 class TableSelectScreen(Screen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
@@ -172,13 +146,17 @@ class DynCli(App):
 
     aws_profile = reactive("default")
 
-    table_name = reactive("", layout=True)
+    table_name = reactive("")
 
     aws_region = reactive("ap-southeast-2")
 
+    table_client = reactive(None)
+
+    dyn_client = reactive(get_ddb_client())
+
     def compose(self) -> ComposeResult:
         yield Footer()
-        yield Horizontal(Label(self.table_name), DynTable())
+        yield DataDynTable()
 
     # on methods
 
@@ -186,16 +164,32 @@ class DynCli(App):
         self, selected_region: RegionSelectScreen.RegionSelected
     ) -> None:
         self.aws_region = selected_region.region
+        self.dyn_client = get_ddb_client(self.aws_profile, selected_region.region)
+
+        # need to check:
+        # 1. does it exist 
+        # 2. if so update table with new data otherwise clear table
+
+        self.table_client = get_table_client(
+            self.table_name, selected_region.region, self.aws_profile
+        )
 
     async def on_table_select_screen_table_name(
         self, table_name: TableSelectScreen.TableName
     ) -> None:
         self.table_name = table_name.table
+        self.table_client = get_table_client(
+            table_name.table, self.aws_region, self.aws_profile
+        )
 
     async def on_profile_select_screen_profile_selected(
         self, selected_profile: ProfileSelectScreen.ProfileSelected
     ) -> None:
         self.aws_profile = selected_profile.profile
+        self.dyn_client = get_ddb_client(selected_profile, self.aws_region)
+        self.table_client = get_table_client(
+            self.table_name, self.aws_region, selected_profile.profile
+        )
 
     # action methods
 
@@ -204,43 +198,50 @@ class DynCli(App):
 
     # watcher methods
 
-    def watch_table_name(self, new_table_name: str) -> None:
+    def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
-        if new_table_name != "":
-            table = self.query_one(DynTable)
-            table.change_table_data(new_table_name, self.aws_region, self.aws_profile)
+        if new_table_client:
 
-    def watch_aws_region(self, old_region_name: str, new_region_name: str) -> None:
-        if old_region_name != new_region_name:
-            table = self.query_one(DynTable)
+            # TODO handle when you select the same table name 
+            table = self.query_one(DataDynTable)
+            table.clear()
+            # TODO make this more extendable i.e query's, gsi lookups
+            results, next_token = scan_items(new_table_client, paginate=False, Limit=10)
+            table.add_columns(results)
+            table.add_rows(results)
 
-            # TODO  move to func
-            dyn_client = get_ddb_client(
-                region_name=self.aws_region, profile_name=self.aws_profile
-            )
-            dynamodb_tables = dyn_client.list_tables()["TableNames"]
 
-            if self.table_name not in dynamodb_tables:
-                table.clear_table()
-            else:
-                table.change_table_data(
-                    self.table_name, new_region_name, self.aws_profile
-                )
+    # def watch_aws_region(self, old_region_name: str, new_region_name: str) -> None:
+    #     if old_region_name != new_region_name:
+    #         table = self.query_one(DataDynTable)
 
-    def watch_aws_profile(self, old_aws_profile: str, new_aws_profile: str) -> None:
-        if old_aws_profile != new_aws_profile:
-            table = self.query_one(DynTable)
+    #         # TODO  move to func
+    #         dyn_client = get_ddb_client(
+    #             region_name=self.aws_region, profile_name=self.aws_profile
+    #         )
+    #         dynamodb_tables = self.dyn_client.list_tables()["TableNames"]
 
-            # TODO  move to func
-            dyn_client = get_ddb_client(region_name=self.aws_region)
-            dynamodb_tables = dyn_client.list_tables()["TableNames"]
+    #         if self.table_name not in dynamodb_tables:
+    #             table.clear_table()
+    #         else:
+    #             table.change_table_data(
+    #                 self.table_name, new_region_name, self.aws_profile
+    #             )
 
-            if self.table_name not in dynamodb_tables:
-                table.clear_table()
-            else:
-                table.change_table_data(
-                    self.table_name, self.aws_region, self.aws_profile
-                )
+    # def watch_aws_profile(self, old_aws_profile: str, new_aws_profile: str) -> None:
+    #     if old_aws_profile != new_aws_profile:
+    #         table = self.query_one(DynTable)
+
+    #         # TODO  move to func
+    #         dyn_client = get_ddb_client(region_name=self.aws_region)
+    #         dynamodb_tables = dyn_client.list_tables()["TableNames"]
+
+    #         if self.table_name not in dynamodb_tables:
+    #             table.clear_table()
+    #         else:
+    #             table.change_table_data(
+    #                 self.table_name, self.aws_region, self.aws_profile
+    #             )
 
 
 def main() -> None:
