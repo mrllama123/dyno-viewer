@@ -4,13 +4,10 @@ from typing import Set
 from textual.app import App, ComposeResult
 from textual.widgets import (
     Footer,
-    MarkdownViewer,
     DataTable,
     ListItem,
     ListView,
     Label,
-    Button,
-    Static,
 )
 from textual.reactive import reactive
 from textual.screen import Screen
@@ -20,7 +17,6 @@ from textual.message import Message
 from rich.text import Text, TextType
 import textual.events as events
 from dyn_cli.aws.session import get_available_profiles, get_all_regions
-import boto3
 import pandas as pd
 from dyn_cli.aws.ddb import scan_items, get_ddb_client, get_table_client
 
