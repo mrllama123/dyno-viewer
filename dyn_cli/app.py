@@ -25,32 +25,6 @@ import pandas as pd
 from dyn_cli.aws.ddb import scan_items, get_ddb_client, get_table_client
 
 
-class DynTable(Widget):
-    data_table = pd.DataFrame()
-
-    def compose(self) -> ComposeResult:
-        yield DataTable()
-
-    async def on_mount(self) -> None:
-        table = self.query_one(DataTable)
-        table.add_columns(*self.data_table.columns.tolist())
-        table.add_rows(self.data_table.values.tolist())
-
-    def change_table_data(self, table_name, region, profile):
-        dyn_table_client = get_table_client(table_name, region, profile)
-        table = self.query_one(DataTable)
-        results, next_token = scan_items(dyn_table_client, paginate=False, Limit=10)
-        self.data_table = pd.DataFrame(results)
-
-        table.clear()
-        table.add_columns(*self.data_table.columns.tolist())
-        table.add_rows(self.data_table.values.tolist())
-
-    def clear_table(self):
-        table = self.query_one(DataTable)
-        table.clear()
-
-
 class DataDynTable(DataTable):
     def add_columns(self, dyn_data: list[dict]) -> list[any]:
         cols = {attr for item in dyn_data for attr in item.keys()}
