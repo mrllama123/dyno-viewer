@@ -8,17 +8,17 @@ packages = [{include = "dyna_cli"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-textual = "^0.15.1"
 boto3 = "^1.26.96"
 simplejson = "^3.18.4"
 dynamodb-json = "^1.3"
+textual = "^0.16.0"
 
 
 [tool.poetry.group.dev.dependencies]
-textual = "^0.15.1"
 black = "^23.1.0"
 ipykernel = "^6.22.0"
 pyinstaller = {version = "^5.9.0", python = ">=3.9,<3.12"}
+textual = {extras = ["dev"], version = "^0.16.0"}
 
 
 [tool.poetry.scripts]
