@@ -9,6 +9,7 @@ from boto3.dynamodb.conditions import Attr, Key
 from dynamodb_json import json_util as dyn_json
 
 from boto3.session import Session
+from botocore.exceptions import ClientError
 
 
 LOG_LEVEL = logging.INFO
@@ -35,10 +36,25 @@ def batch(payloads, max_submit):
 
 
 def get_table(table_name, region_name, profile_name):
-    return (
-        Session(profile_name=profile_name)
-        .resource("dynamodb", region_name=region_name)
-        .Table(table_name)
+    client = get_dyn_resource(region_name, profile_name).Table(table_name)
+    try:
+        if client.table_status in ("CREATING", "UPDATING", "ACTIVE"):
+            return client
+    except ClientError as error:
+        # TODO handle this in a better way
+        if error.response["Error"]["Code"] in [
+            "ResourceNotFoundException",
+            "UnrecognizedClientException",
+        ]:
+            return None
+        raise
+    except Exception:
+        raise
+
+
+def get_dyn_resource(region_name, profile_name):
+    return Session(profile_name=profile_name, region_name=region_name).resource(
+        "dynamodb"
     )
 
 
@@ -52,8 +68,8 @@ def get_ddb_client(client=None, region_name="ap-southeast-2", profile_name="defa
     return (
         client
         if client
-        else Session(profile_name=profile_name).client(
-            "dynamodb", region_name=region_name
+        else Session(profile_name=profile_name, region_name=region_name).client(
+            "dynamodb"
         )
     )
 
