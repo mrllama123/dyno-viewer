@@ -134,7 +134,7 @@ class DynCli(App):
         self, selected_region: RegionSelectScreen.RegionSelected
     ) -> None:
         self.aws_region = selected_region.region
-        self.dyn_client = get_ddb_client(self.aws_profile, selected_region.region)
+        self.dyn_client = get_ddb_client(selected_region.region, self.aws_profile)
 
         self.table_client = get_table_client(
             self.table_name, selected_region.region, self.aws_profile
@@ -169,7 +169,7 @@ class DynCli(App):
     def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
         table = self.query_one(DataDynTable)
-        table.clear()
+        table.clear(columns=True)
         if new_table_client:
             # TODO make this more extendable i.e query's, gsi lookups
             results, next_token = scan_items(new_table_client, paginate=False, Limit=10)

@@ -41,17 +41,19 @@ def get_table(table_name, region_name, profile_name):
         if client.table_status in ("CREATING", "UPDATING", "ACTIVE"):
             return client
     except ClientError as error:
-        if error.response['Error']['Code'] == "ResourceNotFoundException":
+        if error.response["Error"]["Code"] in [
+            "ResourceNotFoundException",
+            "UnrecognizedClientException",
+        ]:
             return None
         raise
     except Exception:
         raise
-    
 
 
 def get_dyn_resource(region_name, profile_name):
-    return Session(profile_name=profile_name).resource(
-        "dynamodb", region_name=region_name
+    return Session(profile_name=profile_name, region_name=region_name).resource(
+        "dynamodb"
     )
 
 
@@ -65,8 +67,8 @@ def get_ddb_client(client=None, region_name="ap-southeast-2", profile_name="defa
     return (
         client
         if client
-        else Session(profile_name=profile_name).client(
-            "dynamodb", region_name=region_name
+        else Session(profile_name=profile_name, region_name=region_name).client(
+            "dynamodb"
         )
     )
 
