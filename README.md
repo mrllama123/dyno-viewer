@@ -1,4 +1,4 @@
-# dyn-cli
+# dyna-cli
 
 This is a experimental project i created out of frustration of how crap the dynamodb console is and from what i found there was no good app out there that had what i wanted.
 Which basically boils down to a few things:
