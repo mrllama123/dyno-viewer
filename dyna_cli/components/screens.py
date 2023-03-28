@@ -28,6 +28,9 @@ class TableSelectScreen(Screen):
             *[ListItem(Label(table), id=table) for table in dynamodb_tables],
             id="dynTablesSelect",
         )
+        # to fix error msg:
+        # ResourceWarning: unclosed <ssl.SSLSocket fd=7, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('...', 55498), raddr=('...', 443)>
+        dyn_client.close()
 
     async def on_list_view_selected(self, selected) -> None:
         self.post_message(self.TableName(selected.item.id))
@@ -49,6 +52,8 @@ class RegionSelectScreen(Screen):
             *[ListItem(Label(region), id=region) for region in get_all_regions()],
             id="regions",
         )
+
+
 
     async def on_list_view_selected(self, selected) -> None:
         self.post_message(self.RegionSelected(selected.item.id))
