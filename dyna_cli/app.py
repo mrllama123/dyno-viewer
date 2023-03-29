@@ -5,9 +5,15 @@ from textual.widgets import (
 from textual.reactive import reactive
 from dyna_cli.aws.session import get_available_profiles
 from dyna_cli.aws.ddb import scan_items, get_ddb_client, get_table_client
-from dyna_cli.components.screens import ProfileSelectScreen, RegionSelectScreen, TableSelectScreen
+from dyna_cli.components.screens import (
+    ProfileSelectScreen,
+    RegionSelectScreen,
+    TableSelectScreen,
+    ErrorScreen,
+)
 from dyna_cli.components.table import DataDynTable
-
+from textual import log
+from botocore.exceptions import ClientError
 
 
 class DynCli(App):
@@ -35,9 +41,17 @@ class DynCli(App):
 
     dyn_client = reactive(get_ddb_client())
 
+    aws_account_tables = reactive(None)
+
     def compose(self) -> ComposeResult:
         yield Footer()
         yield DataDynTable()
+
+    def update_table_client(self):
+        if self.table_name != "":
+            self.table_client = get_table_client(
+                self.table_name, self.aws_region, self.aws_profile
+            )
 
     # on methods
 
@@ -46,10 +60,8 @@ class DynCli(App):
     ) -> None:
         self.aws_region = selected_region.region
         self.dyn_client = get_ddb_client(selected_region.region, self.aws_profile)
+        self.update_table_client()
 
-        self.table_client = get_table_client(
-            self.table_name, selected_region.region, self.aws_profile
-        )
 
     async def on_table_select_screen_table_name(
         self,
@@ -57,18 +69,17 @@ class DynCli(App):
     ) -> None:
         if self.table_name != new_table_name:
             self.table_name = new_table_name.table
-            self.table_client = get_table_client(
-                new_table_name.table, self.aws_region, self.aws_profile
-            )
+            self.update_table_client()
 
     async def on_profile_select_screen_profile_selected(
         self, selected_profile: ProfileSelectScreen.ProfileSelected
     ) -> None:
         self.aws_profile = selected_profile.profile
-        self.dyn_client = get_ddb_client(selected_profile, self.aws_region)
-        self.table_client = get_table_client(
-            self.table_name, self.aws_region, selected_profile.profile
+
+        self.dyn_client = get_ddb_client(
+            region_name=self.aws_region, profile_name=self.aws_profile
         )
+        self.update_table_client()
 
     # action methods
 
@@ -79,6 +90,7 @@ class DynCli(App):
 
     def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
+        log(self.tree)
         table = self.query_one(DataDynTable)
         table.clear(columns=True)
         if new_table_client:
