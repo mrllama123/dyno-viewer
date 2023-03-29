@@ -40,14 +40,15 @@ def get_table(table_name, region_name, profile_name):
     try:
         if client.table_status in ("CREATING", "UPDATING", "ACTIVE"):
             return client
-    except ClientError as error:
-        # TODO handle this in a better way
-        if error.response["Error"]["Code"] in [
-            "ResourceNotFoundException",
-            "UnrecognizedClientException",
-        ]:
-            return None
-        raise
+    # except ClientError as error:
+    #     # TODO handle this in a better way
+    #     if error.response["Error"]["Code"] in [
+    #         "ResourceNotFoundException",
+    #         "UnrecognizedClientException",
+    #         "AccessDeniedException"
+    #     ]:
+    #         return None
+    #     raise
     except Exception:
         raise
 
