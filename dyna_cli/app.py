@@ -84,6 +84,9 @@ class DynCli(App):
     # action methods
 
     async def action_exit(self) -> None:
+        table = self.query_one(DataDynTable)
+        # ensure we don't have any dirty data for next time app runs
+        table.clear()
         self.app.exit()
 
     # watcher methods
