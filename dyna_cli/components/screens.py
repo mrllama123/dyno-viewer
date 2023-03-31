@@ -5,14 +5,15 @@ from textual.widgets import (
     Label,
 )
 from textual.screen import Screen
-from textual.events import Enter
+from textual.events import Key
 from textual.message import Message
 from textual.containers import Vertical
-from textual.widgets import Button
+from textual.widgets import Button, Input
 from dyna_cli.aws.session import get_all_regions
-from dyna_cli.aws.ddb import get_ddb_client
+from dyna_cli.aws.ddb import get_ddb_client, list_all_tables
 from textual import log
 from botocore.exceptions import ClientError
+from textual.reactive import reactive
 
 
 class ErrorScreen(Screen):
@@ -38,6 +39,12 @@ class ErrorScreen(Screen):
 class TableSelectScreen(Screen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
 
+    tables = []
+
+    dyn_client = reactive(get_ddb_client())
+
+    next_token = reactive(None)
+
     class TableName(Message):
         """pass back what table was selected"""
 
@@ -46,22 +53,53 @@ class TableSelectScreen(Screen):
             super().__init__()
 
     def compose(self) -> ComposeResult:
+        yield Vertical(Input(placeholder="Search for table"), ListView())
 
-        dyn_client = self.parent.dyn_client
-        dynamodb_tables = dyn_client.list_tables()["TableNames"]
-        # to fix error msg:
-        # ResourceWarning: unclosed <ssl.SSLSocket fd=7, family=AddressFamily.AF_INET, type=SocketKind.SOCK_STREAM, proto=6, laddr=('...', 55498), raddr=('...', 443)>
-        dyn_client.close()
+    def update_tables(self):
+        if self.next_token:
+            dynamodb_tables, next_token = list_all_tables(
+                self.dyn_client,
+                Limit=10,
+                ExclusiveStartTableName=self.next_token,
+                paginate=False,
+            )
+        else:
+            dynamodb_tables, next_token = list_all_tables(
+                self.dyn_client, Limit=10, paginate=False
+            )
 
+        self.next_token = next_token
+        self.tables.extend(dynamodb_tables)
 
-        yield ListView(
-            *[ListItem(Label(table), id=table) for table in dynamodb_tables],
-            id="dynTablesSelect",
-        )
+    # on methods
 
-    async def on_list_view_selected(self, selected) -> None:
-        self.post_message(self.TableName(selected.item.id))
-        self.app.pop_screen()
+    def on_input_changed(self, changed: Input.Changed) -> None:
+        # TODO make the matching more smarter
+        match_tables = [table for table in self.tables if changed.value in table]
+
+        if len(match_tables) == 0:
+            self.update_tables()
+
+        list_view = self.query_one(ListView)
+        list_view.clear()
+        for matched_table in match_tables:
+            list_view.append(ListItem(Label(matched_table), id=matched_table))
+
+    def on_input_submitted(self, submitted: Input.Submitted) -> None:
+        if submitted.value in self.tables:
+            self.post_message(self.TableName(submitted.value))
+            self.app.pop_screen()
+
+    async def on_list_view_selected(self, selected: ListView.Selected) -> None:
+        input = self.query_one(Input)
+        input.value = selected.item.id
+
+    # watch methods
+
+    async def watch_dyn_client(self, new_dyn_client) -> None:
+        self.update_tables()
+        list_view = self.query_one(ListView)
+        list_view.clear()
 
 
 class RegionSelectScreen(Screen):
@@ -79,8 +117,6 @@ class RegionSelectScreen(Screen):
             *[ListItem(Label(region), id=region) for region in get_all_regions()],
             id="regions",
         )
-
-
 
     async def on_list_view_selected(self, selected) -> None:
         self.post_message(self.RegionSelected(selected.item.id))

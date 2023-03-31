@@ -75,6 +75,23 @@ def get_ddb_client(client=None, region_name="ap-southeast-2", profile_name="defa
     )
 
 
+def list_all_tables(client, paginate=True, **kwargs):
+    ddb_client = get_ddb_client(client)
+    tables = []
+    result = ddb_client.list_tables(**kwargs)
+    tables.extend(result["TableNames"])
+
+    if paginate:
+        while "LastEvaluatedTableName" in result:
+            tables.extend(result["TableNames"])
+            result = ddb_client.list_tables(
+                **kwargs, ExclusiveStartTableName=result["LastEvaluatedTableName"]
+            )
+
+        return tables
+    return tables, result.get("LastEvaluatedTableName")
+
+
 def get_item(table, item_key, return_none=False, consistent_read=False):
     """
     Get an item using the item key.

@@ -4,7 +4,11 @@ from textual.widgets import (
 )
 from textual.reactive import reactive
 from dyna_cli.aws.session import get_available_profiles
-from dyna_cli.aws.ddb import scan_items, get_ddb_client, get_table_client
+from dyna_cli.aws.ddb import (
+    scan_items,
+    get_ddb_client,
+    get_table_client
+)
 from dyna_cli.components.screens import (
     ProfileSelectScreen,
     RegionSelectScreen,
@@ -41,8 +45,6 @@ class DynCli(App):
 
     dyn_client = reactive(get_ddb_client())
 
-    aws_account_tables = reactive(None)
-
     def compose(self) -> ComposeResult:
         yield Footer()
         yield DataDynTable()
@@ -61,7 +63,6 @@ class DynCli(App):
         self.aws_region = selected_region.region
         self.dyn_client = get_ddb_client(selected_region.region, self.aws_profile)
         self.update_table_client()
-
 
     async def on_table_select_screen_table_name(
         self,
@@ -90,7 +91,6 @@ class DynCli(App):
 
     def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
-        log(self.tree)
         table = self.query_one(DataDynTable)
         table.clear(columns=True)
         if new_table_client:
@@ -98,6 +98,10 @@ class DynCli(App):
             results, next_token = scan_items(new_table_client, paginate=False, Limit=10)
             table.add_columns(results)
             table.add_rows(results)
+
+    def watch_dyn_client(self, new_dyn_client):
+        with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):
+            self.SCREENS["tableSelect"].dyn_client = new_dyn_client
 
 
 def main() -> None:
