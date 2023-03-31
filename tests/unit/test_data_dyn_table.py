@@ -2,6 +2,7 @@ from textual.app import App, ComposeResult
 from textual import events
 from dyna_cli.components.table import DataDynTable
 import pytest
+import json
 
 
 class DataDynTableApp(App[None]):
@@ -29,16 +30,16 @@ class DataDynTableApp(App[None]):
         ],
         [
             {"pk": "customer#12345", "sk": "CUSTOMER"},
-            {"pk": "customer#54321", "sk": ""},
+            {"pk": "customer#54321", "sk": "", "testAttr": True},
         ],
     ],
 )
-async def test_pk_sk_data(data) -> None:
+async def test_pk_sk_data(data, snapshot) -> None:
     async with DataDynTableApp(data).run_test() as pilot:
         table: DataDynTable = pilot.app.query_one(DataDynTable)
         assert table.row_count == len(data)
-        for i, data_row in enumerate(data):
-            assert table.get_row_at(i) == list(data_row.values())
+        table_rows = [table.get_row_at(i) for i in range(0, len(data))]
+        snapshot.assert_match(json.dumps(table_rows, indent=2), "data_rows.json")
 
 
 @pytest.mark.parametrize(
@@ -69,14 +70,23 @@ async def test_pk_sk_data(data) -> None:
                 "gsisk3": "ACCOUNT3",
             },
         ],
+        [
+            {
+                "pk": "customer#12345",
+                "sk": "CUSTOMER",
+                "gsipk1": "account#123",
+                "gsisk1": "ACCOUNT",
+                "locked": True
+            },
+            {"pk": "customer#54321", "sk": "CUSTOMER"},
+        ],
     ],
 )
-async def test_pk_sk__gsi_data(data) -> None:
+async def test_pk_sk_gsi_data(data, snapshot) -> None:
     async with DataDynTableApp(data).run_test() as pilot:
         table: DataDynTable = pilot.app.query_one(DataDynTable)
+
         assert table.row_count == len(data)
-        for i, data_row in enumerate(data):
-            table_row = table.get_row_at(i)
-            table.get_row
-            for v  in data_row.values():
-                assert v in table_row
+
+        table_rows = [table.get_row_at(i) for i in range(0, len(data))]
+        snapshot.assert_match(json.dumps(table_rows, indent=2), "data_rows.json")

@@ -1750,6 +1750,21 @@ docs = ["sphinx (>=5.3)", "sphinx-rtd-theme (>=1.0)"]
 testing = ["coverage (>=6.2)", "flaky (>=3.5.0)", "hypothesis (>=5.7.1)", "mypy (>=0.931)", "pytest-trio (>=0.7.0)"]
 
 [[package]]
+name = "pytest-snapshot"
+version = "0.9.0"
+description = "A plugin for snapshot testing with pytest."
+category = "dev"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "pytest-snapshot-0.9.0.tar.gz", hash = "sha256:c7013c3abc3e860f9feff899f8b4debe3708650d8d8242a61bf2625ff64db7f3"},
+    {file = "pytest_snapshot-0.9.0-py3-none-any.whl", hash = "sha256:4b9fe1c21c868fe53a545e4e3184d36bc1c88946e3f5c1d9dd676962a9b3d4ab"},
+]
+
+[package.dependencies]
+pytest = ">=3.0.0"
+
+[[package]]
 name = "python-dateutil"
 version = "2.8.2"
 description = "Extensions to the standard Python datetime module"
@@ -2498,4 +2513,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "29c53e5df51e9c9c699fc678e265638169b4004c5ddbb92671f14d643f3a511f"
+content-hash = "2d7c6324d514e95224fbb1b9e9931a2f1a638260120543103ebd16119ab45597"
