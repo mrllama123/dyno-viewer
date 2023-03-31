@@ -5,6 +5,7 @@ from textual import log
 
 
 class DataDynTable(DataTable):
+    # TODO need to use config instead for pks and gsi keys
     PRIMARY_KEY = "pk"
     SORTKEY = "sk"
 
