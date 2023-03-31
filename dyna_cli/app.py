@@ -13,7 +13,6 @@ from dyna_cli.components.screens import (
     ProfileSelectScreen,
     RegionSelectScreen,
     TableSelectScreen,
-    ErrorScreen,
 )
 from dyna_cli.components.table import DataDynTable
 from textual import log
