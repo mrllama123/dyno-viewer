@@ -26,14 +26,6 @@ def get_logger():
 
 logger = get_logger()
 
-AWSHELPER_FORCE_USE_ISO = bool(os.getenv("AWSHELPER_FORCE_USE_ISO", False))
-
-
-def batch(payloads, max_submit):
-    """batch payload items to get over api limits"""
-    for i in range(0, len(payloads), max_submit):
-        yield payloads[i : i + max_submit]
-
 
 def get_table(table_name, region_name, profile_name):
     client = get_dyn_resource(region_name, profile_name).Table(table_name)

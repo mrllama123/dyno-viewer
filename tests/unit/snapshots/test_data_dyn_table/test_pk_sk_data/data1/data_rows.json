@@ -1,0 +1,12 @@
+[
+  [
+    "customer#12345",
+    "CUSTOMER",
+    null
+  ],
+  [
+    "customer#54321",
+    "",
+    true
+  ]
+]
