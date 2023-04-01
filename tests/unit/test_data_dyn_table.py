@@ -76,7 +76,7 @@ async def test_pk_sk_data(data, snapshot) -> None:
                 "sk": "CUSTOMER",
                 "gsipk1": "account#123",
                 "gsisk1": "ACCOUNT",
-                "locked": True
+                "locked": True,
             },
             {"pk": "customer#54321", "sk": "CUSTOMER"},
         ],
@@ -90,3 +90,20 @@ async def test_pk_sk_gsi_data(data, snapshot) -> None:
 
         table_rows = [table.get_row_at(i) for i in range(0, len(data))]
         snapshot.assert_match(json.dumps(table_rows, indent=2), "data_rows.json")
+
+
+@pytest.mark.parametrize(
+    "data",
+    [
+        [],
+        [
+            {},
+        ],
+    ],
+)
+async def test_empty_data(data) -> None:
+    async with App().run_test() as pilot:
+        await pilot.app.mount(DataDynTable())
+        table = pilot.app.query_one(DataDynTable)
+        with pytest.raises(Exception):
+            table.add_columns(data)

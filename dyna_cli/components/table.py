@@ -5,7 +5,7 @@ from textual import log
 
 
 class DataDynTable(DataTable):
-    # TODO need to use config instead for pks and gsi keys
+    # TODO need to use config instead on hardcoded values
     PRIMARY_KEY = "pk"
     SORTKEY = "sk"
 
@@ -15,6 +15,9 @@ class DataDynTable(DataTable):
 
     def add_columns(self, dyn_data: list[dict]) -> list[any]:
         cols = {attr for item in dyn_data for attr in item.keys()}
+
+        if len(cols) == 0:
+            raise Exception("no col keys found")
 
         log("gsi's:", self.GSIS)
 
