@@ -51,13 +51,13 @@ def get_dyn_resource(region_name, profile_name):
     )
 
 
-def get_table_client(table, region_name="ap-southeast-2", profile_name="default"):
+def get_table_client(table, region_name="ap-southeast-2", profile_name=None):
     return (
         get_table(table, region_name, profile_name) if isinstance(table, str) else table
     )
 
 
-def get_ddb_client(client=None, region_name="ap-southeast-2", profile_name="default"):
+def get_ddb_client(client=None, region_name="ap-southeast-2", profile_name=None):
     return (
         client
         if client
