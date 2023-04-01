@@ -23,7 +23,7 @@ def screen_app():
 
 async def test_list_profiles(iam, screen_app, mocker):
     mocker.patch(
-        "dyna_cli.aws.session.get_available_profiles",
+        "dyna_cli.components.screens.profile_select.get_available_profiles",
         return_value=["default", "dev", "test"],
     )
     async with screen_app().run_test() as pilot:
@@ -32,3 +32,34 @@ async def test_list_profiles(iam, screen_app, mocker):
         list_view = pilot.app.query_one(ListView)
         profiles = [item.id for item in list_view.children]
         assert profiles == ["default", "dev", "test"]
+
+
+async def test_select_profiles(iam, screen_app, mocker):
+    mocker.patch(
+        "dyna_cli.components.screens.profile_select.get_available_profiles",
+        return_value=["default", "dev", "test"],
+    )
+    async with screen_app().run_test() as pilot:
+        await pilot.app.push_screen("profile")
+
+        list_view = pilot.app.query_one(ListView)
+
+        assert pilot.app.SCREENS["profile"].is_current
+
+        await pilot.press("tab")
+
+        assert list_view.index == 0
+
+        await pilot.press("down")
+
+        assert list_view.index == 1
+        await pilot.press("down")
+
+        assert list_view.index == 2
+
+        await pilot.press("enter")
+
+        assert pilot.app.profile == "test"
+
+        assert not pilot.app.SCREENS["profile"].is_current
+        
