@@ -1,28 +1,29 @@
-import sys
-
-import pytest
-
-from textual.app import App, ScreenStackError, ComposeResult
+from textual.app import App
 from textual.screen import Screen
 from textual.widgets import ListView, Label
 from dyna_cli.components.screens.region_select import RegionSelectScreen
 from textual.reactive import reactive
+import pytest
 
 
-class ScreensApp(App[None]):
-    SCREENS = {"regionSelect": RegionSelectScreen()}
 
-    region = reactive("")
+@pytest.fixture()
+def screen_app():
+    class ScreensApp(App[None]):
+        SCREENS = {"regionSelect": RegionSelectScreen()}
 
-    async def on_region_select_screen_region_selected(
-        self, selected_region: RegionSelectScreen.RegionSelected
-    ) -> None:
-        self.region = selected_region.region
-    
+        region = reactive("")
+
+        async def on_region_select_screen_region_selected(
+            self, selected_region: RegionSelectScreen.RegionSelected
+        ) -> None:
+            self.region = selected_region.region
+
+    return ScreensApp
 
 
-async def test_list_regions(iam):
-    async with ScreensApp().run_test() as pilot:
+async def test_list_regions(iam, screen_app):
+    async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("regionSelect")
 
         list_view: ListView = pilot.app.query_one(ListView)
@@ -57,28 +58,17 @@ async def test_list_regions(iam):
             "us-west-2",
         ]
 
+
 # @pytest.mark.asyncio
-async def test_select_region(iam):
-
-    class ScreensApp(App[None]):
-        SCREENS = {"regionSelect": RegionSelectScreen()}
-
-        region = reactive("")
-
-        async def on_region_select_screen_region_selected(
-            self, selected_region: RegionSelectScreen.RegionSelected
-        ) -> None:
-            self.region = selected_region.region
-        
-
-    async with ScreensApp().run_test() as pilot:
+async def test_select_region(iam, screen_app):
+    async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("regionSelect")
 
         assert pilot.app.SCREENS["regionSelect"].is_current
-        
+
         await pilot.press("tab")
 
-        assert pilot.app.query_one(ListView).index  == 0
+        assert pilot.app.query_one(ListView).index == 0
 
         await pilot.press("down")
 
@@ -90,8 +80,3 @@ async def test_select_region(iam):
         assert pilot.app.region == "ap-northeast-1"
 
         assert not pilot.app.SCREENS["regionSelect"].is_current
-
-
-
-
-
