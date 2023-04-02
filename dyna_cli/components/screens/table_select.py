@@ -8,7 +8,7 @@ from textual.screen import Screen
 from textual.events import Key
 from textual.message import Message
 from textual.containers import Vertical
-from textual.widgets import  Input
+from textual.widgets import Input
 from dyna_cli.aws.ddb import get_ddb_client, list_all_tables
 from textual import log
 from textual.reactive import reactive
@@ -17,11 +17,15 @@ from textual.reactive import reactive
 class TableSelectScreen(Screen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
 
-    tables = []
-
-    dyn_client = reactive(get_ddb_client())
+    dyn_client = reactive(None)
 
     next_token = reactive(None)
+
+    def __init__(
+        self, name: str | None = None, id: str | None = None, classes: str | None = None
+    ) -> None:
+        self.tables = []
+        super().__init__(name, id, classes)
 
     class TableName(Message):
         """pass back what table was selected"""
@@ -75,10 +79,7 @@ class TableSelectScreen(Screen):
     # watch methods
 
     async def watch_dyn_client(self, new_dyn_client) -> None:
-        self.update_tables()
-        list_view = self.query_one(ListView)
-        list_view.clear()
-
-
-
-
+        if new_dyn_client:
+            self.update_tables()
+            list_view = self.query_one(ListView)
+            list_view.clear()
