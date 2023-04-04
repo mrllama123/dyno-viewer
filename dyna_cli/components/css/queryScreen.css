@@ -1,5 +1,5 @@
-/* QueryScreen  {
+QueryScreen {
     margin: 1 1;
-    layout: vertical
-
-} */
+    layout: vertical;
+    overflow-y: auto;
+}

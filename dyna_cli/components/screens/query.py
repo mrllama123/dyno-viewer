@@ -22,11 +22,10 @@ class QueryScreen(Screen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
 
     def compose(self) -> ComposeResult:
-        yield VerticalScroll(
-            QueryInput(),
-            Button("add filter", id="addFilter"),
-            Button("ok", id="sendQuery"),
-        )
+        yield QueryInput()
+        yield Button("add filter", id="addFilter")
+        yield Button("ok", id="sendQuery")
+
 
     # on methods:
     # def on_button_pressed(self, event: Button.Pressed) -> None:
