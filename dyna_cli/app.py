@@ -4,15 +4,12 @@ from textual.widgets import (
 )
 from textual.reactive import reactive
 from dyna_cli.aws.session import get_available_profiles
-from dyna_cli.aws.ddb import (
-    scan_items,
-    get_ddb_client,
-    get_table_client
-)
+from dyna_cli.aws.ddb import scan_items, get_ddb_client, get_table_client
 from dyna_cli.components.screens import (
     ProfileSelectScreen,
     RegionSelectScreen,
     TableSelectScreen,
+    QueryScreen,
 )
 from dyna_cli.components.table import DataDynTable
 from textual import log
@@ -25,11 +22,13 @@ class DynCli(App):
         ("p", "push_screen('profile')", "Profile"),
         ("t", "push_screen('tableSelect')", "Table"),
         ("r", "push_screen('regionSelect')", "Region"),
+        ("q", "push_screen('query')", "Query")
     ]
     SCREENS = {
         "tableSelect": TableSelectScreen(),
         "regionSelect": RegionSelectScreen(),
         "profile": ProfileSelectScreen(),
+        "query": QueryScreen(),
     }
 
     profiles = reactive(get_available_profiles())
