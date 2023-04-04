@@ -14,7 +14,7 @@ from textual.screen import Screen
 from textual.message import Message
 from textual.reactive import reactive
 from textual import log
-from dyna_cli.components.query_select import QueryInput
+from dyna_cli.components.query_select import QueryInput, FilterQueryInput
 
 
 
@@ -24,13 +24,11 @@ class QueryScreen(Screen):
     def compose(self) -> ComposeResult:
         yield QueryInput()
         yield Button("add filter", id="addFilter")
-        yield Button("ok", id="sendQuery")
+        # yield Button("ok", id="sendQuery")
 
 
     # on methods:
-    # def on_button_pressed(self, event: Button.Pressed) -> None:
-    #     if event.button.id == "addFilter":
-                
-    #         vertical_scroll: VerticalScroll = self.query_one(VerticalScroll)
-    #         vertical_scroll.mount(FilterInput())
-    #         vertical_scroll.scroll_visible()
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if event.button.id == "addFilter":
+            self.mount(FilterQueryInput())
+            self.scroll_visible()

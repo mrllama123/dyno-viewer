@@ -5,6 +5,7 @@ from textual.widgets import (
     Button,
     Input,
     RadioButton,
+    ContentSwitcher,
     Switch,
     RadioSet,
     Label,
@@ -52,13 +53,62 @@ class QueryInput(Widget):
                 input.display = True
 
     def on_radio_button_changed(self, changed: RadioButton.Changed):
-        print(changed.radio_button.label )
+        print(changed.radio_button.label)
         if str(changed.radio_button.label) != "table":
             # TODO pass this info from root node
             self.query_one("#rangeKey").placeholder = "gsipk1"
             self.query_one("#sortKey").placeholder = "gsisk1"
         else:
-            print("fdiuysdfiu")
             self.query_one("#rangeKey").placeholder = "pk"
             self.query_one("#sortKey").placeholder = "sk"
 
+
+class FilterQueryInput(Widget):
+    def compose(self) -> ComposeResult:
+        yield Input(placeholder="attr", id="attr")
+        yield Button("type")
+        yield RadioSet(
+            "string",
+            "number",
+            "binary",
+            "boolean",
+            "map",
+            "list",
+            "set",
+            name="type",
+            id="attrType",
+        )
+        yield Button("condition")
+        yield RadioSet(
+            "==",
+            ">",
+            "<",
+            "<=",
+            ">=",
+            "!=",
+            "between",
+            "in",
+            "attribute_exists",
+            "attribute_not_exists",
+            "attribute_type",
+            "begins_with",
+            "contains",
+            "size",
+            name="condition",
+            id="condition",
+        )
+        yield Input(placeholder="value", id="value")
+
+    #  on methods
+
+    def on_mount(self) -> None:
+        for radio_set in self.query(RadioSet):
+            radio_set.display = False
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if str(event.button.label) == "type":
+            button = self.query_one("#attrType")
+        else:
+            button = self.query_one("#condition")
+        button.display = False if button.display else True
+        self.scroll_visible()
