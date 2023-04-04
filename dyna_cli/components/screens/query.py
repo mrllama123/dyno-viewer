@@ -8,6 +8,7 @@ from textual.widgets import (
     Label,
 )
 from textual.widget import Widget
+from textual.widgets import Footer
 from textual.containers import Vertical, Horizontal, VerticalScroll, Middle
 from textual.screen import Screen
 from textual.message import Message

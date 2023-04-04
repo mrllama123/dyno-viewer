@@ -4,6 +4,7 @@ from textual.widgets import (
     ListView,
     Button,
     Input,
+    RadioButton,
     Switch,
     RadioSet,
     Label,
@@ -29,17 +30,17 @@ class QueryInput(Widget):
                 Switch(
                     name="scan",
                 ),
-                classes="scanToggle",
+                id="scanToggle",
             ),
             # OptionList("table", id="indexSelect"),
+            RadioSet(
+                "table",
+                "gsi1Index",
+            ),
             Input(placeholder="pk", id="rangeKey"),
             Input(placeholder="sk", id="sortKey"),
-            classes="queryInput",
+            id="queryInput",
         )
-
-    # def on_mount(self):
-    #     option_list: OptionList = self.query_one("#indexSelect")
-    #     option_list.add_option("gsi1Index")
 
     #  on methods
     def on_switch_changed(self, changed: Switch.Changed) -> None:
@@ -50,14 +51,14 @@ class QueryInput(Widget):
             for input in self.query(Input):
                 input.display = True
 
-    # def on_option_list_option_selected(
-    #     self, selected: OptionList.OptionSelected
-    # ) -> None:
-    #     # TODO pass this info from root node
-    #     if selected.option.prompt != "table":
-    #         self.query_one("#rangeKey").placeholder = "gsipk1"
-    #         self.query_one("#sortKey").placeholder = "gsisk1"
-    #     else:
-    #         self.query_one("#rangeKey").placeholder = "pk"
-    #         self.query_one("#sortKey").placeholder = "sk"
+    def on_radio_button_changed(self, changed: RadioButton.Changed):
+        print(changed.radio_button.label )
+        if str(changed.radio_button.label) != "table":
+            # TODO pass this info from root node
+            self.query_one("#rangeKey").placeholder = "gsipk1"
+            self.query_one("#sortKey").placeholder = "gsisk1"
+        else:
+            print("fdiuysdfiu")
+            self.query_one("#rangeKey").placeholder = "pk"
+            self.query_one("#sortKey").placeholder = "sk"
 

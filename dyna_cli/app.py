@@ -22,7 +22,7 @@ class DynCli(App):
         ("p", "push_screen('profile')", "Profile"),
         ("t", "push_screen('tableSelect')", "Table"),
         ("r", "push_screen('regionSelect')", "Region"),
-        ("q", "push_screen('query')", "Query")
+        ("q", "push_screen('query')", "Query"),
     ]
     SCREENS = {
         "tableSelect": TableSelectScreen(),
@@ -30,6 +30,8 @@ class DynCli(App):
         "profile": ProfileSelectScreen(),
         "query": QueryScreen(),
     }
+
+    CSS_PATH = ["components/css/queryInput.css", "components/css/queryScreen.css"]
 
     profiles = reactive(get_available_profiles())
 
