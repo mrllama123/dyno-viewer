@@ -105,8 +105,6 @@ class FilterQueryInput(Widget):
     def on_mount(self) -> None:
         for radio_set in self.query(RadioSet):
             radio_set.display = False
-    
-
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if str(event.button.label) == "type":
