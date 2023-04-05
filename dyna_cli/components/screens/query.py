@@ -24,7 +24,6 @@ class QueryScreen(Screen):
     def compose(self) -> ComposeResult:
         yield QueryInput()
         yield Button("add filter", id="addFilter")
-        # yield Button("ok", id="sendQuery")
 
 
     # on methods:
