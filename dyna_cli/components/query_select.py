@@ -98,6 +98,7 @@ class FilterQueryInput(Widget):
             id="condition",
         )
         yield Input(placeholder="value", id="value")
+        yield Button("remove filter", id="removeFilter")
 
     #  on methods
 
@@ -107,8 +108,13 @@ class FilterQueryInput(Widget):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if str(event.button.label) == "type":
-            button = self.query_one("#attrType")
-        else:
-            button = self.query_one("#condition")
-        button.display = False if button.display else True
-        self.scroll_visible()
+            radio_set = self.query_one("#attrType")
+            radio_set.display = False if radio_set.display else True
+            self.scroll_visible()
+        if str(event.button.label) == "condition":
+            radio_set = self.query_one("#condition")
+            radio_set.display = False if radio_set.display else True
+            self.scroll_visible()
+
+        
+        
