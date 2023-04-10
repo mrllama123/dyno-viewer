@@ -8,7 +8,7 @@ packages = [{include = "dyna_cli"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-boto3 = "^1.26.96"
+boto3 = "^1.26.109"
 simplejson = "^3.18.4"
 dynamodb-json = "^1.3"
 textual = "^0.16.0"
