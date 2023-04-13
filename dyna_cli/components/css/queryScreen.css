@@ -7,8 +7,3 @@ QueryScreen {
 QueryScreen #addFilter{
     margin: 1 1;
 }
-
-QueryScreen #sendQuery{
-    margin: 1 1;
-    dock: bottom;
-}
