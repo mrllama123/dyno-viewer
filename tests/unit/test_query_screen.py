@@ -32,14 +32,9 @@ async def test_add_filter(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
-        await pilot.press("tab")
-        await pilot.press("tab")
-        await pilot.press("tab")
-        await pilot.press("tab")
-        await pilot.press("tab")
-        await pilot.press("tab")
-        await pilot.press("enter")
-        await pilot.press("enter")
+        await type_commands(["tab" for _ in range(0,6)], pilot)
+        await type_commands(["enter", "enter"], pilot)
+
 
         filters = pilot.app.query(FilterQueryInput)
 
