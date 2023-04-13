@@ -1,0 +1,9 @@
+QueryScreen {
+    margin: 1 1;
+    layout: vertical;
+    overflow-y: auto;
+}
+
+QueryScreen Button{
+    margin: 1 1;
+}

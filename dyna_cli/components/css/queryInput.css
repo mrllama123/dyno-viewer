@@ -1,0 +1,13 @@
+QueryInput  {
+    margin: 1 1;
+    width:90%;
+    height: 16;
+    layout: vertical;
+
+}
+
+#scanToggle {
+    margin: 1 1;
+    height: 4;
+}
+
