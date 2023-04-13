@@ -24,10 +24,15 @@ class QueryScreen(Screen):
     def compose(self) -> ComposeResult:
         yield QueryInput()
         yield Button("add filter", id="addFilter")
+        yield Button("remove all filters", id="removeAllFilters")
 
 
     # on methods:
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "addFilter":
             self.mount(FilterQueryInput())
+            self.scroll_visible()
+        elif event.button.id == "removeAllFilters":
+            for filter in self.query(FilterQueryInput):
+                filter.remove()
             self.scroll_visible()

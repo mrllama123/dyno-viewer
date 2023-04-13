@@ -4,6 +4,6 @@ QueryScreen {
     overflow-y: auto;
 }
 
-QueryScreen #addFilter{
+QueryScreen Button{
     margin: 1 1;
 }
