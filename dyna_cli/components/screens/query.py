@@ -17,15 +17,22 @@ from textual import log
 from dyna_cli.components.query_select import QueryInput, FilterQueryInput
 
 
-
 class QueryScreen(Screen):
-    BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
+    BINDINGS = [
+        ("escape", "app.pop_screen", "Pop screen"),
+        (("r", "run_query", "Run Query")),
+    ]
 
     def compose(self) -> ComposeResult:
         yield QueryInput()
         yield Button("add filter", id="addFilter")
         yield Button("remove all filters", id="removeAllFilters")
 
+    # action methods
+
+    def action_run_query(self) -> None:
+        # TODO gather all query inputs and construct dynamodb scan or query
+        self.app.pop_screen()
 
     # on methods:
     def on_button_pressed(self, event: Button.Pressed) -> None:
