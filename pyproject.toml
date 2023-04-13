@@ -8,19 +8,19 @@ packages = [{include = "dyna_cli"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-boto3 = "^1.26.96"
-simplejson = "^3.18.4"
+boto3 = "^1.26.112"
+simplejson = "^3.19.1"
 dynamodb-json = "^1.3"
 textual = "^0.16.0"
 
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.1.0"
+black = "^23.3.0"
 ipykernel = "^6.22.0"
-pyinstaller = {version = "^5.9.0", python = ">=3.9,<3.12"}
+pyinstaller = {version = "^5.10.0", python = ">=3.9,<3.12"}
 textual = {extras = ["dev"], version = "^0.16.0"}
-pytest = "^7.2.2"
-moto = {extras = ["all"], version = "^4.1.6"}
+pytest = "^7.3.0"
+moto = {extras = ["all"], version = "^4.1.7"}
 pytest-aiohttp = "^1.0.4"
 pytest-snapshot = "^0.9.0"
 pandas = "^1.5.3"
