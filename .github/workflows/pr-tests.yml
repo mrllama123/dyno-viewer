@@ -17,6 +17,5 @@ jobs:
         with:
           python-version: "3.10"
       - run: poetry install
-      - name: Test with pytest
-        run: |
-          pytest
+      - run:  poetry run pytest
+
