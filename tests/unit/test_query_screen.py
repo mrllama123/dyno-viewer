@@ -41,7 +41,7 @@ async def test_add_filter(screen_app):
         assert len(filters) == 2
 
 
-async def test_add_filter(screen_app):
+async def test_remove_all_filters(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
