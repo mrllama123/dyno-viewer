@@ -12,6 +12,8 @@ from textual.widgets import Input
 from dyna_cli.aws.ddb import get_ddb_client, list_all_tables
 from textual import log
 from textual.reactive import reactive
+from textual import work
+from textual.worker import get_current_worker
 
 
 class TableSelectScreen(Screen):
@@ -37,25 +39,30 @@ class TableSelectScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Vertical(Input(placeholder="Search for table"), ListView())
 
+    @work(exclusive=True)
     def update_tables(self):
-        if self.next_token:
-            dynamodb_tables, next_token = list_all_tables(
-                self.dyn_client,
-                Limit=10,
-                ExclusiveStartTableName=self.next_token,
-                paginate=False,
-            )
-        else:
-            dynamodb_tables, next_token = list_all_tables(
-                self.dyn_client, Limit=10, paginate=False
-            )
-
-        self.next_token = next_token
-        self.tables.extend(dynamodb_tables)
+        worker = get_current_worker()
+        if not worker.is_cancelled:
+            if self.next_token:
+                dynamodb_tables, next_token = list_all_tables(
+                    self.dyn_client,
+                    Limit=10,
+                    ExclusiveStartTableName=self.next_token,
+                    paginate=False,
+                )
+            else:
+                dynamodb_tables, next_token = list_all_tables(
+                    self.dyn_client, Limit=10, paginate=False
+                )
+            def update_next_token(self, next_token):
+                self.next_token = next_token
+            self.app.call_from_thread(update_next_token, self, next_token)
+            self.app.call_from_thread(self.tables.extend, dynamodb_tables)
+    
 
     # on methods
 
-    def on_input_changed(self, changed: Input.Changed) -> None:
+    async def on_input_changed(self, changed: Input.Changed) -> None:
         # TODO make the matching more smarter
         match_tables = [table for table in self.tables if changed.value in table]
 

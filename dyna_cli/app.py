@@ -12,6 +12,8 @@ from dyna_cli.components.screens import (
     QueryScreen,
 )
 from dyna_cli.components.table import DataDynTable
+from textual.worker import get_current_worker
+from textual import work
 from textual import log
 from botocore.exceptions import ClientError
 
@@ -59,6 +61,17 @@ class DynCli(App):
                 self.table_name, self.aws_region, self.aws_profile
             )
 
+    @work(exclusive=True)
+    def full_update_data_table(self, table_client) -> None:
+        table = self.query_one(DataDynTable)
+        worker = get_current_worker()
+        if not worker.is_cancelled:
+            self.call_from_thread(table.clear, columns=True)
+            
+            results, next_token = scan_items(table_client, paginate=False, Limit=10)
+            self.call_from_thread(table.add_columns, results)
+            self.call_from_thread(table.add_rows, results)
+
     # on methods
 
     async def on_region_select_screen_region_selected(
@@ -96,15 +109,12 @@ class DynCli(App):
 
     # watcher methods
 
-    def watch_table_client(self, new_table_client) -> None:
+    async def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
-        table = self.query_one(DataDynTable)
-        table.clear(columns=True)
         if new_table_client:
             # TODO make this more extendable i.e query's, gsi lookups
-            results, next_token = scan_items(new_table_client, paginate=False, Limit=10)
-            table.add_columns(results)
-            table.add_rows(results)
+            self.full_update_data_table(new_table_client)
+    
 
     def watch_dyn_client(self, new_dyn_client):
         with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):
