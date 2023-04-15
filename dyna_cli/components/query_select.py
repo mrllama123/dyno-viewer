@@ -33,43 +33,40 @@ class QueryInput(Widget):
                 ),
                 id="scanToggle",
             ),
-            RadioSet(
-                "table",
-                "gsi1Index",
-                id="queryIndex"
-            ),
-            Input(placeholder="pk", id="rangeKey"),
+            RadioSet("table", "gsi1Index", id="queryIndex"),
+            Input(placeholder="pk", id="partitionKey"),
             FilterQueryInput(id="sortKeyFilter"),
             id="queryInput",
         )
 
     #  on methods
     def on_switch_changed(self, changed: Switch.Changed) -> None:
+        input = self.query_one("#partitionKey")
+        sort_key = self.query_one("#sortKeyFilter")
         if changed.value:
-            for input in self.query(Input):
-                input.display = False
+            input.display = False
+            sort_key.display = False
         else:
-            for input in self.query(Input):
-                input.display = True
+            sort_key.display = True
+            input.display = True
 
-    def on_radio_button_changed(self, changed: RadioButton.Changed):
-        print(changed.radio_button.label)
-        if str(changed.radio_button.label) != "table":
+    def on_radio_set_changed(self, changed: RadioSet.Changed):
+        radio_button = changed.radio_set.pressed_button
+        if str(radio_button.label) != "table":
             # TODO pass this info from root node
-            self.query_one("#rangeKey").placeholder = "gsipk1"
-            self.query_one("#sortKey").placeholder = "gsisk1"
+            self.query_one("#partitionKey").placeholder = "gsipk1"
+            self.query_one("#sortKeyFilter").attr_name = "gsisk1"
         else:
-            self.query_one("#rangeKey").placeholder = "pk"
-            self.query_one("#sortKey").placeholder = "sk"
+            
+            self.query_one("#partitionKey").placeholder = "pk"
+            self.query_one("#sortKeyFilter").attr_name = "sk"
 
 
 class FilterQueryInput(Widget):
-
-    attr_name = reactive(None)
- 
+    attr_name = reactive(None, layout=True)
 
     def compose(self) -> ComposeResult:
-        yield Input(placeholder="attr", id="attr", value=self.attr_name, disabled=self.id == "sortKeyFilter")
+        yield Input(placeholder="attr", id="attr", disabled=self.id == "sortKeyFilter")
         yield Button("type")
         yield RadioSet(
             "string",
@@ -122,3 +119,7 @@ class FilterQueryInput(Widget):
             self.scroll_visible()
         if event.button.id == "removeFilter":
             self.remove()
+
+    # watch methods
+    def watch_attr_name(self, new_attr_name: str) -> None:
+        self.query_one("#attr").value = new_attr_name
