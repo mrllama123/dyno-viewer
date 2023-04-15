@@ -23,6 +23,18 @@ class QueryScreen(Screen):
         (("r", "run_query", "Run Query")),
     ]
 
+    class QueryMessage(Message):
+        """
+        custom message to send back to root screen that has all query
+
+        """
+
+        def __init__(
+            self, filters: list[FilterQueryInput], keys: dict[str] | None = None
+        ) -> None:
+            self.KeyConditionExpression = keys
+            super().__init__()
+
     def compose(self) -> ComposeResult:
         yield QueryInput()
         yield Button("add filter", id="addFilter")
@@ -41,5 +53,6 @@ class QueryScreen(Screen):
             self.scroll_visible()
         elif event.button.id == "removeAllFilters":
             for filter in self.query(FilterQueryInput):
-                filter.remove()
+                if filter.id != "sortKeyFilter":   
+                    filter.remove()
             self.scroll_visible()

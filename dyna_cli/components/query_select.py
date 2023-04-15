@@ -25,7 +25,7 @@ class QueryInput(Widget):
     gsi_indexes = reactive([])
 
     def compose(self) -> ComposeResult:
-        yield Vertical(
+        yield VerticalScroll(
             Horizontal(
                 Label("Scan "),
                 Switch(
@@ -33,13 +33,13 @@ class QueryInput(Widget):
                 ),
                 id="scanToggle",
             ),
-            # OptionList("table", id="indexSelect"),
             RadioSet(
                 "table",
                 "gsi1Index",
+                id="queryIndex"
             ),
             Input(placeholder="pk", id="rangeKey"),
-            Input(placeholder="sk", id="sortKey"),
+            FilterQueryInput(id="sortKeyFilter"),
             id="queryInput",
         )
 
@@ -64,8 +64,12 @@ class QueryInput(Widget):
 
 
 class FilterQueryInput(Widget):
+
+    attr_name = reactive(None)
+ 
+
     def compose(self) -> ComposeResult:
-        yield Input(placeholder="attr", id="attr")
+        yield Input(placeholder="attr", id="attr", value=self.attr_name, disabled=self.id == "sortKeyFilter")
         yield Button("type")
         yield RadioSet(
             "string",
@@ -98,7 +102,8 @@ class FilterQueryInput(Widget):
             id="condition",
         )
         yield Input(placeholder="value", id="value")
-        yield Button("remove filter", id="removeFilter")
+        if self.id != "sortKeyFilter":
+            yield Button("remove filter", id="removeFilter")
 
     #  on methods
 
