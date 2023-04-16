@@ -15,7 +15,7 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual import log
 from dyna_cli.components.query_select import QueryInput, FilterQueryInput
-
+from boto3.dynamodb.conditions import Key, Attr, BeginsWith
 
 class QueryScreen(Screen):
     BINDINGS = [
@@ -30,9 +30,17 @@ class QueryScreen(Screen):
         """
 
         def __init__(
-            self, filters: list[FilterQueryInput], keys: dict[str] | None = None
+            self, filters: list[FilterQueryInput], primary_key: tuple[str, str], sort_key: FilterQueryInput
         ) -> None:
-            self.KeyConditionExpression = keys
+            primary_key_name, primary_key_value = primary_key
+            sort_key_value = sort_key.query_one("#value")
+            self.KeyConditionExpression = Key(primary_key_name).eq(primary_key_value)
+
+            if not sort_key_value.value:
+                sort_key_name = sort_key.query_one("#attr")
+                BeginsWith()
+                self.KeyConditionExpression = self.KeyConditionExpression & Key(sort_key_name.value)
+            
             super().__init__()
 
     def compose(self) -> ComposeResult:
