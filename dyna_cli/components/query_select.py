@@ -35,7 +35,7 @@ class QueryInput(Widget):
             ),
             RadioSet("table", "gsi1Index", id="queryIndex"),
             Input(placeholder="pk", id="partitionKey"),
-            FilterQueryInput(id="sortKeyFilter"),
+            SortKeyFilter(id="sortKeyFilter"),
             id="queryInput",
         )
 
@@ -63,10 +63,8 @@ class QueryInput(Widget):
 
 
 class FilterQueryInput(Widget):
-    attr_name = reactive(None, layout=True)
-
     def compose(self) -> ComposeResult:
-        yield Input(placeholder="attr", id="attr", disabled=self.id == "sortKeyFilter")
+        yield Input(placeholder="attr", id="attr")
         yield Button("type")
         yield RadioSet(
             "string",
@@ -120,6 +118,61 @@ class FilterQueryInput(Widget):
         if event.button.id == "removeFilter":
             self.remove()
 
+ 
+
+class SortKeyFilter(Widget):
+    attr_name = reactive(None, layout=True)
+
+    def compose(self) -> ComposeResult:
+        yield Input(placeholder="attr", id="attr", disabled=self.id == "sortKeyFilter")
+        yield Button("type")
+        yield RadioSet(
+            "string",
+            "number",
+            "binary",
+            "boolean",
+            "map",
+            "list",
+            "set",
+            name="type",
+            id="attrType",
+        )
+        yield Button("condition")
+        yield RadioSet(
+            "==",
+            ">",
+            "<",
+            "<=",
+            ">=",
+            "between",
+            "begins_with",
+            name="condition",
+            id="condition",
+        )
+        yield Input(placeholder="value", id="value")
+        if self.id != "sortKeyFilter":
+            yield Button("remove filter", id="removeFilter")
+
+    #  on methods
+
+    def on_mount(self) -> None:
+        for radio_set in self.query(RadioSet):
+            radio_set.display = False
+
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if str(event.button.label) == "type":
+            radio_set = self.query_one("#attrType")
+            radio_set.display = False if radio_set.display else True
+            self.scroll_visible()
+        if str(event.button.label) == "condition":
+            radio_set = self.query_one("#condition")
+            radio_set.display = False if radio_set.display else True
+            self.scroll_visible()
+        if event.button.id == "removeFilter":
+            self.remove()
+
     # watch methods
     def watch_attr_name(self, new_attr_name: str) -> None:
         self.query_one("#attr").value = new_attr_name
+
+
