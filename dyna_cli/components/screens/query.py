@@ -6,6 +6,7 @@ from textual.widgets import (
     Input,
     Switch,
     Label,
+    RadioSet
 )
 from textual.widget import Widget
 from textual.widgets import Footer
@@ -15,7 +16,8 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual import log
 from dyna_cli.components.query_select import QueryInput, FilterQueryInput
-from boto3.dynamodb.conditions import Key, Attr, BeginsWith
+from boto3.dynamodb.conditions import Key 
+from dyna_cli.aws.ddb import convert_filter_exp_key_cond
 
 class QueryScreen(Screen):
     BINDINGS = [
@@ -33,13 +35,14 @@ class QueryScreen(Screen):
             self, filters: list[FilterQueryInput], primary_key: tuple[str, str], sort_key: FilterQueryInput
         ) -> None:
             primary_key_name, primary_key_value = primary_key
-            sort_key_value = sort_key.query_one("#value")
             self.KeyConditionExpression = Key(primary_key_name).eq(primary_key_value)
 
-            if not sort_key_value.value:
-                sort_key_name = sort_key.query_one("#attr")
-                BeginsWith()
-                self.KeyConditionExpression = self.KeyConditionExpression & Key(sort_key_name.value)
+            if all(radio for radio in sort_key.query(RadioSet) if radio.pressed_button):
+                sort_key_name = sort_key.query_one("#attr").value
+                sort_key_value = sort_key.query_one("#value").value
+                value_type =  sort_key.query_one("#attrType").pressed_button.value
+                cond = sort_key.query_one("#condition").pressed_button.value
+                self.KeyConditionExpression = self.KeyConditionExpression & convert_filter_exp_key_cond(cond, sort_key_name, )
             
             super().__init__()
 

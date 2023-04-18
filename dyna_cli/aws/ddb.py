@@ -10,6 +10,7 @@ from dynamodb_json import json_util as dyn_json
 
 from boto3.session import Session
 from botocore.exceptions import ClientError
+from decimal import Decimal
 
 
 LOG_LEVEL = logging.INFO
@@ -247,6 +248,12 @@ def convert_filter_exp_attr_cond(cond, attr_name, value=None) -> Attr:
         return Attr(attr_name).size()
 
     raise Exception("passed incorrect condition for key filter expression")
+
+
+def convert_filter_exp_value(value, type):
+    if type == "number":
+        return Decimal(value)
+    
 
 
 def float_to_decimal(payload):
