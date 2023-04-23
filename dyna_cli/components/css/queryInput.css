@@ -10,3 +10,7 @@ QueryInput  {
     height: 4;
 }
 
+#queryIndex {
+    height: 5;
+    margin: 1 1;
+}

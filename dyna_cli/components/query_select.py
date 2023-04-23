@@ -6,6 +6,7 @@ from textual.widgets import (
     Input,
     RadioButton,
     ContentSwitcher,
+    OptionList,
     Switch,
     RadioSet,
     Label,
@@ -20,23 +21,21 @@ from textual import log
 
 
 class KeyQueryInput(Widget):
-    index_mode = reactive("")
+    index_mode = reactive("table")
 
-    gsi_indexes = reactive([])
+    gsi_indexes = reactive({})
 
-    partition_key_attr_name = reactive("") 
+    partition_key_attr_name = reactive("")
+    sort_key_attr_name = reactive("")
 
     def compose(self) -> ComposeResult:
         yield VerticalScroll(
             Horizontal(
                 Label("Scan "),
-                Switch(
-                    name="scan",
-                    id="scanToggleSwitch"
-                ),
+                Switch(name="scan", id="scanToggleSwitch"),
                 id="scanToggle",
             ),
-            RadioSet("table", "gsi1Index", id="queryIndex"),
+            OptionList("table", id="queryIndex"),
             Input(placeholder="pk", id="partitionKey"),
             SortKeyFilter(id="sortKeyFilter"),
             id="queryInput",
@@ -53,16 +52,37 @@ class KeyQueryInput(Widget):
             sort_key.display = True
             input.display = True
 
-    def on_radio_set_changed(self, changed: RadioSet.Changed):
-        radio_button = changed.radio_set.pressed_button
-        if str(radio_button.label) != "table":
-            # TODO pass this info from root node
-            self.query_one("#partitionKey").placeholder = "gsipk1"
-            self.query_one("#sortKeyFilter").attr_name = "gsisk1"
+    def on_option_list_option_selected(self, selected: OptionList.OptionSelected):
+        self.index_mode = selected.option.prompt
+        if selected.option.prompt != "table":
+            self.query_one("#partitionKey").placeholder = self.gsi_indexes[
+                selected.option.prompt
+            ]["primaryKey"]
+            self.query_one("#sortKeyFilter").attr_name = self.gsi_indexes[
+                selected.option.prompt
+            ]["sortKey"]
+            
         else:
             
-            self.query_one("#partitionKey").placeholder = "pk"
-            self.query_one("#sortKeyFilter").attr_name = "sk"
+            self.query_one("#partitionKey").placeholder = self.partition_key_attr_name
+            self.query_one("#sortKeyFilter").attr_name = self.sort_key_attr_name
+
+    # watch methods
+
+    def watch_gsi_indexes(self, new_gsi_indexes) -> None:
+        if new_gsi_indexes:
+            option_list: OptionList = self.query_one("#queryIndex")
+            option_list.clear_options()
+            for option in ["table", *list(new_gsi_indexes.keys())]:
+                option_list.add_option(option)
+
+    def watch_partition_key_attr_name(self, new_partition_key_attr_name) -> None:
+        if new_partition_key_attr_name:
+            self.query_one("#partitionKey").placeholder = new_partition_key_attr_name
+
+    def watch_sort_key_attr_name(self, sort_key_attr_name) -> None:
+        if sort_key_attr_name:
+            self.query_one("#sortKeyFilter").attr_name = sort_key_attr_name
 
 
 class FilterQueryInput(Widget):
@@ -121,13 +141,12 @@ class FilterQueryInput(Widget):
         if event.button.id == "removeFilter":
             self.remove()
 
- 
 
 class SortKeyFilter(Widget):
-    attr_name = reactive(None, layout=True)
+    attr_name = reactive("", layout=True)
 
     def compose(self) -> ComposeResult:
-        yield Input(placeholder="attr", id="attr", disabled=self.id == "sortKeyFilter")
+        yield Input(value=self.attr_name, id="attr", disabled=True)
         yield Button("type")
         yield RadioSet(
             "string",
@@ -176,6 +195,5 @@ class SortKeyFilter(Widget):
 
     # watch methods
     def watch_attr_name(self, new_attr_name: str) -> None:
-        self.query_one("#attr").value = new_attr_name
-
-
+        if new_attr_name:
+            self.query_one("#attr").value = new_attr_name
