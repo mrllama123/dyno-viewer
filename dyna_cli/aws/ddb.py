@@ -1,16 +1,15 @@
 import logging
-import os
-import functools
+
 import simplejson as json
 from decimal import Decimal as D
 
-import boto3
 from boto3.dynamodb.conditions import Attr, Key
 from dynamodb_json import json_util as dyn_json
 
 from boto3.session import Session
 from botocore.exceptions import ClientError
 from decimal import Decimal
+import re
 
 
 LOG_LEVEL = logging.INFO
@@ -250,9 +249,20 @@ def convert_filter_exp_attr_cond(cond, attr_name, value=None) -> Attr:
     raise Exception("passed incorrect condition for key filter expression")
 
 
-def convert_filter_exp_value(value, type):
+def convert_filter_exp_value(value: str, type: str):
     if type == "number":
         return Decimal(value)
+    elif type == "list":
+        return list(value)
+    elif type == "map":
+        return json.loads(value)
+    elif type == "boolean":
+        return bool(value)
+    elif type == "set":
+        value_formatted = re.sub(r"[\(\)]", "", value)
+        return set(value_formatted.split(","))
+    else:
+        return value
     
 
 
