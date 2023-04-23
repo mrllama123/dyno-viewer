@@ -2,7 +2,7 @@ from textual.app import App, ComposeResult
 from textual import events
 from textual.pilot import Pilot
 from dyna_cli.components.screens import QueryScreen
-from dyna_cli.components.query_select import KeyQueryInput, FilterQueryInput
+from dyna_cli.components.query_select import FilterQueryInput
 from textual.widgets import Input, Button, RadioSet
 import pytest
 import json
@@ -22,7 +22,7 @@ def app() -> App:
 async def test_initial(app):
     async with app().run_test() as pilot:
         assert pilot.app.query_one("#attr")
-        assert pilot.app.query_one("#value")
+        assert pilot.app.query_one("#attrValue")
         assert len(pilot.app.query(RadioSet)) == 2
         assert all(
             radio_set
@@ -45,7 +45,7 @@ async def test_inputs(app):
         assert input_attr.value == "dawnstar"
 
         await type_commands([*["tab" for _ in range(0, 3)], "raven"], pilot)
-        input_value = pilot.app.query_one("#value")
+        input_value = pilot.app.query_one("#attrValue")
         assert input_value.value == "raven"
 
 
