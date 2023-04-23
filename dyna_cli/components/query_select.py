@@ -24,12 +24,15 @@ class KeyQueryInput(Widget):
 
     gsi_indexes = reactive([])
 
+    partition_key_attr_name = reactive("") 
+
     def compose(self) -> ComposeResult:
         yield VerticalScroll(
             Horizontal(
                 Label("Scan "),
                 Switch(
                     name="scan",
+                    id="scanToggleSwitch"
                 ),
                 id="scanToggle",
             ),
@@ -96,7 +99,7 @@ class FilterQueryInput(Widget):
             name="condition",
             id="condition",
         )
-        yield Input(placeholder="value", id="value")
+        yield Input(placeholder="value", id="attrValue")
         if self.id != "sortKeyFilter":
             yield Button("remove filter", id="removeFilter")
 
@@ -149,7 +152,7 @@ class SortKeyFilter(Widget):
             name="condition",
             id="condition",
         )
-        yield Input(placeholder="value", id="value")
+        yield Input(placeholder="value", id="attrValue")
         if self.id != "sortKeyFilter":
             yield Button("remove filter", id="removeFilter")
 
