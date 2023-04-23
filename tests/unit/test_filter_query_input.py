@@ -2,7 +2,7 @@ from textual.app import App, ComposeResult
 from textual import events
 from textual.pilot import Pilot
 from dyna_cli.components.screens import QueryScreen
-from dyna_cli.components.query_select import QueryInput, FilterQueryInput
+from dyna_cli.components.query_select import KeyQueryInput, FilterQueryInput
 from textual.widgets import Input, Button, RadioSet
 import pytest
 import json

@@ -1,7 +1,7 @@
 from textual.app import App, ComposeResult
 from textual import events
 from dyna_cli.components.screens import QueryScreen
-from dyna_cli.components.query_select import QueryInput, FilterQueryInput
+from dyna_cli.components.query_select import KeyQueryInput, FilterQueryInput
 from textual.widgets import Input, Button
 import pytest
 from tests.common import type_commands
@@ -18,7 +18,7 @@ async def test_initial_state(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
-        assert pilot.app.query_one(QueryInput)
+        assert pilot.app.query_one(KeyQueryInput)
         add_filter_button: Button = pilot.app.query_one("#addFilter")
         assert add_filter_button
         assert str(add_filter_button.label) == "add filter"

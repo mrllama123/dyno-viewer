@@ -15,9 +15,10 @@ from textual.screen import Screen
 from textual.message import Message
 from textual.reactive import reactive
 from textual import log
-from dyna_cli.components.query_select import QueryInput, FilterQueryInput
+from dyna_cli.components.query_select import KeyQueryInput, FilterQueryInput
 from boto3.dynamodb.conditions import Key 
 from dyna_cli.aws.ddb import convert_filter_exp_key_cond
+from dyna_cli.components.screens.types import QueryResult
 
 class QueryScreen(Screen):
     BINDINGS = [
@@ -47,9 +48,13 @@ class QueryScreen(Screen):
             super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield QueryInput()
+        yield KeyQueryInput()
         yield Button("add filter", id="addFilter")
         yield Button("remove all filters", id="removeAllFilters")
+
+    def generate_query(self) -> QueryResult:
+        key_input = self.query_one(KeyQueryInput)
+
 
     # action methods
 

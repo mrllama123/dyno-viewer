@@ -19,7 +19,7 @@ from textual.events import Mount
 from textual import log
 
 
-class QueryInput(Widget):
+class KeyQueryInput(Widget):
     index_mode = reactive("")
 
     gsi_indexes = reactive([])
