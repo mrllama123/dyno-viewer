@@ -26,6 +26,8 @@ class QueryScreen(Screen):
         (("r", "run_query", "Run Query")),
     ]
 
+    table_info = reactive(None)
+
     class QueryMessage(Message):
         """
         custom message to send back to root screen that has all query
@@ -72,3 +74,15 @@ class QueryScreen(Screen):
                 if filter.id != "sortKeyFilter":   
                     filter.remove()
             self.scroll_visible()
+
+    # watcher methods
+
+    def watch_table_info(self, new_table_info) -> None:
+        if new_table_info:
+            key_query = self.query_one(KeyQueryInput)
+            key_query.partition_key_attr_name = new_table_info["keySchema"]["primaryKey"]
+            key_query.partition_key_attr_name = new_table_info["keySchema"]["sortKey"]
+            key_query.gsi_indexes = new_table_info["gsi"]
+
+            
+
