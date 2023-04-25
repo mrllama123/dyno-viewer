@@ -29,6 +29,7 @@ async def test_initial(app):
             for radio_set in pilot.app.query(RadioSet)
             if not radio_set.display
         )
+        assert pilot.app.query_one("#attrType")
         assert len(pilot.app.query(Button)) == 3
         all(
             button
@@ -55,8 +56,21 @@ async def test_display_type(app):
         assert pilot.app.query_one("#attrType").display
         assert not pilot.app.query_one("#condition").display
 
+
 async def test_display_condition(app):
     async with app().run_test() as pilot:
-        await type_commands(["tab", "tab", "tab","enter"], pilot)
+        await type_commands(["tab", "tab", "tab", "enter"], pilot)
         assert not pilot.app.query_one("#attrType").display
-        assert  pilot.app.query_one("#condition").display
+        assert pilot.app.query_one("#condition").display
+
+# TODO add all cond test cases i.e >=, >, <
+@pytest.mark.parametrize(
+    "cond", [{"condLabel": "==", "contCommand": ["down", "enter"]}]
+)
+async def test_conds(app, cond):
+    async with app().run_test() as pilot:
+        await type_commands(
+            [*["tab" for _ in range(0, 3)], "enter", "tab", *cond["contCommand"]], pilot
+        )
+        condition = pilot.app.query_one("#condition")
+        assert str(condition.pressed_button.label) == cond["condLabel"]
