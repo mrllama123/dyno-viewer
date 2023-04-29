@@ -59,4 +59,66 @@ async def test_display_condition(app):
     async with app().run_test() as pilot:
         await type_commands(["tab", "tab", "tab","enter"], pilot)
         assert not pilot.app.query_one("#attrType").display
-        assert  pilot.app.query_one("#condition").display
+        assert pilot.app.query_one("#condition").display
+
+
+# TODO add all cond test cases i.e >=, >, <
+@pytest.mark.parametrize(
+    "cond",
+    [
+        {"condLabel": "==", "contCommand": ["down", "enter"]},
+        {"condLabel": ">", "contCommand": ["down", "tab", "enter"]},
+        {"condLabel": "<", "contCommand": ["down", "tab", "tab", "enter"]},
+        {
+            "condLabel": "<=",
+            "contCommand": ["down", *["tab" for _ in range(0, 3)], "enter"],
+        },
+        {
+            "condLabel": ">=",
+            "contCommand": ["down", *["tab" for _ in range(0, 4)], "enter"],
+        },
+        {
+            "condLabel": "!=",
+            "contCommand": ["down", *["tab" for _ in range(0, 5)], "enter"],
+        },
+        {
+            "condLabel": "between",
+            "contCommand": ["down", *["tab" for _ in range(0, 6)], "enter"],
+        },
+        {
+            "condLabel": "in",
+            "contCommand": ["down", *["tab" for _ in range(0, 7)], "enter"],
+        },
+        {
+            "condLabel": "attribute_exists",
+            "contCommand": ["down", *["tab" for _ in range(0, 8)], "enter"],
+        },
+        {
+            "condLabel": "attribute_not_exists",
+            "contCommand": ["down", *["tab" for _ in range(0, 9)], "enter"],
+        },
+        {
+            "condLabel": "attribute_type",
+            "contCommand": ["down", *["tab" for _ in range(0, 10)], "enter"],
+        },
+        {
+            "condLabel": "begins_with",
+            "contCommand": ["down", *["tab" for _ in range(0, 11)], "enter"],
+        },
+        {
+            "condLabel": "contains",
+            "contCommand": ["down", *["tab" for _ in range(0, 12)], "enter"],
+        },
+        {
+            "condLabel": "size",
+            "contCommand": ["down", *["tab" for _ in range(0, 13)], "enter"],
+        },
+    ],
+)
+async def test_conds(app, cond):
+    async with app().run_test() as pilot:
+        await type_commands(
+            [*["tab" for _ in range(0, 3)], "enter", "tab", *cond["contCommand"]], pilot
+        )
+        condition = pilot.app.query_one("#condition")
+        assert str(condition.pressed_button.label) == cond["condLabel"]
