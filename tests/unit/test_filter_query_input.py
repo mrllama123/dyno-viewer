@@ -62,7 +62,6 @@ async def test_display_condition(app):
         assert pilot.app.query_one("#condition").display
 
 
-# TODO add all cond test cases i.e >=, >, <
 @pytest.mark.parametrize(
     "cond",
     [
