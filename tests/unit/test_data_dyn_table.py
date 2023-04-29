@@ -1,3 +1,5 @@
+from typing import Type
+
 from textual.app import App, ComposeResult
 from textual import events
 from dyna_cli.components.table import DataDynTable
@@ -21,33 +23,39 @@ class DataDynTableApp(App[None]):
         table.add_rows(self.data)
 
 
+@pytest.fixture
+def app() -> Type[DataDynTableApp]:
+    return DataDynTableApp
+
+
 @pytest.mark.parametrize(
     "data,result",
     [
         (
-            [
-                {"pk": "customer#12345", "sk": "CUSTOMER"},
-                {"pk": "customer#54321", "sk": "CUSTOMER"},
-            ],
-            [["customer#12345", "CUSTOMER"], ["customer#54321", "CUSTOMER"]],
+                [
+                    {"pk": "customer#12345", "sk": "CUSTOMER"},
+                    {"pk": "customer#54321", "sk": "CUSTOMER"},
+                ],
+                [["customer#12345", "CUSTOMER"], ["customer#54321", "CUSTOMER"]],
         ),
         (
-            [
-                {"pk": "customer#12345", "sk": "CUSTOMER"},
-                {"pk": "customer#54321", "sk": "", "testAttr": True},
-            ],
-            [["customer#12345", "CUSTOMER", None], ["customer#54321", "", True]],
+                [
+                    {"pk": "customer#12345", "sk": "CUSTOMER"},
+                    {"pk": "customer#54321", "sk": "", "testAttr": True},
+                ],
+                [["customer#12345", "CUSTOMER", None], ["customer#54321", "", True]],
         ),
     ],
 )
-async def test_pk_sk_data(data, result) -> None:
-    async with DataDynTableApp(data).run_test() as pilot:
+async def test_pk_sk_data(app, data, result) -> None:
+    async with app(data).run_test() as pilot:
         table: DataDynTable = pilot.app.query_one(DataDynTable)
         assert table.row_count == len(data)
         table_rows = [table.get_row_at(i) for i in range(0, len(data))]
         assert table_rows == result
 
 
+# TODO: test broken table is not tearing down data correctly
 @pytest.mark.parametrize(
     "data",
     [
@@ -93,10 +101,14 @@ async def test_pk_sk_data(data, result) -> None:
                     None,
                     None,
                     None,
+                    None,
+                    None,
                 ],
                 [
                     "customer#12345",
                     "CUSTOMER",
+                    "account#123",
+                    "ACCOUNT",
                     "account#123",
                     "ACCOUNT",
                     "account2#123",
@@ -136,15 +148,14 @@ async def test_pk_sk_data(data, result) -> None:
         },
     ],
 )
-async def test_pk_sk_gsi_data(data, snapshot) -> None:
-    async with DataDynTableApp(data["input"]).run_test() as pilot:
+async def test_pk_sk_gsi_data(app, data) -> None:
+    async with app(data["input"]).run_test() as pilot:
         table: DataDynTable = pilot.app.query_one(DataDynTable)
 
         assert table.row_count == len(data["input"])
 
         table_rows = [table.get_row_at(i) for i in range(0, len(data["input"]))]
         assert table_rows == data["result"]
-        #snapshot.assert_match(json.dumps(table_rows, indent=2), "data_rows.json")
 
 
 @pytest.mark.parametrize(
