@@ -2310,21 +2310,6 @@ pytest = ">=5.0"
 dev = ["pre-commit", "pytest-asyncio", "tox"]
 
 [[package]]
-name = "pytest-snapshot"
-version = "0.9.0"
-description = "A plugin for snapshot testing with pytest."
-category = "dev"
-optional = false
-python-versions = ">=3.5"
-files = [
-    {file = "pytest-snapshot-0.9.0.tar.gz", hash = "sha256:c7013c3abc3e860f9feff899f8b4debe3708650d8d8242a61bf2625ff64db7f3"},
-    {file = "pytest_snapshot-0.9.0-py3-none-any.whl", hash = "sha256:4b9fe1c21c868fe53a545e4e3184d36bc1c88946e3f5c1d9dd676962a9b3d4ab"},
-]
-
-[package.dependencies]
-pytest = ">=3.0.0"
-
-[[package]]
 name = "pytest-xdist"
 version = "3.2.1"
 description = "pytest xdist plugin for distributed testing, most importantly across multiple CPUs"
@@ -3255,4 +3240,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "456d9018fda7791ab07bdb8a8729b28b8b664354f65dea1010caa8a18729a847"
+content-hash = "92d1898bb5b04206baf934170f6e369cf1deb7ca1b0134364b6bba68df8b3f74"
