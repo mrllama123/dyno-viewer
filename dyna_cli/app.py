@@ -149,7 +149,7 @@ class DynCli(App):
             self.SCREENS["tableSelect"].dyn_client = new_dyn_client
 
     def watch_table_info(self, new_table_info) -> None:
-        with self.SCREENS["query"].prevent(QueryScreen.QueryMessage):
+        with self.SCREENS["query"].prevent(QueryScreen.RunQuery):
             self.SCREENS["query"].table_info = new_table_info
 
 def main() -> None:

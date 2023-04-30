@@ -1,13 +1,6 @@
 from textual.app import ComposeResult
-from textual.widgets import (
-    ListItem,
-    ListView,
-    Button,
-    Input,
-    Switch,
-    Label,
-    RadioSet
-)
+from textual.css.query import NoMatches
+from textual.widgets import ListItem, ListView, Button, Input, Switch, Label, RadioSet
 from textual.widget import Widget
 from textual.widgets import Footer
 from textual.containers import Vertical, Horizontal, VerticalScroll, Middle
@@ -16,9 +9,12 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual import log
 from dyna_cli.components.query_select import KeyQueryInput, FilterQueryInput
-from boto3.dynamodb.conditions import Key 
-from dyna_cli.aws.ddb import convert_filter_exp_key_cond
-from dyna_cli.components.screens.types import QueryResult
+from boto3.dynamodb.conditions import Key, Attr
+from dyna_cli.aws.ddb import (
+    convert_filter_exp_key_cond,
+    convert_filter_exp_attr_cond,
+    convert_filter_exp_value,
+)
 
 class QueryScreen(Screen):
     BINDINGS = [
@@ -28,25 +24,21 @@ class QueryScreen(Screen):
 
     table_info = reactive(None)
 
-    class QueryMessage(Message):
+    class RunQuery(Message):
         """
         custom message to send back to root screen that has all query
 
         """
 
         def __init__(
-            self, filters: list[FilterQueryInput], primary_key: tuple[str, str], sort_key: FilterQueryInput
+            self,
+            key_cond_exp: Key | None,
+            filter_cond_exp: Attr | None,
+            index: str | None,
         ) -> None:
-            primary_key_name, primary_key_value = primary_key
-            self.KeyConditionExpression = Key(primary_key_name).eq(primary_key_value)
-
-            if all(radio for radio in sort_key.query(RadioSet) if radio.pressed_button):
-                sort_key_name = sort_key.query_one("#attr").value
-                sort_key_value = sort_key.query_one("#value").value
-                value_type =  sort_key.query_one("#attrType").pressed_button.value
-                cond = sort_key.query_one("#condition").pressed_button.value
-                self.KeyConditionExpression = self.KeyConditionExpression & convert_filter_exp_key_cond(cond, sort_key_name, )
-            
+            self.key_cond_exp = key_cond_exp
+            self.filter_cond_exp = filter_cond_exp
+            self.index = index
             super().__init__()
 
     def compose(self) -> ComposeResult:
@@ -54,15 +46,62 @@ class QueryScreen(Screen):
         yield Button("add filter", id="addFilter")
         yield Button("remove all filters", id="removeAllFilters")
 
-    def generate_query(self) -> QueryResult:
+    def get_key_query(self) -> Key | None:
         key_input = self.query_one(KeyQueryInput)
+        primary_key_name = key_input.partition_key_attr_name
+        primary_key_value = key_input.query_one("#partitionKey").value
 
+        if not primary_key_value:
+            return
+
+        sort_key = key_input.query_one("#sortKeyFilter")
+        sort_key_name = sort_key.attr_name
+        sort_key_value = sort_key.query_one("#attrValue").value
+        cond = str(getattr(sort_key.query_one("#condition").pressed_button, "label", ""))
+        if sort_key_value:
+            return Key(primary_key_name).eq(
+                primary_key_value
+            ) & convert_filter_exp_key_cond(cond, sort_key_name, sort_key_value)
+        return Key(primary_key_name).eq(primary_key_value)
+
+    def get_filter_queries(self) -> Attr | None:
+        exp = None
+
+        for filter in self.query(FilterQueryInput):
+            attr_name = filter.query("attr").value
+            attr_type = filter.query("#attrType").pressed_button.value
+            attr_value = filter.query("#condition").pressed_button.value
+            cond = filter.query_one("#condition").pressed_button.value
+            if exp:
+                exp = exp & convert_filter_exp_attr_cond(
+                    cond, attr_name, convert_filter_exp_value(attr_value, attr_type)
+                )
+            else:
+                exp = convert_filter_exp_attr_cond(
+                    cond, attr_name, convert_filter_exp_value(attr_value, attr_type)
+                )
+        return exp
+
+    def update_key_schema(self, key_query):
+        key_query.partition_key_attr_name = self.table_info["keySchema"]["primaryKey"]
+        key_query.sort_key_attr_name = self.table_info["keySchema"]["sortKey"]
+        key_query.gsi_indexes = self.table_info["gsi"]
 
     # action methods
 
     def action_run_query(self) -> None:
-        # TODO gather all query inputs and construct dynamodb scan or query
-        self.app.pop_screen()
+        key_cond_exp = self.get_key_query()
+        filter_cond_exp = self.get_filter_queries()
+        index_mode = self.query_one(KeyQueryInput).index_mode
+        if key_cond_exp:
+            self.post_message(
+                self.RunQuery(
+                    key_cond_exp,
+                    filter_cond_exp,
+                    None if index_mode == "table" else index_mode,
+                )
+            )
+            self.app.pop_screen()
 
     # on methods:
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -71,18 +110,23 @@ class QueryScreen(Screen):
             self.scroll_visible()
         elif event.button.id == "removeAllFilters":
             for filter in self.query(FilterQueryInput):
-                if filter.id != "sortKeyFilter":   
+                if filter.id != "sortKeyFilter":
                     filter.remove()
             self.scroll_visible()
+
+    def on_mount(self):
+        if self.table_info:
+            key_query = self.query_one(KeyQueryInput)
+            self.update_key_schema(key_query)
 
     # watcher methods
 
     def watch_table_info(self, new_table_info) -> None:
         if new_table_info:
-            key_query = self.query_one(KeyQueryInput)
-            key_query.partition_key_attr_name = new_table_info["keySchema"]["primaryKey"]
-            key_query.partition_key_attr_name = new_table_info["keySchema"]["sortKey"]
-            key_query.gsi_indexes = new_table_info["gsi"]
-
-            
-
+            try:
+                key_query = self.query_one(KeyQueryInput)
+                self.update_key_schema(key_query)
+            except NoMatches:
+                return
+            except Exception:
+                raise

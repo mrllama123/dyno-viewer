@@ -24,7 +24,7 @@ async def test_toggle_scan(app):
 
         inputs = query_input.query(Input)
 
-        assert len(inputs) == 3
+        assert len(inputs) == 2
 
         assert all(input for input in inputs if not input.display)
 
@@ -55,3 +55,7 @@ async def test_gsi_switch(app):
 
         assert query_input.query_one("#partitionKey").placeholder == "pk"
         assert query_input.query_one("#sortKeyFilter").attr_name == "sk"
+
+
+
+

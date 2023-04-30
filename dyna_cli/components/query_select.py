@@ -146,7 +146,7 @@ class SortKeyFilter(Widget):
     attr_name = reactive("", layout=True)
 
     def compose(self) -> ComposeResult:
-        yield Input(value=self.attr_name, id="attr", disabled=True)
+        yield Label(self.attr_name, id="attr")
         yield Button("type")
         yield RadioSet(
             "string",
@@ -172,8 +172,7 @@ class SortKeyFilter(Widget):
             id="condition",
         )
         yield Input(placeholder="value", id="attrValue")
-        if self.id != "sortKeyFilter":
-            yield Button("remove filter", id="removeFilter")
+
 
     #  on methods
 
@@ -190,10 +189,9 @@ class SortKeyFilter(Widget):
             radio_set = self.query_one("#condition")
             radio_set.display = False if radio_set.display else True
             self.scroll_visible()
-        if event.button.id == "removeFilter":
-            self.remove()
 
     # watch methods
-    def watch_attr_name(self, new_attr_name: str) -> None:
+
+    def watch_attr_name(self, new_attr_name):
         if new_attr_name:
-            self.query_one("#attr").value = new_attr_name
+            self.query_one("#attr").update(new_attr_name)
