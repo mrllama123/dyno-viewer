@@ -134,6 +134,7 @@ async def test_run_query_primary_key_sort_key(screen_app):
             ":v1": "test",
         }
 
+
 # TODO draft need to fix up
 async def test_run_query_primary_key_sort_key_filters(screen_app):
     async with screen_app().run_test() as pilot:
@@ -153,18 +154,22 @@ async def test_run_query_primary_key_sort_key_filters(screen_app):
         await type_commands(["test"], pilot)
         # add new filter
         await type_commands(["tab", "enter"], pilot)
-        # set attr filter to test
-        await type_commands(["tab", "tab"], pilot)
-        await type_commands(["test"], pilot)
+        assert len(pilot.app.query(FilterQueryInput)) == 1
+        filter_query = pilot.app.query_one(FilterQueryInput)
+        # set attr filter name to test
+        await type_commands(["tab", "tab", "test"], pilot)
+        assert filter_query.query_one("#attr").value == "test"
         # set attr filter type to string
         await type_commands(["tab", "enter", "tab", "enter"], pilot)
+        assert str(filter_query.query_one("#attrType").pressed_button.label) == "string"
         # set attr filter cont to ==
         await type_commands(["tab" for _ in range(0, 7)], pilot)
         await type_commands(["enter", "tab", "enter"], pilot)
+        assert str(filter_query.query_one("#condition").pressed_button.label) == "=="
         # ste attr filter value to test1
         await type_commands(["tab" for _ in range(0, 14)], pilot)
         await type_commands(["test1", "tab"], pilot)
-
+        assert filter_query.query_one("#attrValue").value == "test1"
         await type_commands(["r"], pilot)
         dyn_query = pilot.app.dyn_query
         assert dyn_query
