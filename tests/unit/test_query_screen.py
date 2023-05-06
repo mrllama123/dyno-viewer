@@ -117,7 +117,7 @@ async def test_run_query_primary_key(screen_app):
             is_key=True,
         )
 
-
+# TODO once concurrency is enabled add more test cases for all the other conditions 
 async def test_run_query_primary_key_sort_key(screen_app):
     async with screen_app().run_test() as pilot:
         pilot.app.SCREENS["query"].table_info = {
@@ -152,7 +152,7 @@ async def test_run_query_primary_key_sort_key(screen_app):
             is_key=True,
         )
 
-
+# TODO once concurrency is enabled add more test cases for all the other conditions 
 async def test_run_query_primary_key_sort_key_filters(screen_app):
     async with screen_app().run_test() as pilot:
         pilot.app.SCREENS["query"].table_info = {
