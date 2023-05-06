@@ -8,7 +8,8 @@ from textual.screen import Screen
 from textual.message import Message
 from textual.reactive import reactive
 from textual import log
-from dyna_cli.components.query_select import KeyQueryInput, FilterQueryInput
+from dyna_cli.components.query.filter_query import FilterQuery
+from dyna_cli.components.query.key_query import KeyQuery
 from boto3.dynamodb.conditions import Key, Attr
 from dyna_cli.aws.ddb import (
     convert_filter_exp_key_cond,
@@ -43,12 +44,12 @@ class QueryScreen(Screen):
             super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield KeyQueryInput()
+        yield KeyQuery()
         yield Button("add filter", id="addFilter")
         yield Button("remove all filters", id="removeAllFilters")
 
     def get_key_query(self) -> Key | None:
-        key_input = self.query_one(KeyQueryInput)
+        key_input = self.query_one(KeyQuery)
         primary_key_name = key_input.partition_key_attr_name
         primary_key_value = key_input.query_one("#partitionKey").value
 
@@ -70,7 +71,7 @@ class QueryScreen(Screen):
     def get_filter_queries(self) -> Attr | None:
         exp = None
 
-        for filter in self.query(FilterQueryInput):
+        for filter in self.query(FilterQuery):
             attr_name = filter.query_one("#attr").value
             attr_type = str(
                 getattr(filter.query_one("#attrType").pressed_button, "label", "")
@@ -101,7 +102,7 @@ class QueryScreen(Screen):
     def action_run_query(self) -> None:
         key_cond_exp = self.get_key_query()
         filter_cond_exp = self.get_filter_queries()
-        index_mode = self.query_one(KeyQueryInput).index_mode
+        index_mode = self.query_one(KeyQuery).index_mode
         if key_cond_exp:
             self.post_message(
                 self.RunQuery(
@@ -115,17 +116,17 @@ class QueryScreen(Screen):
     # on methods:
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "addFilter":
-            self.mount(FilterQueryInput())
+            self.mount(FilterQuery())
             self.scroll_visible()
         elif event.button.id == "removeAllFilters":
-            for filter in self.query(FilterQueryInput):
+            for filter in self.query(FilterQuery):
                 if filter.id != "sortKeyFilter":
                     filter.remove()
             self.scroll_visible()
 
     def on_mount(self):
         if self.table_info:
-            key_query = self.query_one(KeyQueryInput)
+            key_query = self.query_one(KeyQuery)
             self.update_key_schema(key_query)
 
     # watcher methods
@@ -133,7 +134,7 @@ class QueryScreen(Screen):
     def watch_table_info(self, new_table_info) -> None:
         if new_table_info:
             try:
-                key_query = self.query_one(KeyQueryInput)
+                key_query = self.query_one(KeyQuery)
                 self.update_key_schema(key_query)
             except NoMatches:
                 return

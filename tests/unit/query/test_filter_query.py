@@ -2,7 +2,7 @@ from textual.app import App, ComposeResult
 from textual import events
 from textual.pilot import Pilot
 from dyna_cli.components.screens import QueryScreen
-from dyna_cli.components.query_select import FilterQueryInput
+from dyna_cli.components.query.filter_query import FilterQuery
 from textual.widgets import Input, Button, RadioSet
 import pytest
 import json
@@ -14,7 +14,7 @@ from tests.common import type_commands
 def app() -> App:
     class FilterQueryInputApp(App):
         def compose(self):
-            yield FilterQueryInput()
+            yield FilterQuery()
 
     return FilterQueryInputApp
 

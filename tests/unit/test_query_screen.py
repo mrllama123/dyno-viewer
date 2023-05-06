@@ -3,7 +3,8 @@ from textual.app import App, CSSPathType, ComposeResult
 from textual import events
 from textual.driver import Driver
 from dyna_cli.components.screens import QueryScreen
-from dyna_cli.components.query_select import KeyQueryInput, FilterQueryInput
+from dyna_cli.components.query.filter_query import FilterQuery
+from dyna_cli.components.query.key_query import KeyQuery
 from textual.widgets import Input, Button
 import pytest
 from tests.common import type_commands
@@ -50,7 +51,7 @@ async def test_initial_state(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
-        assert pilot.app.query_one(KeyQueryInput)
+        assert pilot.app.query_one(KeyQuery)
         add_filter_button: Button = pilot.app.query_one("#addFilter")
         assert add_filter_button
         assert str(add_filter_button.label) == "add filter"
@@ -67,7 +68,7 @@ async def test_add_filter(screen_app):
         await type_commands(["tab" for _ in range(0, 7)], pilot)
         await type_commands(["enter", "enter"], pilot)
 
-        filters = pilot.app.query(FilterQueryInput)
+        filters = pilot.app.query(FilterQuery)
 
         assert len(filters) == 2
 
@@ -79,13 +80,13 @@ async def test_remove_all_filters(screen_app):
         await type_commands(["tab" for _ in range(0, 7)], pilot)
         await type_commands(["enter", "enter"], pilot)
 
-        filters = pilot.app.query(FilterQueryInput)
+        filters = pilot.app.query(FilterQuery)
 
         assert len(filters) == 2
 
         await type_commands(["tab", "enter"], pilot)
 
-        filters = pilot.app.query(FilterQueryInput)
+        filters = pilot.app.query(FilterQuery)
 
         assert len(filters) == 0
 
@@ -171,8 +172,8 @@ async def test_run_query_primary_key_sort_key_filters(screen_app):
         await type_commands(["test"], pilot)
         # add new filter
         await type_commands(["tab", "enter"], pilot)
-        assert len(pilot.app.query(FilterQueryInput)) == 1
-        filter_query = pilot.app.query_one(FilterQueryInput)
+        assert len(pilot.app.query(FilterQuery)) == 1
+        filter_query = pilot.app.query_one(FilterQuery)
         # set attr filter name to test
         await type_commands(["tab", "tab", "test"], pilot)
         assert filter_query.query_one("#attr").value == "test"

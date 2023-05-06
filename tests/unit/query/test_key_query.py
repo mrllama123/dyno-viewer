@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
 from textual import events
-from dyna_cli.components.query_select import KeyQueryInput
+from dyna_cli.components.query.key_query import KeyQuery
 from textual.widgets import Input
 import pytest
 import json
@@ -10,7 +10,7 @@ import json
 def app() -> App:
     class QueryInputApp(App):
         def compose(self):
-            yield KeyQueryInput()
+            yield KeyQuery()
 
     return QueryInputApp
 
@@ -20,7 +20,7 @@ async def test_toggle_scan(app):
         await pilot.press("tab")
         await pilot.press("enter")
 
-        query_input: KeyQueryInput = pilot.app.query_one(KeyQueryInput)
+        query_input: KeyQuery = pilot.app.query_one(KeyQuery)
 
         inputs = query_input.query(Input)
 
@@ -31,7 +31,7 @@ async def test_toggle_scan(app):
 
 async def test_gsi_switch(app):
     async with app().run_test() as pilot:
-        query_input: KeyQueryInput = pilot.app.query_one(KeyQueryInput)
+        query_input: KeyQuery = pilot.app.query_one(KeyQuery)
         query_input.gsi_indexes = {
             "gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}
         }
