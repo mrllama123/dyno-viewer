@@ -1,3 +1,6 @@
+import pytest
+from tests.fixtures.moto import dynamodb
+
 def create_ddb_table(dynamodb, name, gsi_count=0):
     AttributeDefinitions = [
         {"AttributeName": "pk", "AttributeType": "S"},
@@ -38,3 +41,22 @@ def create_ddb_table(dynamodb, name, gsi_count=0):
         props.setdefault("GlobalSecondaryIndexes", GlobalSecondaryIndexes)
 
     return dynamodb.create_table(**props)
+
+
+@pytest.fixture
+def ddb_tables(dynamodb):
+    return [
+        create_ddb_table(dynamodb, table_name, 2)
+        for table_name in [
+            "dawnstar",
+            "falkreath",
+            "markarth",
+            "morthal",
+            "raven",
+            "riften",
+            "solitude",
+            "whiterun",
+            "windhelm",
+            "winterhold",
+        ]
+    ]
