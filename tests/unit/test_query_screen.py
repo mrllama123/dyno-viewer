@@ -10,6 +10,22 @@ from tests.common import type_commands
 from boto3.dynamodb.conditions import ConditionExpressionBuilder
 
 
+def assert_exp(
+    exp,
+    condition_expression,
+    attribute_name_placeholders,
+    attribute_value_placeholders,
+    is_key=False,
+):
+    built_expression = ConditionExpressionBuilder().build_expression(
+        exp, is_key_condition=is_key
+    )
+
+    assert built_expression.condition_expression == condition_expression
+    assert built_expression.attribute_name_placeholders == attribute_name_placeholders
+    assert built_expression.attribute_value_placeholders == attribute_value_placeholders
+
+
 @pytest.fixture
 def screen_app():
     class QueryScreenApp(App):
@@ -93,12 +109,13 @@ async def test_run_query_primary_key(screen_app):
         assert dyn_query.key_cond_exp
         assert not dyn_query.filter_cond_exp
 
-        expression = ConditionExpressionBuilder().build_expression(
-            dyn_query.key_cond_exp, is_key_condition=True
+        assert_exp(
+            dyn_query.key_cond_exp,
+            condition_expression="#n0 = :v0",
+            attribute_name_placeholders={"#n0": "pk"},
+            attribute_value_placeholders={":v0": "customer#test"},
+            is_key=True,
         )
-        assert expression.condition_expression == "#n0 = :v0"
-        assert expression.attribute_name_placeholders == {"#n0": "pk"}
-        assert expression.attribute_value_placeholders == {":v0": "customer#test"}
 
 
 async def test_run_query_primary_key_sort_key(screen_app):
@@ -124,18 +141,18 @@ async def test_run_query_primary_key_sort_key(screen_app):
         assert dyn_query.key_cond_exp
         assert not dyn_query.filter_cond_exp
 
-        expression_key = ConditionExpressionBuilder().build_expression(
-            dyn_query.key_cond_exp, is_key_condition=True
+        assert_exp(
+            dyn_query.key_cond_exp,
+            condition_expression="(#n0 = :v0 AND #n1 = :v1)",
+            attribute_name_placeholders={"#n0": "pk", "#n1": "sk"},
+            attribute_value_placeholders={
+                ":v0": "customer#test",
+                ":v1": "test",
+            },
+            is_key=True,
         )
-        assert expression_key.condition_expression == "(#n0 = :v0 AND #n1 = :v1)"
-        assert expression_key.attribute_name_placeholders == {"#n0": "pk", "#n1": "sk"}
-        assert expression_key.attribute_value_placeholders == {
-            ":v0": "customer#test",
-            ":v1": "test",
-        }
 
 
-# TODO draft need to fix up
 async def test_run_query_primary_key_sort_key_filters(screen_app):
     async with screen_app().run_test() as pilot:
         pilot.app.SCREENS["query"].table_info = {
@@ -168,20 +185,29 @@ async def test_run_query_primary_key_sort_key_filters(screen_app):
         assert str(filter_query.query_one("#condition").pressed_button.label) == "=="
         # ste attr filter value to test1
         await type_commands(["tab" for _ in range(0, 14)], pilot)
-        await type_commands(["test1", "tab"], pilot)
+        await type_commands(["test1"], pilot)
         assert filter_query.query_one("#attrValue").value == "test1"
-        await type_commands(["r"], pilot)
+        # run query command
+        await type_commands(["tab", "r"], pilot)
         dyn_query = pilot.app.dyn_query
         assert dyn_query
         assert dyn_query.key_cond_exp
-        assert not dyn_query.filter_cond_exp
+        assert dyn_query.filter_cond_exp
 
-        expression_key = ConditionExpressionBuilder().build_expression(
-            dyn_query.key_cond_exp, is_key_condition=True
+        assert_exp(
+            dyn_query.key_cond_exp,
+            condition_expression="(#n0 = :v0 AND #n1 = :v1)",
+            attribute_name_placeholders={"#n0": "pk", "#n1": "sk"},
+            attribute_value_placeholders={
+                ":v0": "customer#test",
+                ":v1": "test",
+            },
+            is_key=True,
         )
-        assert expression_key.condition_expression == "(#n0 = :v0 AND #n1 = :v1)"
-        assert expression_key.attribute_name_placeholders == {"#n0": "pk", "#n1": "sk"}
-        assert expression_key.attribute_value_placeholders == {
-            ":v0": "customer#test",
-            ":v1": "test",
-        }
+
+        assert_exp(
+            dyn_query.filter_cond_exp,
+            condition_expression="#n0 = :v0",
+            attribute_name_placeholders={"#n0": "test"},
+            attribute_value_placeholders={":v0": "=="},
+        )

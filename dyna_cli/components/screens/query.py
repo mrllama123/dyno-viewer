@@ -16,6 +16,7 @@ from dyna_cli.aws.ddb import (
     convert_filter_exp_value,
 )
 
+
 class QueryScreen(Screen):
     BINDINGS = [
         ("escape", "app.pop_screen", "Pop screen"),
@@ -57,7 +58,9 @@ class QueryScreen(Screen):
         sort_key = key_input.query_one("#sortKeyFilter")
         sort_key_name = sort_key.attr_name
         sort_key_value = sort_key.query_one("#attrValue").value
-        cond = str(getattr(sort_key.query_one("#condition").pressed_button, "label", ""))
+        cond = str(
+            getattr(sort_key.query_one("#condition").pressed_button, "label", "")
+        )
         if sort_key_value:
             return Key(primary_key_name).eq(
                 primary_key_value
@@ -68,10 +71,16 @@ class QueryScreen(Screen):
         exp = None
 
         for filter in self.query(FilterQueryInput):
-            attr_name = filter.query("attr").value
-            attr_type = filter.query("#attrType").pressed_button.value
-            attr_value = filter.query("#condition").pressed_button.value
-            cond = filter.query_one("#condition").pressed_button.value
+            attr_name = filter.query_one("#attr").value
+            attr_type = str(
+                getattr(filter.query_one("#attrType").pressed_button, "label", "")
+            )
+            attr_value = str(
+                getattr(filter.query_one("#condition").pressed_button, "label", "")
+            )
+            cond = str(
+                getattr(filter.query_one("#condition").pressed_button, "label", "")
+            )
             if exp:
                 exp = exp & convert_filter_exp_attr_cond(
                     cond, attr_name, convert_filter_exp_value(attr_value, attr_type)
