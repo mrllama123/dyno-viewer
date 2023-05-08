@@ -63,7 +63,7 @@ class DynCli(App):
                 self.table_name, self.aws_region, self.aws_profile
             )
 
-    @work(exclusive=True)
+    @work(exclusive=True, group="full_update_data_table")
     def full_update_data_table(self, table_client) -> None:
         table = self.query_one(DataDynTable)
         worker = get_current_worker()
@@ -74,7 +74,7 @@ class DynCli(App):
             self.call_from_thread(table.add_columns, results)
             self.call_from_thread(table.add_rows, results)
 
-    @work(exclusive=True)
+    @work(exclusive=True, group="update_dyn_table_info")
     def update_dyn_table_info(self):
         worker = get_current_worker()
         if not worker.is_cancelled:
@@ -151,6 +151,7 @@ class DynCli(App):
     def watch_table_info(self, new_table_info) -> None:
         with self.SCREENS["query"].prevent(QueryScreen.RunQuery):
             self.SCREENS["query"].table_info = new_table_info
+
 
 def main() -> None:
     app = DynCli()
