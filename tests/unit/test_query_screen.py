@@ -8,23 +8,6 @@ from dyna_cli.components.query.key_query import KeyQuery
 from textual.widgets import Input, Button
 import pytest
 from tests.common import type_commands
-from boto3.dynamodb.conditions import ConditionExpressionBuilder
-
-
-def assert_exp(
-    exp,
-    condition_expression,
-    attribute_name_placeholders,
-    attribute_value_placeholders,
-    is_key=False,
-):
-    built_expression = ConditionExpressionBuilder().build_expression(
-        exp, is_key_condition=is_key
-    )
-
-    assert built_expression.condition_expression == condition_expression
-    assert built_expression.attribute_name_placeholders == attribute_name_placeholders
-    assert built_expression.attribute_value_placeholders == attribute_value_placeholders
 
 
 @pytest.fixture
@@ -91,18 +74,21 @@ async def test_remove_all_filters(screen_app):
         assert len(filters) == 0
 
 
-async def test_run_query_primary_key(screen_app):
+async def test_run_query_primary_key(screen_app, ddb_table, ddb_table_with_data):
+    from dyna_cli.aws.ddb import query_items
+
     async with screen_app().run_test() as pilot:
         pilot.app.SCREENS["query"].table_info = {
             "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
             "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
         }
+        ddb_item = ddb_table_with_data[0]
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
         # get to pk input
         await type_commands(["tab" for _ in range(0, 3)], pilot)
         # set pk to customer#test
-        await type_commands(["customer#test"], pilot)
+        await type_commands([ddb_item["pk"]], pilot)
         # run query
         await type_commands(["tab", "r"], pilot)
         dyn_query = pilot.app.dyn_query
@@ -110,32 +96,36 @@ async def test_run_query_primary_key(screen_app):
         assert dyn_query.key_cond_exp
         assert not dyn_query.filter_cond_exp
 
-        assert_exp(
-            dyn_query.key_cond_exp,
-            condition_expression="#n0 = :v0",
-            attribute_name_placeholders={"#n0": "pk"},
-            attribute_value_placeholders={":v0": "customer#test"},
-            is_key=True,
+        query_result = query_items(
+            ddb_table,
+            KeyConditionExpression=dyn_query.key_cond_exp,
         )
+
+        assert query_result
 
 
 # TODO once concurrency is enabled add more test cases for all the other conditions
-async def test_run_query_primary_key_sort_key(screen_app):
+async def test_run_query_primary_key_sort_key(
+    screen_app, ddb_table, ddb_table_with_data
+):
+    from dyna_cli.aws.ddb import query_items
+
     async with screen_app().run_test() as pilot:
         pilot.app.SCREENS["query"].table_info = {
             "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
             "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
         }
+        ddb_item = ddb_table_with_data[0]
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
         # set pk to customer#test
         await type_commands(["tab" for _ in range(0, 3)], pilot)
-        await type_commands(["customer#test"], pilot)
+        await type_commands([ddb_item["pk"]], pilot)
         # set cond to ==
         await type_commands(["tab", "tab", "enter", "tab", "enter"], pilot)
         # set sort key value
         await type_commands(["tab" for _ in range(0, 7)], pilot)
-        await type_commands(["test", "tab"], pilot)
+        await type_commands([ddb_item["sk"], "tab"], pilot)
 
         await type_commands(["r"], pilot)
         dyn_query = pilot.app.dyn_query
@@ -143,16 +133,12 @@ async def test_run_query_primary_key_sort_key(screen_app):
         assert dyn_query.key_cond_exp
         assert not dyn_query.filter_cond_exp
 
-        assert_exp(
-            dyn_query.key_cond_exp,
-            condition_expression="(#n0 = :v0 AND #n1 = :v1)",
-            attribute_name_placeholders={"#n0": "pk", "#n1": "sk"},
-            attribute_value_placeholders={
-                ":v0": "customer#test",
-                ":v1": "test",
-            },
-            is_key=True,
+        query_result = query_items(
+            ddb_table,
+            KeyConditionExpression=dyn_query.key_cond_exp,
         )
+
+        assert query_result
 
 
 # TODO once concurrency is enabled add more test cases for all the other conditions
@@ -210,5 +196,3 @@ async def test_run_query_primary_key_sort_key_filters(
         )
 
         assert query_result
-
-        
