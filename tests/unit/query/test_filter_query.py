@@ -65,7 +65,7 @@ async def test_display_condition(app):
 
 # TODO add all cond test cases i.e >=, >, <
 @pytest.mark.parametrize(
-    "cond", [{"condLabel": "==", "contCommand": ["down", "enter"]}]
+    "cond", [{"condLabel": "==", "contCommand": ["enter"]}]
 )
 async def test_conds(app, cond):
     async with app().run_test() as pilot:
