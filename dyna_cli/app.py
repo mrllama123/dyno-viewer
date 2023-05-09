@@ -140,7 +140,6 @@ class DynCli(App):
     async def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
         if new_table_client:
-            # TODO make this more extendable i.e query's, gsi lookups
             self.full_update_data_table(new_table_client)
             self.update_dyn_table_info()
 
