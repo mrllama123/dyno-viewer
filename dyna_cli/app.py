@@ -4,7 +4,7 @@ from textual.widgets import (
 )
 from textual.reactive import reactive
 from dyna_cli.aws.session import get_available_profiles
-from dyna_cli.aws.ddb import scan_items, get_ddb_client, get_table_client
+from dyna_cli.aws.ddb import scan_items, get_ddb_client, get_table_client, query_items
 from dyna_cli.components.screens import (
     ProfileSelectScreen,
     RegionSelectScreen,
@@ -64,15 +64,23 @@ class DynCli(App):
             )
 
     @work(exclusive=True, group="full_update_data_table")
-    def full_update_data_table(self, table_client) -> None:
+    def full_update_data_table(self, table_client, query_params=None) -> None:
         table = self.query_one(DataDynTable)
         worker = get_current_worker()
         if not worker.is_cancelled:
             self.call_from_thread(table.clear, columns=True)
-
-            results, next_token = scan_items(table_client, paginate=False, Limit=10)
-            self.call_from_thread(table.add_columns, results)
-            self.call_from_thread(table.add_rows, results)
+            log("params=", query_params)
+            results, next_token = (
+                query_items(table_client, paginate=False, **query_params)
+                if query_params
+                else scan_items(table_client, paginate=False, Limit=20)
+            )
+            log(f"found {len(results)} items")
+            if results:
+                self.call_from_thread(table.add_columns, results)
+                self.call_from_thread(table.add_rows, results)
+            else:
+                self.call_from_thread(table.clear)
 
     @work(exclusive=True, group="update_dyn_table_info")
     def update_dyn_table_info(self):
@@ -126,6 +134,12 @@ class DynCli(App):
             region_name=self.aws_region, profile_name=self.aws_profile
         )
         self.update_table_client()
+
+    async def on_query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
+        params = {"KeyConditionExpression": run_query.key_cond_exp}
+        if run_query.filter_cond_exp:
+            params["FilterExpression"] = run_query.filter_cond_exp
+        self.full_update_data_table(self.table_client, params)
 
     # action methods
 
