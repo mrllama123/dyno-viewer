@@ -59,6 +59,7 @@ class QueryScreen(Screen):
         sort_key = key_input.query_one("#sortKeyFilter")
         sort_key_name = sort_key.attr_name
         sort_key_value = sort_key.query_one("#attrValue").value
+        log("attr sort key value=", sort_key_value)
         cond = str(
             getattr(sort_key.query_one("#condition").pressed_button, "label", "")
         )
