@@ -1,15 +1,15 @@
 import logging
-import os
-import functools
+
 import simplejson as json
 from decimal import Decimal as D
 
-import boto3
 from boto3.dynamodb.conditions import Attr, Key
 from dynamodb_json import json_util as dyn_json
 
 from boto3.session import Session
 from botocore.exceptions import ClientError
+from decimal import Decimal
+import re
 
 
 LOG_LEVEL = logging.INFO
@@ -191,6 +191,79 @@ def scan_items(table, paginate=True, **query_kwargs):
         return items
 
     return items, resp.get("LastEvaluatedKey")
+
+
+def covert_comparator_exp(cond, attr_name, value, is_key=True) -> Key | Attr:
+    attr_class = Key if is_key else Attr
+    if cond == "==":
+        return attr_class(attr_name).eq(value)
+    if cond == "!=":
+        return attr_class(attr_name).ne(value)
+    elif cond == ">=":
+        return attr_class(attr_name).gte(value)
+    elif cond == ">":
+        return attr_class(attr_name).gt(value)
+    elif cond == "<=":
+        return attr_class(attr_name).lte(value)
+    elif cond == "<":
+        return attr_class(attr_name).lt(value)
+
+
+def convert_filter_exp_key_cond(cond, attr_name, value) -> Key:
+    comparator = covert_comparator_exp(cond, attr_name, value)
+
+    if comparator:
+        return comparator
+
+    if cond == "between":
+        return Key(attr_name).between(value[0], value[1])
+    if cond == "begins_with":
+        return Key(attr_name).begins_with(value)
+
+    raise Exception("passed incorrect condition for key filter expression")
+
+
+def convert_filter_exp_attr_cond(cond, attr_name, value=None) -> Attr:
+    comparator = covert_comparator_exp(cond, attr_name, value, is_key=False)
+
+    if comparator:
+        return comparator
+
+    if cond == "between":
+        return Attr(attr_name).between(value[0], value[1])
+    if cond == "begins_with":
+        return Attr(attr_name).begins_with(value)
+    if cond == "in":
+        return Attr(attr_name).is_in(value)
+    if cond == "attribute_exists":
+        return Attr(attr_name).exists()
+    if cond == "attribute_not_exists":
+        return Attr(attr_name).not_exists()
+    if cond == "attribute_type":
+        return Attr(attr_name).attribute_type(value)
+    if cond == "contains":
+        return Attr(attr_name).contains(value)
+    if cond == "size":
+        return Attr(attr_name).size()
+
+    raise Exception("passed incorrect condition for key filter expression")
+
+
+def convert_filter_exp_value(value: str, type: str):
+    if type == "number":
+        return Decimal(value)
+    elif type == "list":
+        return list(value)
+    elif type == "map":
+        return json.loads(value)
+    elif type == "boolean":
+        return bool(value)
+    elif type == "set":
+        value_formatted = re.sub(r"[\(\)]", "", value)
+        return set(value_formatted.split(","))
+    else:
+        return value
+    
 
 
 def float_to_decimal(payload):

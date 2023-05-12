@@ -16,25 +16,6 @@ if you used the same class in multiple tests in the same dir then it will keep a
 """
 
 
-@pytest.fixture
-def mock_tables(dynamodb):
-    print()
-    return [
-        create_ddb_table(dynamodb, table_name, 2)
-        for table_name in [
-            "dawnstar",
-            "falkreath",
-            "markarth",
-            "morthal",
-            "raven",
-            "riften",
-            "solitude",
-            "whiterun",
-            "windhelm",
-            "winterhold",
-        ]
-    ]
-
 
 @pytest.fixture
 def screen_app() -> App:
@@ -58,7 +39,7 @@ def screen_app() -> App:
     yield ScreensApp
 
 
-async def test_select_table(screen_app, mock_tables):
+async def test_select_table(screen_app, ddb_tables):
     import boto3
 
     async with screen_app().run_test() as pilot:

@@ -11,10 +11,7 @@ def dynamodb(aws_credentials):
         yield boto3.resource("dynamodb")
 
 
-# @pytest.fixture
-# def dynamodb(aws_credentials):
-#     with moto.mock_dynamodb():
-#         yield boto3.client("dynamodb")
+
 
 
 @pytest.fixture

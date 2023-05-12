@@ -4,7 +4,7 @@ from textual.widgets import (
 )
 from textual.reactive import reactive
 from dyna_cli.aws.session import get_available_profiles
-from dyna_cli.aws.ddb import scan_items, get_ddb_client, get_table_client
+from dyna_cli.aws.ddb import scan_items, get_ddb_client, get_table_client, query_items
 from dyna_cli.components.screens import (
     ProfileSelectScreen,
     RegionSelectScreen,
@@ -51,6 +51,8 @@ class DynCli(App):
 
     dyn_client = reactive(get_ddb_client())
 
+    table_info = reactive(None)
+
     def compose(self) -> ComposeResult:
         yield Footer()
         yield DataDynTable()
@@ -61,16 +63,50 @@ class DynCli(App):
                 self.table_name, self.aws_region, self.aws_profile
             )
 
-    @work(exclusive=True)
-    def full_update_data_table(self, table_client) -> None:
+    @work(exclusive=True, group="full_update_data_table")
+    def full_update_data_table(self, table_client, query_params=None) -> None:
         table = self.query_one(DataDynTable)
         worker = get_current_worker()
         if not worker.is_cancelled:
             self.call_from_thread(table.clear, columns=True)
-            
-            results, next_token = scan_items(table_client, paginate=False, Limit=10)
-            self.call_from_thread(table.add_columns, results)
-            self.call_from_thread(table.add_rows, results)
+            log("params=", query_params)
+            results, next_token = (
+                query_items(table_client, paginate=False, **query_params)
+                if query_params
+                else scan_items(table_client, paginate=False, Limit=20)
+            )
+            log(f"found {len(results)} items")
+            if results:
+                self.call_from_thread(table.add_columns, results)
+                self.call_from_thread(table.add_rows, results)
+            else:
+                self.call_from_thread(table.clear)
+
+    @work(exclusive=True, group="update_dyn_table_info")
+    def update_dyn_table_info(self):
+        worker = get_current_worker()
+        if not worker.is_cancelled:
+            main_keys = {
+                ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
+                    "AttributeName"
+                ]
+                for key in self.table_client.key_schema
+            }
+
+            gsi_keys = {
+                gsi["IndexName"]: {
+                    ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
+                        "AttributeName"
+                    ]
+                    for key in gsi["KeySchema"]
+                }
+                for gsi in self.table_client.global_secondary_indexes
+            }
+
+            def update(self, main_keys, gsi_keys):
+                self.table_info = {"keySchema": main_keys, "gsi": gsi_keys}
+
+            self.call_from_thread(update, self, main_keys, gsi_keys)
 
     # on methods
 
@@ -99,6 +135,12 @@ class DynCli(App):
         )
         self.update_table_client()
 
+    async def on_query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
+        params = {"KeyConditionExpression": run_query.key_cond_exp}
+        if run_query.filter_cond_exp:
+            params["FilterExpression"] = run_query.filter_cond_exp
+        self.full_update_data_table(self.table_client, params)
+
     # action methods
 
     async def action_exit(self) -> None:
@@ -112,13 +154,16 @@ class DynCli(App):
     async def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
         if new_table_client:
-            # TODO make this more extendable i.e query's, gsi lookups
             self.full_update_data_table(new_table_client)
-    
+            self.update_dyn_table_info()
 
     def watch_dyn_client(self, new_dyn_client):
         with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):
             self.SCREENS["tableSelect"].dyn_client = new_dyn_client
+
+    def watch_table_info(self, new_table_info) -> None:
+        with self.SCREENS["query"].prevent(QueryScreen.RunQuery):
+            self.SCREENS["query"].table_info = new_table_info
 
 
 def main() -> None:

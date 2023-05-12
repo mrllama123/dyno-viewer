@@ -1,7 +1,6 @@
 QueryInput  {
     margin: 1 1;
     width:90%;
-    height: 16;
     layout: vertical;
 
 }
@@ -11,3 +10,7 @@ QueryInput  {
     height: 4;
 }
 
+#queryIndex {
+    height: 5;
+    margin: 1 1;
+}
