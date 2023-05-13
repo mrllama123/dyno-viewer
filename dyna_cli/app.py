@@ -17,6 +17,8 @@ from textual import work
 from textual import log
 from botocore.exceptions import ClientError
 
+from dyna_cli.components.types import TableInfo
+
 
 class DynCli(App):
     BINDINGS = [
@@ -77,8 +79,7 @@ class DynCli(App):
             )
             log(f"found {len(results)} items")
             if results:
-                self.call_from_thread(table.add_columns, results)
-                self.call_from_thread(table.add_rows, results)
+                self.call_from_thread(table.refresh_data, self.table_info, results)
             else:
                 self.call_from_thread(table.clear)
 
@@ -161,7 +162,7 @@ class DynCli(App):
         with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):
             self.SCREENS["tableSelect"].dyn_client = new_dyn_client
 
-    def watch_table_info(self, new_table_info) -> None:
+    def watch_table_info(self, new_table_info: TableInfo) -> None:
         with self.SCREENS["query"].prevent(QueryScreen.RunQuery):
             self.SCREENS["query"].table_info = new_table_info
 
