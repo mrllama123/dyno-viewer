@@ -35,7 +35,6 @@ class SortKeyFilter(Widget):
         )
         yield Input(placeholder="value", id="attrValue")
 
-
     #  on methods
 
     def on_mount(self) -> None:

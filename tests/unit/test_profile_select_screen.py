@@ -62,4 +62,3 @@ async def test_select_profiles(iam, screen_app, mocker):
         assert pilot.app.profile == "test"
 
         assert not pilot.app.SCREENS["profile"].is_current
-        

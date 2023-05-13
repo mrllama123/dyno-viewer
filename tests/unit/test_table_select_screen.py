@@ -16,7 +16,6 @@ if you used the same class in multiple tests in the same dir then it will keep a
 """
 
 
-
 @pytest.fixture
 def screen_app() -> App:
     from dyna_cli.components.screens.table_select import TableSelectScreen

@@ -49,7 +49,7 @@ async def assert_sort_key(pilot, ddb_item):
     await type_commands(["tab", "enter", "tab", "enter"], pilot)
     assert str(sort_key.query_one("#condition").pressed_button.label) == "=="
     # set sort key value
-    #await type_commands(["down" for _ in range(0, 7)], pilot)
+    # await type_commands(["down" for _ in range(0, 7)], pilot)
     await type_commands(["tab", ddb_item["sk"], "tab"], pilot)
     assert sort_key.query_one("#attrValue").value == ddb_item["sk"]
 

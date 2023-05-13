@@ -63,10 +63,9 @@ async def test_display_condition(app):
         assert not pilot.app.query_one("#attrType").display
         assert pilot.app.query_one("#condition").display
 
+
 # TODO add all cond test cases i.e >=, >, <
-@pytest.mark.parametrize(
-    "cond", [{"condLabel": "==", "contCommand": ["enter"]}]
-)
+@pytest.mark.parametrize("cond", [{"condLabel": "==", "contCommand": ["enter"]}])
 async def test_conds(app, cond):
     async with app().run_test() as pilot:
         await type_commands(

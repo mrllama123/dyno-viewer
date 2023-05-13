@@ -263,7 +263,6 @@ def convert_filter_exp_value(value: str, type: str):
         return set(value_formatted.split(","))
     else:
         return value
-    
 
 
 def float_to_decimal(payload):
