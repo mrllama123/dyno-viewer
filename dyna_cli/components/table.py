@@ -2,6 +2,7 @@ from textual.widgets import (
     DataTable,
 )
 from textual import log
+from dyna_cli.components.types import TableInfo
 
 
 class DataDynTable(DataTable):
@@ -13,31 +14,43 @@ class DataDynTable(DataTable):
 
     ALL_PRIMARY_KEYS = [PRIMARY_KEY, SORTKEY]
 
-    def add_columns(self, dyn_data: list[dict]) -> list[any]:
-        cols = {attr for item in dyn_data for attr in item.keys()}
+    def refresh_data(self, table_info: TableInfo, data: list[dict]) -> None:
+        log("reafresh data for table")
+        key_schema = table_info["keySchema"]
+        gsis = table_info["gsi"]
 
-        if len(cols) == 0:
-            raise Exception("no col keys found")
-
-        log("gsi's=", self.GSIS)
-
-        for gsipk, gsisk in self.GSIS.items():
-            if gsipk in cols:
-                self.ALL_PRIMARY_KEYS.append(gsipk)
-                self.ALL_PRIMARY_KEYS.append(gsisk)
-
-        log("primary key=", self.ALL_PRIMARY_KEYS)
-
-        all_cols = [
-            *self.ALL_PRIMARY_KEYS,
-            *[col for col in cols if col not in self.ALL_PRIMARY_KEYS],
+        gsis_col = [
+            key for gsi in gsis.values() for key in [gsi["primaryKey"], gsi["sortKey"]]
         ]
+        log.info(f"{len(gsis_col)} gsi cols")
 
-        log("coll's=", all_cols)
 
-        return super().add_columns(*all_cols)
+        cols = [key_schema["primaryKey"], key_schema["sortKey"], *gsis_col]
+        data_cols = [
+            attrKey
+            for item in data
+            for attrKey in item
+            if attrKey not in cols
+        ]
+        log.info(f"{len(data_cols)} other cols")
+        cols.extend(data_cols)
 
-    def add_rows(self, dyn_data: list[dict]) -> list[any]:
-        cols = [str(col.label) for col in self.columns.values()]
-        rows = [[item.get(col) for col in cols] for item in dyn_data]
-        return super().add_rows(rows)
+        log.info(f"{len(cols)} total cols")
+
+        self.clear()
+        for col in cols:
+            self.add_column(col, key=col)
+
+        rows = [[item.get(col) for col in cols] for item in data]
+        log.info(f"{len(rows)} total rows")
+        super().add_rows(rows)
+
+    def add_data(self, data: list[dict]) -> None:
+        cols_not_exisit = [
+            attrKey for item in data for attrKey in item if attrKey not in self.columns
+        ]
+        if cols_not_exisit:
+            for col in cols_not_exisit:
+                self.add_column(col, key=col)
+        rows = [[item.get(col) for col in self.columns.keys()] for item in data]
+        super().add_rows(rows)

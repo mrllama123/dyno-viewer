@@ -16,6 +16,7 @@ from dyna_cli.aws.ddb import (
     convert_filter_exp_attr_cond,
     convert_filter_exp_value,
 )
+from dyna_cli.components.types import TableInfo
 
 
 class QueryScreen(Screen):
@@ -132,7 +133,7 @@ class QueryScreen(Screen):
 
     # watcher methods
 
-    def watch_table_info(self, new_table_info) -> None:
+    def watch_table_info(self, new_table_info: TableInfo) -> None:
         if new_table_info:
             try:
                 key_query = self.query_one(KeyQuery)
