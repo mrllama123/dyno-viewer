@@ -56,7 +56,3 @@ async def test_gsi_switch(app):
 
         assert query_input.query_one("#partitionKey").placeholder == "pk"
         assert query_input.query_one("#sortKeyFilter").attr_name == "sk"
-
-
-
-

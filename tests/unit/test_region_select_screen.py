@@ -6,7 +6,6 @@ from textual.reactive import reactive
 import pytest
 
 
-
 @pytest.fixture()
 def screen_app():
     class ScreensApp(App[None]):

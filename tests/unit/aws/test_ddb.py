@@ -49,10 +49,11 @@ def test_convert_filter_exp_attr_cond(exp):
         {"args": {"value": "['test', 'test2']", "type": "list"}, "resultType": list},
         {"args": {"value": '{"test": 123}', "type": "map"}, "resultType": dict},
         {"args": {"value": '("test", 123)', "type": "set"}, "resultType": set},
-        {"args": {"value": 'test1234', "type": "string"}, "resultType": str},
+        {"args": {"value": "test1234", "type": "string"}, "resultType": str},
     ],
 )
 def test_convert_filter_exp_value(attr_value):
     from dyna_cli.aws.ddb import convert_filter_exp_value
+
     result = convert_filter_exp_value(**attr_value["args"])
     assert isinstance(result, attr_value["resultType"])

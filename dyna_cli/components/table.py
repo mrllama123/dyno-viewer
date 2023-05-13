@@ -24,13 +24,9 @@ class DataDynTable(DataTable):
         ]
         log.info(f"{len(gsis_col)} gsi cols")
 
-
         cols = [key_schema["primaryKey"], key_schema["sortKey"], *gsis_col]
         data_cols = [
-            attrKey
-            for item in data
-            for attrKey in item
-            if attrKey not in cols
+            attrKey for item in data for attrKey in item if attrKey not in cols
         ]
         log.info(f"{len(data_cols)} other cols")
         cols.extend(data_cols)

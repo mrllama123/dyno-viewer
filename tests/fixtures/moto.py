@@ -11,9 +11,6 @@ def dynamodb(aws_credentials):
         yield boto3.resource("dynamodb")
 
 
-
-
-
 @pytest.fixture
 def iam(aws_credentials):
     with moto.mock_iam():
@@ -24,6 +21,3 @@ def iam(aws_credentials):
 def sts(aws_credentials):
     with moto.mock_iam():
         yield boto3.client("sts")
-
-
-

@@ -2,7 +2,6 @@ from textual.app import App, ComposeResult
 from textual import events
 from dyna_cli.components.table import DataDynTable
 import pytest
-import json
 
 
 class DataDynTableApp(App[None]):
@@ -177,4 +176,3 @@ async def test_pk_sk_gsi_data(data, result) -> None:
 
         table_rows = [table.get_row_at(i) for i in range(0, len(data))]
         assert table_rows == result
-

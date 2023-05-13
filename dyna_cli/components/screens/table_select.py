@@ -54,11 +54,12 @@ class TableSelectScreen(Screen):
                 dynamodb_tables, next_token = list_all_tables(
                     self.dyn_client, Limit=10, paginate=False
                 )
+
             def update_next_token(self, next_token):
                 self.next_token = next_token
+
             self.app.call_from_thread(update_next_token, self, next_token)
             self.app.call_from_thread(self.tables.extend, dynamodb_tables)
-    
 
     # on methods
 

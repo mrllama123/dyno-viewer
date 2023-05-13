@@ -78,9 +78,7 @@ class QueryScreen(Screen):
             attr_type = str(
                 getattr(filter.query_one("#attrType").pressed_button, "label", "")
             )
-            attr_value = str(
-                getattr(filter.query_one("#attrValue"), "value", "")
-            )
+            attr_value = str(getattr(filter.query_one("#attrValue"), "value", ""))
             cond = str(
                 getattr(filter.query_one("#condition").pressed_button, "label", "")
             )

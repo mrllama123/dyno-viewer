@@ -27,4 +27,3 @@ class ErrorScreen(Screen):
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         self.app.pop_screen()
-

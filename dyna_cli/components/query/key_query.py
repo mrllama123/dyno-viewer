@@ -50,7 +50,6 @@ class KeyQuery(Widget):
             ]["sortKey"]
 
         else:
-
             self.query_one("#partitionKey").placeholder = self.partition_key_attr_name
             self.query_one("#sortKeyFilter").attr_name = self.sort_key_attr_name
 
