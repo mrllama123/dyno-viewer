@@ -62,9 +62,8 @@ class QueryScreen(Screen):
         sort_key_name = sort_key.attr_name
         sort_key_value = sort_key.query_one("#attrValue").value
         log("attr sort key value=", sort_key_value)
-        cond = str(
-            getattr(sort_key.query_one("#condition").pressed_button, "label", "")
-        )
+        cond = sort_key.query_one("#condition").value
+
         if sort_key_value:
             return Key(primary_key_name).eq(
                 primary_key_value
