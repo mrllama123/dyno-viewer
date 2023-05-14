@@ -62,15 +62,13 @@ async def assert_filter_one(pilot, attr_name, attr_value):
     # set attr filter name to test
     await type_commands(["tab", "tab", "test"], pilot)
     assert filter_query.query_one("#attr").value == attr_name
-    # set attr filter type to string
-    await type_commands(["tab", "enter", "tab", "enter"], pilot)
-    assert str(filter_query.query_one("#attrType").pressed_button.label) == "string"
+    # attr filter type is string
+    assert filter_query.query_one("#attrType").value == "string"
     # set attr filter cont to ==
-    await type_commands(["down" for _ in range(0, 7)], pilot)
-    await type_commands(["tab", "enter", "tab", "enter"], pilot)
-    assert str(filter_query.query_one("#condition").pressed_button.label) == "=="
+    assert filter_query.query_one("#condition").value == "=="
     # set attr filter value to test1
-    await type_commands(["tab", "test1"], pilot)
+    await type_commands(["tab" for _ in range(0, 3)], pilot)
+    await type_commands(["test1"], pilot)
     assert filter_query.query_one("#attrValue").value == attr_value
 
 
