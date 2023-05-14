@@ -3,7 +3,7 @@ from textual import events
 from textual.pilot import Pilot
 from dyna_cli.components.screens import QueryScreen
 from dyna_cli.components.query.filter_query import FilterQuery
-from textual.widgets import Input, Button, RadioSet
+from textual.widgets import Input, Button, RadioSet, Select
 import pytest
 import json
 
@@ -23,53 +23,69 @@ async def test_initial(app):
     async with app().run_test() as pilot:
         assert pilot.app.query_one("#attr")
         assert pilot.app.query_one("#attrValue")
-        assert len(pilot.app.query(RadioSet)) == 2
-        assert all(
-            radio_set
-            for radio_set in pilot.app.query(RadioSet)
-            if not radio_set.display
-        )
-        assert pilot.app.query_one("#attrType")
-        assert len(pilot.app.query(Button)) == 3
-        all(
-            button
-            for button in pilot.app.query(Button)
-            if str(button.label) in ["remove filter", "condition", "type"]
-        )
+        assert pilot.app.query_one("#attrType").value == "string"
+        assert pilot.app.query_one("#condition").value == "=="
 
 
-async def test_inputs(app):
+async def test_attr_name_value(app):
     async with app().run_test() as pilot:
         await type_commands(["tab", "dawnstar"], pilot)
 
         input_attr = pilot.app.query_one("#attr")
         assert input_attr.value == "dawnstar"
 
-        await type_commands([*["tab" for _ in range(0, 3)], "raven"], pilot)
+        await type_commands(["tab", "tab", "tab", "raven"], pilot)
         input_value = pilot.app.query_one("#attrValue")
         assert input_value.value == "raven"
 
 
-async def test_display_type(app):
-    async with app().run_test() as pilot:
-        await type_commands(["tab", "tab", "enter"], pilot)
-        assert pilot.app.query_one("#attrType").display
-        assert not pilot.app.query_one("#condition").display
-
-
-async def test_display_condition(app):
-    async with app().run_test() as pilot:
-        await type_commands(["tab", "tab", "tab", "enter"], pilot)
-        assert not pilot.app.query_one("#attrType").display
-        assert pilot.app.query_one("#condition").display
-
-
-# TODO add all cond test cases i.e >=, >, <
-@pytest.mark.parametrize("cond", [{"condLabel": "==", "contCommand": ["enter"]}])
+@pytest.mark.parametrize(
+    "cond",
+    [
+        {"condLabel": "==", "condCommand": []},
+        {"condLabel": ">", "condCommand": ["down"]},
+        {"condLabel": "<", "condCommand": ["down", "down"]},
+        {"condLabel": "<=", "condCommand": ["down" for _ in range(0, 3)]},
+        {"condLabel": ">=", "condCommand": ["down" for _ in range(0, 4)]},
+        {"condLabel": "!=", "condCommand": ["down" for _ in range(0, 5)]},
+        {"condLabel": "between", "condCommand": ["down" for _ in range(0, 6)]},
+        {"condLabel": "in", "condCommand": ["down" for _ in range(0, 7)]},
+        {"condLabel": "attribute_exists", "condCommand": ["down" for _ in range(0, 8)]},
+        {
+            "condLabel": "attribute_not_exists",
+            "condCommand": ["down" for _ in range(0, 9)],
+        },
+        {"condLabel": "attribute_type", "condCommand": ["down" for _ in range(0, 10)]},
+        {"condLabel": "begins_with", "condCommand": ["down" for _ in range(0, 11)]},
+        {"condLabel": "contains", "condCommand": ["down" for _ in range(0, 12)]},
+        {"condLabel": "size", "condCommand": ["down" for _ in range(0, 13)]},
+    ],
+)
 async def test_conds(app, cond):
     async with app().run_test() as pilot:
         await type_commands(
-            [*["tab" for _ in range(0, 3)], "enter", "tab", *cond["contCommand"]], pilot
+            [*["tab" for _ in range(0, 3)], "enter", *cond["condCommand"], "enter"],
+            pilot,
         )
-        condition = pilot.app.query_one("#condition")
-        assert str(condition.pressed_button.label) == cond["condLabel"]
+        assert pilot.app.query_one("#condition").value == cond["condLabel"]
+
+
+@pytest.mark.parametrize(
+    "type",
+    [
+        {"type": "string", "typeCommand": []},
+        {"type": "number", "typeCommand": ["down"]},
+        {"type": "binary", "typeCommand": ["down", "down"]},
+        {"type": "boolean", "typeCommand": ["down" for _ in range(0, 3)]},
+        {"type": "map", "typeCommand": ["down" for _ in range(0, 4)]},
+        {"type": "list", "typeCommand": ["down" for _ in range(0, 5)]},
+        {"type": "set", "typeCommand": ["down" for _ in range(0, 6)]},
+    ],
+)
+async def test_types(app, type):
+    async with app().run_test() as pilot:
+        await type_commands(
+            ["tab", "tab", "enter", *type["typeCommand"], "enter"],
+            pilot,
+        )
+        assert pilot.app.query_one("#attrType").value == type["type"]

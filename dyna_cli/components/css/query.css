@@ -10,7 +10,7 @@
 #keyInput {
     margin: 1 1;
     background: $boost;
-    border: heavy grey
+    border: heavy grey;
 }
 
 #keyInput > #scanToggle {
@@ -39,7 +39,9 @@
 #queryScreen > FilterQuery {
     margin: 1  1;
     background: $boost;
-    border: heavy grey
+    border: heavy grey;
+    height: 21;
+    overflow-y: auto;
 }
 
 

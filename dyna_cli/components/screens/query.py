@@ -76,13 +76,11 @@ class QueryScreen(Screen):
 
         for filter in self.query(FilterQuery):
             attr_name = filter.query_one("#attr").value
-            attr_type = str(
-                getattr(filter.query_one("#attrType").pressed_button, "label", "")
-            )
+            attr_type = getattr(filter.query_one("#attrType"), "value", "")
+
             attr_value = str(getattr(filter.query_one("#attrValue"), "value", ""))
-            cond = str(
-                getattr(filter.query_one("#condition").pressed_button, "label", "")
-            )
+            cond = getattr(filter.query_one("#condition"), "value", "")
+
             if exp:
                 exp = exp & convert_filter_exp_attr_cond(
                     cond, attr_name, convert_filter_exp_value(attr_value, attr_type)
