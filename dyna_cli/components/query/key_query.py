@@ -1,5 +1,5 @@
 from textual.app import ComposeResult
-from textual.containers import VerticalScroll, Horizontal
+from textual.containers import Horizontal, Container, VerticalScroll
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Label, Switch, OptionList, Input
@@ -16,17 +16,27 @@ class KeyQuery(Widget):
     sort_key_attr_name = reactive("")
 
     def compose(self) -> ComposeResult:
-        yield VerticalScroll(
-            Horizontal(
-                Label("Scan "),
-                Switch(name="scan", id="scanToggleSwitch"),
-                id="scanToggle",
-            ),
-            OptionList("table", id="queryIndex"),
-            Input(placeholder="pk", id="partitionKey"),
-            SortKeyFilter(id="sortKeyFilter"),
-            id="queryInput",
+        
+        yield Horizontal(
+            Label("Scan "),
+            Switch(name="scan", id="scanToggleSwitch"),
+            id="scanToggle",
         )
+        yield OptionList("table", id="queryIndex")
+        yield Input(placeholder="pk", id="partitionKey")
+        yield SortKeyFilter(id="sortKeyFilter")
+
+        # yield Container(
+        #     Horizontal(
+        #         Label("Scan "),
+        #         Switch(name="scan", id="scanToggleSwitch"),
+        #         id="scanToggle",
+        #     ),
+        #     OptionList("table", id="queryIndex"),
+        #     Input(placeholder="pk", id="partitionKey"),
+        #     SortKeyFilter(id="sortKeyFilter"),
+        #     id="keyInput",
+        # )
 
     #  on methods
     def on_switch_changed(self, changed: Switch.Changed) -> None:

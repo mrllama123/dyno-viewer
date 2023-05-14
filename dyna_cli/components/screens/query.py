@@ -3,7 +3,7 @@ from textual.css.query import NoMatches
 from textual.widgets import ListItem, ListView, Button, Input, Switch, Label, RadioSet
 from textual.widget import Widget
 from textual.widgets import Footer
-from textual.containers import Vertical, Horizontal, VerticalScroll, Middle
+from textual.containers import Container
 from textual.screen import Screen
 from textual.message import Message
 from textual.reactive import reactive
@@ -45,9 +45,10 @@ class QueryScreen(Screen):
             super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield KeyQuery()
-        yield Button("add filter", id="addFilter")
-        yield Button("remove all filters", id="removeAllFilters")
+        with Container(id="queryScreen"):
+            yield KeyQuery(id="keyInput")
+            yield Button("add filter", id="addFilter")
+            yield Button("remove all filters", id="removeAllFilters")
 
     def get_key_query(self) -> Key | None:
         key_input = self.query_one(KeyQuery)
@@ -116,7 +117,7 @@ class QueryScreen(Screen):
     # on methods:
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "addFilter":
-            self.mount(FilterQuery())
+            self.query_one("#queryScreen").mount(FilterQuery())
             self.scroll_visible()
         elif event.button.id == "removeAllFilters":
             for filter in self.query(FilterQuery):
