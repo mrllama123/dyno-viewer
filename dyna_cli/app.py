@@ -51,9 +51,11 @@ class DynCli(App):
 
     table_info = reactive(None)
 
+    dyn_query_params = reactive({})
+
     def compose(self) -> ComposeResult:
-        yield Footer()
         yield DataDynTable()
+        yield Footer()
 
     def update_table_client(self):
         if self.table_name != "":
@@ -61,12 +63,15 @@ class DynCli(App):
                 self.table_name, self.aws_region, self.aws_profile
             )
 
+    # worker methods
+
     @work(exclusive=True, group="full_update_data_table")
     def full_update_data_table(self, table_client, query_params=None) -> None:
         table = self.query_one(DataDynTable)
         worker = get_current_worker()
         if not worker.is_cancelled:
             self.call_from_thread(table.clear, columns=True)
+
             log("params=", query_params)
             results, next_token = (
                 query_items(table_client, paginate=False, **query_params)
@@ -74,10 +79,9 @@ class DynCli(App):
                 else scan_items(table_client, paginate=False, Limit=20)
             )
             log(f"found {len(results)} items")
+
             if results:
                 self.call_from_thread(table.refresh_data, self.table_info, results)
-            else:
-                self.call_from_thread(table.clear)
 
     @work(exclusive=True, group="update_dyn_table_info")
     def update_dyn_table_info(self):
@@ -104,6 +108,14 @@ class DynCli(App):
                 self.table_info = {"keySchema": main_keys, "gsi": gsi_keys}
 
             self.call_from_thread(update, self, main_keys, gsi_keys)
+
+    @work(exclusive=True, group="dyn_table_query")
+    def dyn_table_query(self, dyn_query_params):
+        return query_items(
+            self.table_client,
+            paginate=False,
+            **dyn_query_params,
+        )
 
     # on methods
 
