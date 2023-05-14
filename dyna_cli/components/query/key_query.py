@@ -16,7 +16,6 @@ class KeyQuery(Widget):
     sort_key_attr_name = reactive("")
 
     def compose(self) -> ComposeResult:
-        
         yield Horizontal(
             Label("Scan "),
             Switch(name="scan", id="scanToggleSwitch"),
@@ -25,18 +24,6 @@ class KeyQuery(Widget):
         yield OptionList("table", id="queryIndex")
         yield Input(placeholder="pk", id="partitionKey")
         yield SortKeyFilter(id="sortKeyFilter")
-
-        # yield Container(
-        #     Horizontal(
-        #         Label("Scan "),
-        #         Switch(name="scan", id="scanToggleSwitch"),
-        #         id="scanToggle",
-        #     ),
-        #     OptionList("table", id="queryIndex"),
-        #     Input(placeholder="pk", id="partitionKey"),
-        #     SortKeyFilter(id="sortKeyFilter"),
-        #     id="keyInput",
-        # )
 
     #  on methods
     def on_switch_changed(self, changed: Switch.Changed) -> None:
