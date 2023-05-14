@@ -33,7 +33,7 @@ def screen_app():
 async def assert_primary_key(pilot, ddb_item):
     key_query = pilot.app.query_one(KeyQuery)
     # set pk to customer#test
-    await type_commands(["tab" for _ in range(0, 4)], pilot)
+    await type_commands(["tab" for _ in range(0, 3)], pilot)
     await type_commands([ddb_item["pk"]], pilot)
     assert key_query.query_one("#partitionKey").value == ddb_item["pk"]
 
@@ -92,7 +92,7 @@ async def test_add_filter(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
-        await type_commands(["tab" for _ in range(0, 8)], pilot)
+        await type_commands(["tab" for _ in range(0, 7)], pilot)
         await type_commands(["enter", "enter"], pilot)
 
         filters = pilot.app.query(FilterQuery)
@@ -104,7 +104,7 @@ async def test_remove_all_filters(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
-        await type_commands(["tab" for _ in range(0, 8)], pilot)
+        await type_commands(["tab" for _ in range(0, 7)], pilot)
         await type_commands(["enter", "enter"], pilot)
 
         filters = pilot.app.query(FilterQuery)
