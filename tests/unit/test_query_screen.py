@@ -41,17 +41,15 @@ async def assert_primary_key(pilot, ddb_item):
 async def assert_sort_key(pilot, ddb_item):
     # TODO handle different cond and types
     sort_key = pilot.app.query_one(KeyQuery).query_one("#sortKeyFilter")
-    # set attr filter type to string
-    await type_commands(["tab", "enter", "tab", "enter"], pilot)
-    assert str(sort_key.query_one("#attrType").pressed_button.label) == "string"
-    # set cond to ==
-    await type_commands(["down" for _ in range(0, 7)], pilot)
-    await type_commands(["tab", "enter", "tab", "enter"], pilot)
-    assert str(sort_key.query_one("#condition").pressed_button.label) == "=="
+    # attr filter type is string
+    assert sort_key.query_one("#attrType").value == "string"
+    # cond is ==
+    assert sort_key.query_one("#condition").value == "=="
     # set sort key value
-    # await type_commands(["down" for _ in range(0, 7)], pilot)
-    await type_commands(["tab", ddb_item["sk"], "tab"], pilot)
+    await type_commands(["tab" for _ in range(0, 3)], pilot)
+    await type_commands([ddb_item["sk"]], pilot)
     assert sort_key.query_one("#attrValue").value == ddb_item["sk"]
+    await type_commands(["tab"], pilot)
 
 
 async def assert_filter_one(pilot, attr_name, attr_value):

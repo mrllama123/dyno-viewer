@@ -3,18 +3,25 @@
     overflow-y: auto;
 }
 
+#queryScreen  Select{
+    margin: 1 0;
+
+}
+
 #queryScreen  Button {
     margin: 1 1;
 
 }
+
 #keyInput {
     margin: 1 1;
     background: $boost;
     border: heavy grey;
+    height: 34;
 }
 
 #keyInput > #scanToggle {
-    margin: 1 1;
+    margin: 0 1;
     height: 4;
 }
 
@@ -40,7 +47,7 @@
     margin: 1  1;
     background: $boost;
     border: heavy grey;
-    height: 21;
+    height: 25;
     overflow-y: auto;
 }
 

@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Label, Button, RadioSet, Input
+from textual.widgets import Label, Button, RadioSet, Input, Select
 
 
 class SortKeyFilter(Widget):
@@ -9,28 +9,40 @@ class SortKeyFilter(Widget):
 
     def compose(self) -> ComposeResult:
         yield Label(self.attr_name, id="attr")
-        yield Button("type")
-        yield RadioSet(
-            "string",
-            "number",
-            "binary",
-            "boolean",
-            "map",
-            "list",
-            "set",
-            name="type",
+        yield Label("Type")
+        yield Select(
+            [
+                (line, line)
+                for line in [
+                    "string",
+                    "number",
+                    "binary",
+                    "boolean",
+                    "map",
+                    "list",
+                    "set",
+                ]
+            ],
+            prompt="type",
+            value="string",
             id="attrType",
         )
-        yield Button("condition")
-        yield RadioSet(
-            "==",
-            ">",
-            "<",
-            "<=",
-            ">=",
-            "between",
-            "begins_with",
-            name="condition",
+        yield Label("Condition")
+        yield Select(
+            [
+                (line, line)
+                for line in [
+                    "==",
+                    ">",
+                    "<",
+                    "<=",
+                    ">=",
+                    "between",
+                    "begins_with",
+                ]
+            ],
+            prompt="Condition",
+            value="==",
             id="condition",
         )
         yield Input(placeholder="value", id="attrValue")
