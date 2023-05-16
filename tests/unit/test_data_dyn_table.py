@@ -24,7 +24,7 @@ class DataDynTableApp(App[None]):
 
     def on_mount(self, event: events.Mount) -> None:
         table = self.query_one(DataDynTable)
-        table.refresh_data(self.table_info, self.data)
+        table.add_dyn_data(self.table_info, self.data)
         # table.add_columns(self.data)
         # table.add_rows(self.data)
 

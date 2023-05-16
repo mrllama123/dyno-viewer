@@ -3,6 +3,11 @@ from textual.widgets import (
     Footer,
 )
 from textual.reactive import reactive
+from dyna_cli.app_workers import (
+    update_dyn_table_info,
+    dyn_table_query,
+    UpdateDynDataTable,
+)
 from dyna_cli.aws.session import get_available_profiles
 from dyna_cli.aws.ddb import scan_items, get_ddb_client, get_table_client, query_items
 from dyna_cli.components.screens import (
@@ -15,7 +20,7 @@ from dyna_cli.components.table import DataDynTable
 from textual.worker import get_current_worker
 from textual import work
 from textual import log
-from botocore.exceptions import ClientError
+
 
 from dyna_cli.components.types import TableInfo
 
@@ -44,6 +49,8 @@ class DynCli(App):
     table_name = reactive("")
 
     aws_region = reactive("ap-southeast-2")
+    
+    dyn_query_params = reactive({})
 
     table_client = reactive(None)
 
@@ -51,7 +58,6 @@ class DynCli(App):
 
     table_info = reactive(None)
 
-    dyn_query_params = reactive({})
 
     def compose(self) -> ComposeResult:
         yield DataDynTable()
@@ -63,59 +69,11 @@ class DynCli(App):
                 self.table_name, self.aws_region, self.aws_profile
             )
 
-    # worker methods
-
-    @work(exclusive=True, group="full_update_data_table")
-    def full_update_data_table(self, table_client, query_params=None) -> None:
-        table = self.query_one(DataDynTable)
-        worker = get_current_worker()
-        if not worker.is_cancelled:
-            self.call_from_thread(table.clear, columns=True)
-
-            log("params=", query_params)
-            results, next_token = (
-                query_items(table_client, paginate=False, **query_params)
-                if query_params
-                else scan_items(table_client, paginate=False, Limit=20)
-            )
-            log(f"found {len(results)} items")
-
-            if results:
-                self.call_from_thread(table.refresh_data, self.table_info, results)
-
-    @work(exclusive=True, group="update_dyn_table_info")
-    def update_dyn_table_info(self):
-        worker = get_current_worker()
-        if not worker.is_cancelled:
-            main_keys = {
-                ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
-                    "AttributeName"
-                ]
-                for key in self.table_client.key_schema
-            }
-
-            gsi_keys = {
-                gsi["IndexName"]: {
-                    ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
-                        "AttributeName"
-                    ]
-                    for key in gsi["KeySchema"]
-                }
-                for gsi in self.table_client.global_secondary_indexes
-            }
-
-            def update(self, main_keys, gsi_keys):
-                self.table_info = {"keySchema": main_keys, "gsi": gsi_keys}
-
-            self.call_from_thread(update, self, main_keys, gsi_keys)
-
-    @work(exclusive=True, group="dyn_table_query")
-    def dyn_table_query(self, dyn_query_params):
-        return query_items(
-            self.table_client,
-            paginate=False,
-            **dyn_query_params,
-        )
+    def set_pagination_token(self, next_token: str | None) -> None:
+        if next_token:
+            self.dyn_query_params["ExclusiveStartKey"] = next_token
+        else:
+            self.dyn_query_params.pop("ExclusiveStartKey", None)
 
     # on methods
 
@@ -148,7 +106,17 @@ class DynCli(App):
         params = {"KeyConditionExpression": run_query.key_cond_exp}
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
-        self.full_update_data_table(self.table_client, params)
+        self.dyn_table_query = params
+        dyn_table_query(self)
+
+    async def on_update_dyn_data_table(self, update_data: UpdateDynDataTable) -> None:
+        table = self.query_one(DataDynTable)
+        if update_data.update_existing_data:
+            table.add_dyn_data_existing(update_data.data)
+            self.set_pagination_token(update_data.next_token)
+        else:
+            table.add_dyn_data(self.table_info, update_data.data)
+            self.set_pagination_token(update_data.next_token)
 
     # action methods
 
@@ -163,8 +131,8 @@ class DynCli(App):
     async def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
         if new_table_client:
-            self.full_update_data_table(new_table_client)
-            self.update_dyn_table_info()
+            update_dyn_table_info(self)
+            dyn_table_query(self)
 
     def watch_dyn_client(self, new_dyn_client):
         with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):

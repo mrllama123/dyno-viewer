@@ -6,16 +6,11 @@ from dyna_cli.components.types import TableInfo
 
 
 class DataDynTable(DataTable):
-    # TODO need to use config instead on hardcoded values
-    PRIMARY_KEY = "pk"
-    SORTKEY = "sk"
-
-    GSIS = {f"gsipk{i}": f"gsisk{i}" for i in range(1, 5)}
-
-    ALL_PRIMARY_KEYS = [PRIMARY_KEY, SORTKEY]
-
-    def refresh_data(self, table_info: TableInfo, data: list[dict]) -> None:
-        log("reafresh data for table")
+    def add_dyn_data(self, table_info: TableInfo, data: list[dict]) -> None:
+        """
+        add dynamodb table data with keys sorted to always be first
+        """
+        log("add dynamodb data from table")
         key_schema = table_info["keySchema"]
         gsis = table_info["gsi"]
 
@@ -39,14 +34,20 @@ class DataDynTable(DataTable):
 
         rows = [[item.get(col) for col in cols] for item in data]
         log.info(f"{len(rows)} total rows")
-        super().add_rows(rows)
+        self.add_rows(rows)
 
-    def add_data(self, data: list[dict]) -> None:
-        cols_not_exisit = [
+    def add_dyn_data_existing(self, data: list[dict]) -> None:
+        """
+        add more data to table that has already been setup with dynamodb table data
+        """
+        if self.row_count == 0:
+            raise Exception("there must be existing data")
+
+        cols_not_exist = [
             attrKey for item in data for attrKey in item if attrKey not in self.columns
         ]
-        if cols_not_exisit:
-            for col in cols_not_exisit:
+        if cols_not_exist:
+            for col in cols_not_exist:
                 self.add_column(col, key=col)
         rows = [[item.get(col) for col in self.columns.keys()] for item in data]
-        super().add_rows(rows)
+        self.add_rows(rows)
