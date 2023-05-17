@@ -24,7 +24,7 @@ class DataDynTableApp(App[None]):
 
     def on_mount(self, event: events.Mount) -> None:
         table = self.query_one(DataDynTable)
-        table.refresh_data(self.table_info, self.data)
+        table.add_dyn_data(self.table_info, self.data)
         # table.add_columns(self.data)
         # table.add_rows(self.data)
 
@@ -58,6 +58,26 @@ class DataDynTableApp(App[None]):
                     None,
                     None,
                     None,
+                ],
+                ["customer#54321", "", None, None, None, None, None, None, True],
+            ],
+        ),
+        (
+            [
+                {"pk": "customer#12345", "sk": "CUSTOMER", "testAttr": True},
+                {"pk": "customer#54321", "sk": "", "testAttr": True},
+            ],
+            [
+                [
+                    "customer#12345",
+                    "CUSTOMER",
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    True,
                 ],
                 ["customer#54321", "", None, None, None, None, None, None, True],
             ],

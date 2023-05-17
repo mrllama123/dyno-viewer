@@ -48,7 +48,7 @@ class FilterQuery(Widget):
             ],
             prompt="Condition",
             value="==",
-            id="condition"
+            id="condition",
         )
         yield Input(placeholder="value", id="attrValue")
         if self.id != "sortKeyFilter":
