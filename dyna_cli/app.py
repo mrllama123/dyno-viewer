@@ -49,7 +49,7 @@ class DynCli(App):
     table_name = reactive("")
 
     aws_region = reactive("ap-southeast-2")
-    
+
     dyn_query_params = reactive({})
 
     table_client = reactive(None)
@@ -57,7 +57,6 @@ class DynCli(App):
     dyn_client = reactive(get_ddb_client())
 
     table_info = reactive(None)
-
 
     def compose(self) -> ComposeResult:
         yield DataDynTable()

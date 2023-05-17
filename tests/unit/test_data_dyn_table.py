@@ -62,6 +62,26 @@ class DataDynTableApp(App[None]):
                 ["customer#54321", "", None, None, None, None, None, None, True],
             ],
         ),
+        (
+            [
+                {"pk": "customer#12345", "sk": "CUSTOMER", "testAttr": True},
+                {"pk": "customer#54321", "sk": "", "testAttr": True},
+            ],
+            [
+                [
+                    "customer#12345",
+                    "CUSTOMER",
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    True,
+                ],
+                ["customer#54321", "", None, None, None, None, None, None, True],
+            ],
+        ),
     ],
 )
 async def test_pk_sk_data(data, result) -> None:
