@@ -62,6 +62,10 @@ class DynCli(App):
         yield DataDynTable()
         yield Footer()
 
+    def on_mount(self):
+        table = self.query_one(DataDynTable)
+        table.focus()
+
     def update_table_client(self):
         if self.table_name != "":
             self.table_client = get_table_client(
