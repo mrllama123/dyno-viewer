@@ -18,8 +18,7 @@ from dyna_cli.components.screens import (
 )
 from dyna_cli.components.table import DataDynTable
 from textual.worker import get_current_worker
-from textual import work
-from textual import log
+from textual import work, log, on
 
 
 from dyna_cli.components.types import TableInfo
@@ -62,10 +61,6 @@ class DynCli(App):
         yield DataDynTable()
         yield Footer()
 
-    def on_mount(self):
-        table = self.query_one(DataDynTable)
-        table.focus()
-
     def update_table_client(self):
         if self.table_name != "":
             self.table_client = get_table_client(
@@ -79,6 +74,18 @@ class DynCli(App):
             self.dyn_query_params.pop("ExclusiveStartKey", None)
 
     # on methods
+
+    def on_mount(self):
+        table = self.query_one(DataDynTable)
+        table.focus()
+
+    @on(DataDynTable.CellHighlighted)
+    async def paginate_dyn_data(
+        self, highlighted: DataDynTable.CellHighlighted
+    ) -> None:
+        if highlighted.coordinate.row == highlighted.data_table.row_count - 1:
+            if "ExclusiveStartKey" in self.dyn_query_params:
+                dyn_table_query(self, self.dyn_query_params, update_existing=True)
 
     async def on_region_select_screen_region_selected(
         self, selected_region: RegionSelectScreen.RegionSelected
