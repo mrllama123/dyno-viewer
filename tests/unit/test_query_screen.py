@@ -33,7 +33,7 @@ def screen_app():
 async def assert_primary_key(pilot, ddb_item):
     key_query = pilot.app.query_one(KeyQuery)
     # set pk to customer#test
-    await type_commands(["tab" for _ in range(0, 4)], pilot)
+    await type_commands(["tab" for _ in range(0, 3)], pilot)
     await type_commands([ddb_item["pk"]], pilot)
     assert key_query.query_one("#partitionKey").value == ddb_item["pk"]
 
@@ -41,17 +41,15 @@ async def assert_primary_key(pilot, ddb_item):
 async def assert_sort_key(pilot, ddb_item):
     # TODO handle different cond and types
     sort_key = pilot.app.query_one(KeyQuery).query_one("#sortKeyFilter")
-    # set attr filter type to string
-    await type_commands(["tab", "enter", "tab", "enter"], pilot)
-    assert str(sort_key.query_one("#attrType").pressed_button.label) == "string"
-    # set cond to ==
-    await type_commands(["down" for _ in range(0, 7)], pilot)
-    await type_commands(["tab", "enter", "tab", "enter"], pilot)
-    assert str(sort_key.query_one("#condition").pressed_button.label) == "=="
+    # attr filter type is string
+    assert sort_key.query_one("#attrType").value == "string"
+    # cond is ==
+    assert sort_key.query_one("#condition").value == "=="
     # set sort key value
-    # await type_commands(["down" for _ in range(0, 7)], pilot)
-    await type_commands(["tab", ddb_item["sk"], "tab"], pilot)
+    await type_commands(["tab" for _ in range(0, 3)], pilot)
+    await type_commands([ddb_item["sk"]], pilot)
     assert sort_key.query_one("#attrValue").value == ddb_item["sk"]
+    await type_commands(["tab"], pilot)
 
 
 async def assert_filter_one(pilot, attr_name, attr_value):
@@ -62,15 +60,13 @@ async def assert_filter_one(pilot, attr_name, attr_value):
     # set attr filter name to test
     await type_commands(["tab", "tab", "test"], pilot)
     assert filter_query.query_one("#attr").value == attr_name
-    # set attr filter type to string
-    await type_commands(["tab", "enter", "tab", "enter"], pilot)
-    assert str(filter_query.query_one("#attrType").pressed_button.label) == "string"
+    # attr filter type is string
+    assert filter_query.query_one("#attrType").value == "string"
     # set attr filter cont to ==
-    await type_commands(["down" for _ in range(0, 7)], pilot)
-    await type_commands(["tab", "enter", "tab", "enter"], pilot)
-    assert str(filter_query.query_one("#condition").pressed_button.label) == "=="
+    assert filter_query.query_one("#condition").value == "=="
     # set attr filter value to test1
-    await type_commands(["tab", "test1"], pilot)
+    await type_commands(["tab" for _ in range(0, 3)], pilot)
+    await type_commands(["test1"], pilot)
     assert filter_query.query_one("#attrValue").value == attr_value
 
 
@@ -92,7 +88,7 @@ async def test_add_filter(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
-        await type_commands(["tab" for _ in range(0, 8)], pilot)
+        await type_commands(["tab" for _ in range(0, 7)], pilot)
         await type_commands(["enter", "enter"], pilot)
 
         filters = pilot.app.query(FilterQuery)
@@ -104,7 +100,7 @@ async def test_remove_all_filters(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
-        await type_commands(["tab" for _ in range(0, 8)], pilot)
+        await type_commands(["tab" for _ in range(0, 7)], pilot)
         await type_commands(["enter", "enter"], pilot)
 
         filters = pilot.app.query(FilterQuery)

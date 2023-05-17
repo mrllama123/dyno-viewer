@@ -3,7 +3,7 @@ from textual.css.query import NoMatches
 from textual.widgets import ListItem, ListView, Button, Input, Switch, Label, RadioSet
 from textual.widget import Widget
 from textual.widgets import Footer
-from textual.containers import Vertical, Horizontal, VerticalScroll, Middle
+from textual.containers import Container
 from textual.screen import Screen
 from textual.message import Message
 from textual.reactive import reactive
@@ -45,9 +45,10 @@ class QueryScreen(Screen):
             super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield KeyQuery()
-        yield Button("add filter", id="addFilter")
-        yield Button("remove all filters", id="removeAllFilters")
+        with Container(id="queryScreen"):
+            yield KeyQuery(id="keyInput")
+            yield Button("add filter", id="addFilter")
+            yield Button("remove all filters", id="removeAllFilters")
 
     def get_key_query(self) -> Key | None:
         key_input = self.query_one(KeyQuery)
@@ -61,9 +62,8 @@ class QueryScreen(Screen):
         sort_key_name = sort_key.attr_name
         sort_key_value = sort_key.query_one("#attrValue").value
         log("attr sort key value=", sort_key_value)
-        cond = str(
-            getattr(sort_key.query_one("#condition").pressed_button, "label", "")
-        )
+        cond = sort_key.query_one("#condition").value
+
         if sort_key_value:
             return Key(primary_key_name).eq(
                 primary_key_value
@@ -75,13 +75,11 @@ class QueryScreen(Screen):
 
         for filter in self.query(FilterQuery):
             attr_name = filter.query_one("#attr").value
-            attr_type = str(
-                getattr(filter.query_one("#attrType").pressed_button, "label", "")
-            )
+            attr_type = getattr(filter.query_one("#attrType"), "value", "")
+
             attr_value = str(getattr(filter.query_one("#attrValue"), "value", ""))
-            cond = str(
-                getattr(filter.query_one("#condition").pressed_button, "label", "")
-            )
+            cond = getattr(filter.query_one("#condition"), "value", "")
+
             if exp:
                 exp = exp & convert_filter_exp_attr_cond(
                     cond, attr_name, convert_filter_exp_value(attr_value, attr_type)
@@ -116,7 +114,7 @@ class QueryScreen(Screen):
     # on methods:
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "addFilter":
-            self.mount(FilterQuery())
+            self.query_one("#queryScreen").mount(FilterQuery())
             self.scroll_visible()
         elif event.button.id == "removeAllFilters":
             for filter in self.query(FilterQuery):

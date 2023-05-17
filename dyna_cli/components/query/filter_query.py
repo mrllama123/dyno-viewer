@@ -1,41 +1,54 @@
 from textual.app import ComposeResult
 from textual.widget import Widget
-from textual.widgets import Input, Button, RadioSet
+from textual.widgets import Input, Button, RadioSet, Select, Label
 
 
 class FilterQuery(Widget):
     def compose(self) -> ComposeResult:
         yield Input(placeholder="attr", id="attr")
-        yield Button("type")
-        yield RadioSet(
-            "string",
-            "number",
-            "binary",
-            "boolean",
-            "map",
-            "list",
-            "set",
-            name="type",
+        yield Label("Type")
+        yield Select(
+            [
+                (line, line)
+                for line in [
+                    "string",
+                    "number",
+                    "binary",
+                    "boolean",
+                    "map",
+                    "list",
+                    "set",
+                ]
+            ],
+            prompt="type",
+            value="string",
             id="attrType",
         )
-        yield Button("condition")
-        yield RadioSet(
-            "==",
-            ">",
-            "<",
-            "<=",
-            ">=",
-            "!=",
-            "between",
-            "in",
-            "attribute_exists",
-            "attribute_not_exists",
-            "attribute_type",
-            "begins_with",
-            "contains",
-            "size",
-            name="condition",
-            id="condition",
+
+        yield Label("Condition")
+        yield Select(
+            [
+                (line, line)
+                for line in [
+                    "==",
+                    ">",
+                    "<",
+                    "<=",
+                    ">=",
+                    "!=",
+                    "between",
+                    "in",
+                    "attribute_exists",
+                    "attribute_not_exists",
+                    "attribute_type",
+                    "begins_with",
+                    "contains",
+                    "size",
+                ]
+            ],
+            prompt="Condition",
+            value="==",
+            id="condition"
         )
         yield Input(placeholder="value", id="attrValue")
         if self.id != "sortKeyFilter":

@@ -35,11 +35,7 @@ class DynCli(App):
         "query": QueryScreen(),
     }
 
-    CSS_PATH = [
-        "components/css/queryInput.css",
-        "components/css/queryScreen.css",
-        "components/css/filterQueryInput.css",
-    ]
+    CSS_PATH = ["components/css/query.css"]
 
     profiles = reactive(get_available_profiles())
 
