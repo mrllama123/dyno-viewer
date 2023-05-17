@@ -42,22 +42,23 @@ def update_dyn_table_info(app) -> None:
 
 
 @work(exclusive=True, group="dyn_table_query")
-def dyn_table_query(app):
+def dyn_table_query(app, dyn_query_params):
     worker = get_current_worker()
     if not worker.is_cancelled:
+        log("dyn_params=", app.dyn_query_params)
         result, next_token = (
             query_items(
                 app.table_client,
                 paginate=False,
                 Limit=20,
-                **app.dyn_query_params,
+                **dyn_query_params,
             )
-            if "KeyConditionExpression" in app.dyn_query_params
+            if "KeyConditionExpression" in dyn_query_params
             else scan_items(
                 app.table_client,
                 paginate=False,
                 Limit=20,
-                **app.dyn_query_params,
+                **dyn_query_params,
             )
         )
 

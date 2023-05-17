@@ -51,9 +51,12 @@ class QueryScreen(Screen):
             yield Button("remove all filters", id="removeAllFilters")
 
     def get_key_query(self) -> Key | None:
+        log("generating key expression from input data")
         key_input = self.query_one(KeyQuery)
         primary_key_name = key_input.partition_key_attr_name
         primary_key_value = key_input.query_one("#partitionKey").value
+        log("attr primary key name=", primary_key_name)
+        log("attr primary key value=", primary_key_value)
 
         if not primary_key_value:
             return

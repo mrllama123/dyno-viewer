@@ -106,7 +106,7 @@ class DynCli(App):
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
         self.dyn_table_query = params
-        dyn_table_query(self)
+        dyn_table_query(self, params)
 
     async def on_update_dyn_data_table(self, update_data: UpdateDynDataTable) -> None:
         table = self.query_one(DataDynTable)
@@ -131,7 +131,7 @@ class DynCli(App):
         """update DynTable with new table data"""
         if new_table_client:
             update_dyn_table_info(self)
-            dyn_table_query(self)
+            dyn_table_query(self, self.dyn_query_params)
 
     def watch_dyn_client(self, new_dyn_client):
         with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):

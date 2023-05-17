@@ -28,7 +28,7 @@ class DataDynTable(DataTable):
 
         log.info(f"{len(cols)} total cols")
 
-        self.clear()
+        self.clear(columns=True)
         for col in cols:
             self.add_column(col, key=col)
 
