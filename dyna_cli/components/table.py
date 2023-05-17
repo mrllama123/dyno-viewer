@@ -32,6 +32,8 @@ class DataDynTable(DataTable):
         for col in cols:
             self.add_column(col, key=col)
 
+        log.info("col keys=", [str() for col in self.columns.keys()])
+
         rows = [[item.get(col) for col in cols] for item in data]
         log.info(f"{len(rows)} total rows")
         self.add_rows(rows)

@@ -18,6 +18,9 @@ class UpdateDynDataTable(Message):
 def update_dyn_table_info(app) -> None:
     worker = get_current_worker()
     if not worker.is_cancelled:
+        log.info(f"updating table info")
+        log.info("key schema=", app.table_client.key_schema)
+        log.info("gsi schema=", app.table_client.global_secondary_indexes)
         main_keys = {
             ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
                 "AttributeName"
@@ -32,7 +35,7 @@ def update_dyn_table_info(app) -> None:
                 ]
                 for key in gsi["KeySchema"]
             }
-            for gsi in app.table_client.global_secondary_indexes
+            for gsi in app.table_client.global_secondary_indexes or  []
         }
 
         def update(self, main_keys, gsi_keys):
