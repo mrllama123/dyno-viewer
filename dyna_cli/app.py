@@ -106,7 +106,7 @@ class DynCli(App):
         self, selected_profile: ProfileSelectScreen.ProfileSelected
     ) -> None:
         self.aws_profile = selected_profile.profile
-        log.info("HERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR")
+        log.info(f"{self.aws_profile} profile selected")
         self.dyn_client = get_ddb_client(
             region_name=self.aws_region, profile_name=self.aws_profile
         )
@@ -140,11 +140,12 @@ class DynCli(App):
 
     async def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
-        log.info("UPDATING CLIENT TABLE")
         if new_table_client:
+            log.info("table client changed and table found, Update table data")
             update_dyn_table_info(self)
             dyn_table_query(self, self.dyn_query_params)
         else:
+            log.info("table client changed and table not found, Clear table data")
             self.query_one(DataDynTable).clear()
 
     def watch_dyn_client(self, new_dyn_client):
