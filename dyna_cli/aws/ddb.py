@@ -7,6 +7,7 @@ from boto3.dynamodb.conditions import Attr, Key
 from dynamodb_json import json_util as dyn_json
 
 from boto3.session import Session
+import boto3
 from botocore.exceptions import ClientError
 from decimal import Decimal
 import re
@@ -57,18 +58,16 @@ def get_table_client(table, region_name="ap-southeast-2", profile_name=None):
     )
 
 
-def get_ddb_client(client=None, region_name="ap-southeast-2", profile_name=None):
+def get_ddb_client(region_name="ap-southeast-2", profile_name=None):
     return (
-        client
-        if client
-        else Session(profile_name=profile_name, region_name=region_name).client(
-            "dynamodb"
-        )
+        Session(profile_name=profile_name, region_name=region_name).client("dynamodb")
+        if profile_name
+        else boto3.client("dynamodb", region_name=region_name)
     )
 
 
-def list_all_tables(client, paginate=True, **kwargs):
-    ddb_client = get_ddb_client(client)
+def list_all_tables(client=None, paginate=True, **kwargs):
+    ddb_client = client or get_ddb_client(client)
     tables = []
     result = ddb_client.list_tables(**kwargs)
     tables.extend(result["TableNames"])
