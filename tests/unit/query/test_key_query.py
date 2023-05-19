@@ -43,7 +43,6 @@ async def test_gsi_switch(app):
         await pilot.press("tab")
         await pilot.press("tab")
         await pilot.press("down")
-        await pilot.press("down")
         await pilot.press("enter")
 
         assert query_input.query_one("#partitionKey").placeholder == "gsipk1"
