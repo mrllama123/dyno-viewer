@@ -35,6 +35,10 @@ env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.7
 
 see [how to build cpython with --enable-shared](https://github.com/pyenv/pyenv/wiki#how-to-build-cpython-with---enable-shared) for more info
 
+#### note about AWS IAM Identity Center(used to be called aws sso) aws profiles
+
+if you are using sso profiles. Then you need to make sure that you have updated your config to use a sso-session profile otherwise the app won't work see this [doc](https://docs.aws.amazon.com/cli/latest/userguide/sso-configure-profile-token.html) on how to do that. See this issue: https://github.com/boto/botocore/issues/2374 if you want to know why this is the case 
+
 ### local dev setup
 
 to install locally run:
