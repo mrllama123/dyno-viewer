@@ -5,7 +5,7 @@ from textual.app import App, ComposeResult
 from textual.reactive import reactive
 from textual.widgets import ListView, Input, Label
 from fixtures.ddb_tables import create_ddb_table
-
+from tests.common import type_commands
 """
 NOTE: anything in class instantiated outside of __init__ or method does teardown well with pytest e.g
 class TestClass(App):
@@ -51,22 +51,16 @@ async def test_select_table(screen_app, ddb_tables):
         assert input.value == ""
 
         # search dawn
-        await pilot.press("tab")
-        await pilot.press("d")
-        await pilot.press("a")
-        await pilot.press("w")
-        await pilot.press("n")
+        await type_commands(["dawn"], pilot)
 
         # update list with result
         assert len(list_view.children) == 1
 
         # add to input
-        await pilot.press("tab")
-        await pilot.press("enter")
+        await type_commands(["tab", "enter"], pilot)
         assert input.value == "dawnstar"
 
         # send to root node
-        await pilot.press("tab")
         await pilot.press("enter")
 
         assert pilot.app.table_name == "dawnstar"
@@ -91,12 +85,7 @@ async def test_select_no_tables(screen_app, dynamodb):
         assert input.value == ""
 
         # search dawn
-        await pilot.press("tab")
-        await pilot.press("d")
-        await pilot.press("a")
-
-        await pilot.press("w")
-        await pilot.press("n")
+        await type_commands(["dawn"], pilot)
 
         # update list with result
         assert len(list_view.children) == 0
