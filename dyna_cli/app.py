@@ -9,7 +9,7 @@ from dyna_cli.app_workers import (
     UpdateDynDataTable,
 )
 from dyna_cli.aws.session import get_available_profiles
-from dyna_cli.aws.ddb import  get_ddb_client, table_client_exist
+from dyna_cli.aws.ddb import get_ddb_client, table_client_exist
 from dyna_cli.components.screens import (
     ProfileSelectScreen,
     RegionSelectScreen,
@@ -39,7 +39,7 @@ class DynCli(App):
         "query": QueryScreen(),
     }
 
-    CSS_PATH = ["components/css/query.css"]
+    CSS_PATH = ["components/css/query.css", "components/css/table.css"]
 
     profiles = reactive(get_available_profiles())
 
@@ -51,7 +51,7 @@ class DynCli(App):
 
     dyn_query_params = reactive({})
 
-    # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :( 
+    # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :(
     table_client = reactive(None, always_update=True)
 
     dyn_client = reactive(get_ddb_client())
