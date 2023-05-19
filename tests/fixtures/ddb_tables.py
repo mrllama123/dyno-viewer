@@ -1,5 +1,8 @@
+import random
+import uuid
 import pytest
 from tests.fixtures.moto import dynamodb
+from decimal import Decimal as D
 
 
 def create_ddb_table(dynamodb, name, gsi_count=0):
@@ -116,6 +119,40 @@ def ddb_test_data():
             "sk": "CUSOMER",
             "test": "test1",
         },
+        {
+            "pk": "1234567890",
+            "sk": "JohnDoe",
+            "name": "John Doe",
+            "email": "john.doe@example.com",
+            "phone": "123-456-7890",
+        },
+        {
+            "pk": "9876543210",
+            "sk": "JaneDoe",
+            "name": "Jane Doe",
+            "email": "jane.doe@example.com",
+            "phone": "456-789-0123",
+        },
+        *[
+            {
+                "pk": "1234567890",
+                "sk": f"Order{index}",
+                "orderId": str(uuid.uuid4()),
+                "orderDate": f"2023-{random.randint(1,12)}-{random.randint(1, 30)}",
+                "totalAmount": round(D(random.uniform(1, 10000)), 2),
+            }
+            for index in range(1, 100)
+        ],
+        *[
+            {
+                "pk": "9876543210",
+                "sk": f"Order{index}",
+                "orderId": str(uuid.uuid4()),
+                "orderDate": f"2023-{random.randint(1,12)}-{random.randint(1, 30)}",
+                "totalAmount": round(D(random.uniform(1, 10000)), 2),
+            }
+            for index in range(1, 100)
+        ],
     ]
 
 

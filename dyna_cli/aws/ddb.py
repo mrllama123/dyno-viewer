@@ -5,11 +5,12 @@ from decimal import Decimal as D
 
 from boto3.dynamodb.conditions import Attr, Key
 from dynamodb_json import json_util as dyn_json
-
 from boto3.session import Session
+import boto3
 from botocore.exceptions import ClientError
 from decimal import Decimal
 import re
+from textual import log
 
 
 LOG_LEVEL = logging.INFO
@@ -27,27 +28,28 @@ def get_logger():
 logger = get_logger()
 
 
-def get_table(table_name, region_name, profile_name):
-    client = get_dyn_resource(region_name, profile_name).Table(table_name)
+def table_client_exist(table_name, region_name, profile_name):
     try:
+        client = get_table(table_name, region_name, profile_name)
         if client.table_status in ("CREATING", "UPDATING", "ACTIVE"):
             return client
-    # except ClientError as error:
-    #     # TODO handle this in a better way
-    #     if error.response["Error"]["Code"] in [
-    #         "ResourceNotFoundException",
-    #         "UnrecognizedClientException",
-    #         "AccessDeniedException"
-    #     ]:
-    #         return None
-    #     raise
-    except Exception:
-        raise
+    except Exception as error:
+        if error.response["Error"]["Code"] in [
+            "ResourceNotFoundException",
+        ]:
+            return
+        raise error
+
+
+def get_table(table_name, region_name, profile_name):
+    return get_dyn_resource(region_name, profile_name).Table(table_name)
 
 
 def get_dyn_resource(region_name, profile_name):
-    return Session(profile_name=profile_name, region_name=region_name).resource(
-        "dynamodb"
+    return (
+        Session(profile_name=profile_name, region_name=region_name).resource("dynamodb")
+        if profile_name
+        else boto3.resource("dynamodb", region_name=region_name)
     )
 
 
@@ -57,18 +59,16 @@ def get_table_client(table, region_name="ap-southeast-2", profile_name=None):
     )
 
 
-def get_ddb_client(client=None, region_name="ap-southeast-2", profile_name=None):
+def get_ddb_client(region_name="ap-southeast-2", profile_name=None):
     return (
-        client
-        if client
-        else Session(profile_name=profile_name, region_name=region_name).client(
-            "dynamodb"
-        )
+        Session(profile_name=profile_name, region_name=region_name).client("dynamodb")
+        if profile_name
+        else boto3.client("dynamodb", region_name=region_name)
     )
 
 
-def list_all_tables(client, paginate=True, **kwargs):
-    ddb_client = get_ddb_client(client)
+def list_all_tables(client=None, paginate=True, **kwargs):
+    ddb_client = client or get_ddb_client(client)
     tables = []
     result = ddb_client.list_tables(**kwargs)
     tables.extend(result["TableNames"])

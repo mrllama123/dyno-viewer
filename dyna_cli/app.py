@@ -9,7 +9,7 @@ from dyna_cli.app_workers import (
     UpdateDynDataTable,
 )
 from dyna_cli.aws.session import get_available_profiles
-from dyna_cli.aws.ddb import scan_items, get_ddb_client, get_table_client, query_items
+from dyna_cli.aws.ddb import  get_ddb_client, table_client_exist
 from dyna_cli.components.screens import (
     ProfileSelectScreen,
     RegionSelectScreen,
@@ -43,7 +43,7 @@ class DynCli(App):
 
     profiles = reactive(get_available_profiles())
 
-    aws_profile = reactive("default")
+    aws_profile = reactive(None)
 
     table_name = reactive("")
 
@@ -51,7 +51,8 @@ class DynCli(App):
 
     dyn_query_params = reactive({})
 
-    table_client = reactive(None)
+    # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :( 
+    table_client = reactive(None, always_update=True)
 
     dyn_client = reactive(get_ddb_client())
 
@@ -63,9 +64,15 @@ class DynCli(App):
 
     def update_table_client(self):
         if self.table_name != "":
-            self.table_client = get_table_client(
+            log.info(f"updating table client with profile {self.aws_profile}")
+            new_table_client = table_client_exist(
                 self.table_name, self.aws_region, self.aws_profile
             )
+            if new_table_client:
+                self.table_client = new_table_client
+            else:
+                table = self.query_one(DataDynTable)
+                table.clear()
 
     def set_pagination_token(self, next_token: str | None) -> None:
         if next_token:
@@ -106,7 +113,7 @@ class DynCli(App):
         self, selected_profile: ProfileSelectScreen.ProfileSelected
     ) -> None:
         self.aws_profile = selected_profile.profile
-
+        log.info(f"{self.aws_profile} profile selected")
         self.dyn_client = get_ddb_client(
             region_name=self.aws_region, profile_name=self.aws_profile
         )
@@ -141,8 +148,12 @@ class DynCli(App):
     async def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
         if new_table_client:
+            log.info("table client changed and table found, Update table data")
             update_dyn_table_info(self)
             dyn_table_query(self, self.dyn_query_params)
+        else:
+            log.info("table client changed and table not found, Clear table data")
+            self.query_one(DataDynTable).clear()
 
     def watch_dyn_client(self, new_dyn_client):
         with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):
