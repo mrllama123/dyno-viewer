@@ -26,6 +26,12 @@ class KeyQuery(Widget):
         yield SortKeyFilter(id="sortKeyFilter")
 
     #  on methods
+    def on_mount(self):
+        # select the first value for queryIndex
+        option_list = self.query_one("#queryIndex")
+        option_list.action_first()
+        option_list.action_select()
+    
     def on_switch_changed(self, changed: Switch.Changed) -> None:
         input = self.query_one("#partitionKey")
         sort_key = self.query_one("#sortKeyFilter")
@@ -58,6 +64,9 @@ class KeyQuery(Widget):
             option_list.clear_options()
             for option in ["table", *list(new_gsi_indexes.keys())]:
                 option_list.add_option(option)
+            
+            option_list.action_first()
+            option_list.action_select()
 
     def watch_partition_key_attr_name(self, new_partition_key_attr_name) -> None:
         if new_partition_key_attr_name:
