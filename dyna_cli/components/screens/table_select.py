@@ -38,6 +38,10 @@ class TableSelectScreen(Screen):
 
     def compose(self) -> ComposeResult:
         yield Vertical(Input(placeholder="Search for table"), ListView())
+    
+    def on_mount(self) -> None:
+        table_input = self.query_one(Input)
+        table_input.focus()
 
     @work(exclusive=True)
     def update_tables(self):
@@ -55,11 +59,17 @@ class TableSelectScreen(Screen):
                     self.dyn_client, Limit=10, paginate=False
                 )
 
+            new_tables = [
+                table_name
+                for table_name in dynamodb_tables
+                if table_name not in self.tables
+            ]
+
             def update_next_token(self, next_token):
                 self.next_token = next_token
 
             self.app.call_from_thread(update_next_token, self, next_token)
-            self.app.call_from_thread(self.tables.extend, dynamodb_tables)
+            self.app.call_from_thread(self.tables.extend, new_tables)
 
     # on methods
 
@@ -83,6 +93,7 @@ class TableSelectScreen(Screen):
     async def on_list_view_selected(self, selected: ListView.Selected) -> None:
         input = self.query_one(Input)
         input.value = selected.item.id
+        input.focus()
 
     # watch methods
 
