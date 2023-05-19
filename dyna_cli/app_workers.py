@@ -35,7 +35,7 @@ def update_dyn_table_info(app) -> None:
                 ]
                 for key in gsi["KeySchema"]
             }
-            for gsi in app.table_client.global_secondary_indexes or  []
+            for gsi in app.table_client.global_secondary_indexes or []
         }
 
         def update(self, main_keys, gsi_keys):

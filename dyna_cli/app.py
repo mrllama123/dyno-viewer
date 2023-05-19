@@ -43,7 +43,7 @@ class DynCli(App):
 
     profiles = reactive(get_available_profiles())
 
-    aws_profile = reactive("default")
+    aws_profile = reactive(None)
 
     table_name = reactive("")
 
@@ -51,7 +51,8 @@ class DynCli(App):
 
     dyn_query_params = reactive({})
 
-    table_client = reactive(None)
+    # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :( 
+    table_client = reactive(None, always_update=True)
 
     dyn_client = reactive(get_ddb_client())
 
@@ -63,6 +64,7 @@ class DynCli(App):
 
     def update_table_client(self):
         if self.table_name != "":
+            log.info(f"updating table client with profile {self.aws_profile}")
             self.table_client = get_table_client(
                 self.table_name, self.aws_region, self.aws_profile
             )
@@ -110,7 +112,10 @@ class DynCli(App):
         self.dyn_client = get_ddb_client(
             region_name=self.aws_region, profile_name=self.aws_profile
         )
-        self.update_table_client()
+        # TODO allow to display table data if the table with the same name exists in new aws account
+        table = self.query_one(DataDynTable)
+        table.clear()
+
 
     async def on_query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
         params = {"KeyConditionExpression": run_query.key_cond_exp}

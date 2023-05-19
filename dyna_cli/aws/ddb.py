@@ -11,6 +11,7 @@ import boto3
 from botocore.exceptions import ClientError
 from decimal import Decimal
 import re
+from textual import log
 
 
 LOG_LEVEL = logging.INFO
@@ -32,6 +33,7 @@ def get_table(table_name, region_name, profile_name):
     client = get_dyn_resource(region_name, profile_name).Table(table_name)
     try:
         if client.table_status in ("CREATING", "UPDATING", "ACTIVE"):
+            log.info(f"client= {client.table_arn}")
             return client
     # except ClientError as error:
     #     # TODO handle this in a better way
@@ -47,8 +49,10 @@ def get_table(table_name, region_name, profile_name):
 
 
 def get_dyn_resource(region_name, profile_name):
-    return Session(profile_name=profile_name, region_name=region_name).resource(
-        "dynamodb"
+    return (
+        Session(profile_name=profile_name, region_name=region_name).resource("dynamodb")
+        if profile_name
+        else boto3.resource("dynamodb", region_name=region_name)
     )
 
 
