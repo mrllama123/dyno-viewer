@@ -5,7 +5,6 @@ from decimal import Decimal as D
 
 from boto3.dynamodb.conditions import Attr, Key
 from dynamodb_json import json_util as dyn_json
-
 from boto3.session import Session
 import boto3
 from botocore.exceptions import ClientError
@@ -29,23 +28,21 @@ def get_logger():
 logger = get_logger()
 
 
-def get_table(table_name, region_name, profile_name):
-    client = get_dyn_resource(region_name, profile_name).Table(table_name)
+def table_client_exist(table_name, region_name, profile_name):
     try:
+        client = get_table(table_name, region_name, profile_name)
         if client.table_status in ("CREATING", "UPDATING", "ACTIVE"):
-            log.info(f"client= {client.table_arn}")
             return client
-    # except ClientError as error:
-    #     # TODO handle this in a better way
-    #     if error.response["Error"]["Code"] in [
-    #         "ResourceNotFoundException",
-    #         "UnrecognizedClientException",
-    #         "AccessDeniedException"
-    #     ]:
-    #         return None
-    #     raise
-    except Exception:
-        raise
+    except Exception as error:
+        if error.response["Error"]["Code"] in [
+            "ResourceNotFoundException",
+        ]:
+            return
+        raise error
+
+
+def get_table(table_name, region_name, profile_name):
+    return get_dyn_resource(region_name, profile_name).Table(table_name)
 
 
 def get_dyn_resource(region_name, profile_name):

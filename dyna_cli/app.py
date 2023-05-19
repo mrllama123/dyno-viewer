@@ -9,7 +9,7 @@ from dyna_cli.app_workers import (
     UpdateDynDataTable,
 )
 from dyna_cli.aws.session import get_available_profiles
-from dyna_cli.aws.ddb import scan_items, get_ddb_client, get_table_client, query_items
+from dyna_cli.aws.ddb import  get_ddb_client, table_client_exist
 from dyna_cli.components.screens import (
     ProfileSelectScreen,
     RegionSelectScreen,
@@ -65,9 +65,14 @@ class DynCli(App):
     def update_table_client(self):
         if self.table_name != "":
             log.info(f"updating table client with profile {self.aws_profile}")
-            self.table_client = get_table_client(
+            new_table_client = table_client_exist(
                 self.table_name, self.aws_region, self.aws_profile
             )
+            if new_table_client:
+                self.table_client = new_table_client
+            else:
+                table = self.query_one(DataDynTable)
+                table.clear()
 
     def set_pagination_token(self, next_token: str | None) -> None:
         if next_token:
@@ -112,10 +117,7 @@ class DynCli(App):
         self.dyn_client = get_ddb_client(
             region_name=self.aws_region, profile_name=self.aws_profile
         )
-        # TODO allow to display table data if the table with the same name exists in new aws account
-        table = self.query_one(DataDynTable)
-        table.clear()
-
+        self.update_table_client()
 
     async def on_query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
         params = {"KeyConditionExpression": run_query.key_cond_exp}
