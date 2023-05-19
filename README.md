@@ -17,7 +17,9 @@ code quality as this came out of a friday hack session and i'm still getting to 
 ### prerequisites
 
 this repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10.7 installed either via [pyenv](https://github.com/pyenv/pyenv)
-or [asdf](https://asdf-vm.com/) using the [asdf-community/asdf-python](https://github.com/asdf-community/asdf-python) addon 
+or [asdf](https://asdf-vm.com/) using the [asdf-community/asdf-python](https://github.com/asdf-community/asdf-python) addon
+
+you also need the [aws cli](https://aws.amazon.com/cli/) fully configured (see [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html) for how to setup up auth) 
 
 For compiling the app locally you also need to ensure that cpython library is installed, With python env setup. 
 If you are using asdf install python with this command:
