@@ -1,0 +1,22 @@
+app-id: org.flatpak.dyna-cli
+runtime: org.freedesktop.Platform
+runtime-version: '22.08'
+sdk: org.freedesktop.Sdk
+command: flatpak-runner.sh
+modules:
+  - generated-poetry-sources.json #python3-requirements.json
+  - name: install-code
+    buildsystem: simple
+    build-commands:
+      - cp -r dyna_cli /app/dyna_cli
+    sources:
+      - type: dir
+        path: dyna_cli/
+        dest: dyna_cli/
+  - name: runner
+    buildsystem: simple
+    build-commands:
+      - install -D scripts/flatpak-runner.sh /app/bin/flatpak-runner.sh
+    sources:
+      - type: file
+        path: scripts/flatpak-runner.sh
