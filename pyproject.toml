@@ -25,7 +25,7 @@ pytest-aiohttp = "^1.0.4"
 pandas = "^1.5.3"
 pytest-mock = "^3.10.0"
 jupyterlab = "^3.6.3"
-pytest-xdist = "^3.3.0"
+pytest-xdist = "^3.3.1"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
