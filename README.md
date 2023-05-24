@@ -59,7 +59,7 @@ poetry shell
 ```
 and then run pyinstaller:
 ```bash
-pyinstaller  dyn_cli/app.py -F
+pyinstaller --add-data "dyna_cli/components/css:./components/css" dyna_cli
 ```
 
 then in the `dist\app` folder there will be the binary file
