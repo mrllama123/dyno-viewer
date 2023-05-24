@@ -36,6 +36,7 @@ testpaths = ["tests"]
 [tool.poetry.scripts]
 
 run_app = 'dyn_cli.app:main'
+build_app = 'scripts.build_app:main'
 
 [build-system]
 requires = ["poetry-core"]
