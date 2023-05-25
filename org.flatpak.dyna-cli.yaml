@@ -11,7 +11,7 @@ modules:
       - cp -r dyna_cli /app/dyna_cli
     sources:
       - type: dir
-        path: dyna_cli/
+        path: dist/app/
         dest: dyna_cli/
   - name: runner
     buildsystem: simple
