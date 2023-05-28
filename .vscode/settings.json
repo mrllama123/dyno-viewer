@@ -11,6 +11,7 @@
         "**/node_modules/*/**": true,
         "**/.hg/store/**": true,
         ".flatpak/**": true,
+        ".flatpak-builder/**": true,
         "_build/**": true
     }
 }
