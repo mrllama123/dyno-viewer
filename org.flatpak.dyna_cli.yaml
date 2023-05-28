@@ -1,4 +1,4 @@
-app-id: org.flatpak.dyna-cli
+app-id: org.flatpak.dyna_cli
 runtime: org.freedesktop.Platform
 runtime-version: '22.08'
 sdk: org.freedesktop.Sdk
@@ -37,3 +37,21 @@ modules:
     sources:
       - type: file
         path: scripts/flatpak-runner.sh
+
+  - name: icons
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/share/icons/hicolor/scalable/apps
+      - cp org.flatpak.dyna_cli.svg /app/share/icons/hicolor/scalable/apps/org.flatpak.dyna_cli.svg
+    sources:
+      - type: file
+        path: icons/org.flatpak.dyna_cli.svg
+
+  - name: metainfo
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/share/metainfo
+      - cp org.flatpak.dyna_cli.metainfo.xml /app/share/metainfo/org.flatpak.dyna_cli.metainfo.xml
+    sources:
+      - type: file
+        path: org.flatpak.dyna_cli.metainfo.xml
