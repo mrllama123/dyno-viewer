@@ -56,6 +56,9 @@ def build_flatpak():
     args = parser.parse_args()
     console.print(":clipboard: exporting requirements.txt from lockfile")
 
+    if not os.path.exists('build'):
+        os.mkdir('build')
+
     subprocess.run(
             [
                 "poetry",

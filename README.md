@@ -51,17 +51,40 @@ poetry run run_app
 ```
 
 
-### compile app locally
+### flatpak notes
 
-to compile the app go into the virtual env via command:
+this repo supports flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call:
+
 ```bash
-poetry shell
-```
-and then run pyinstaller:
-```bash
-pyinstaller --add-data "dyna_cli/components/css:./components/css" dyna_cli
+poetry run flatpak_build
 ```
 
-then in the `dist\app` folder there will be the binary file
+This will export the main packages into a requirements file and then build flatpak in the `.flatpak` folder then export that flatpak to a binary file in root called `dyna-cli.flatpak` which can be installed on another computer via `flatpak install dyna-cli.flatpak`
 
+It also has support for doing other different options via arguments:
 
+#### install locally
+
+``` bash
+poetry run flatpak_build -i 
+```
+
+This will install the flatpak locally instead of exporting it to a file (Useful for dev testing), Which then you can run it via:
+
+```bash
+flatpak run org.flatpak.dyna-cli
+```
+
+#### gpg key support
+
+You can pass a gpg key for signing a flatpak, Which is best practice (see more on that [here](https://docs.flatpak.org/en/latest/flatpak-builder.html#signing)) via:
+
+```bash
+poetry run flatpak_build --gpg "<key id>"
+```
+
+If the gpg key is not in the default directory then you can also add the path to it via this argument:
+
+```bash 
+poetry run flatpak_build --gpg "<key id>" --gh path/to/gpg/key
+```
