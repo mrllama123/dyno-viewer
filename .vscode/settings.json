@@ -12,6 +12,7 @@
         "**/.hg/store/**": true,
         ".flatpak/**": true,
         ".flatpak-builder/**": true,
+        ".repo/**": true,
         "_build/**": true
     }
 }
