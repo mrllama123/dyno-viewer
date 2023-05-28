@@ -3,6 +3,9 @@ runtime: org.freedesktop.Platform
 runtime-version: '22.08'
 sdk: org.freedesktop.Sdk
 command: flatpak-runner.sh
+finish-args:
+  - --filesystem=home
+  - --filesystem=xdg-cache
 modules:
   - name: cpython
     sources:
