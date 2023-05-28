@@ -1,15 +1,13 @@
 import os
-import toml
 import subprocess
 import PyInstaller.__main__
-
+import toml
 
 def get_pyproject():
     with open("pyproject.toml", "r") as f:
         return toml.load(f)
 
-
-def main():
+def build_local():
     print("getting pyproject")
     pyproject = get_pyproject()
 
@@ -31,3 +29,32 @@ def main():
         ]
     )
 
+
+
+
+def build_flatpak():
+    print("exporting requirements.txt from lockfile")
+    subprocess.run(
+        [
+            "poetry",
+            "export",
+            "-f",
+            "requirements.txt",
+            "-o",
+            "build/requirements.txt",
+        ]
+    )
+
+
+    print("build flatpak in .flatpak folder")
+
+    subprocess.run(
+        [
+            "flatpak-builder",
+            "--user",
+            "--install",
+            "--force-clean",
+            ".flatpak",
+            "org.flatpak.dyna-cli.yaml",
+        ]
+    )

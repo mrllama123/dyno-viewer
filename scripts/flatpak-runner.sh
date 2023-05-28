@@ -1,3 +1,3 @@
 #!/bin/sh
-/app/dyna_cli/app
-
+export PYTHONPATH="/app"
+python3 -m dyna_cli

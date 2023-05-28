@@ -31,7 +31,6 @@ toml = "^0.10.2"
 
 [tool.poetry.group.build.dependencies]
 pyinstaller = {version = "^5.11.0", python = ">=3.9,<3.12"}
-requirements-parser = "^0.5.0"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -40,7 +39,8 @@ testpaths = ["tests"]
 [tool.poetry.scripts]
 
 run_app = 'dyn_cli.app:main'
-build_app = 'scripts.build_app:main'
+build_local = 'scripts.commands:build_local'
+flatpak_build = 'scripts.commands:build_flatpak'
 
 [build-system]
 requires = ["poetry-core"]
