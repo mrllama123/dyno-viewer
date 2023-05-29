@@ -23,7 +23,7 @@ moto = {extras = ["all"], version = "^4.1.9"}
 pytest-aiohttp = "^1.0.4"
 pandas = "^1.5.3"
 pytest-mock = "^3.10.0"
-jupyterlab = "^3.6.3"
+jupyterlab = "^4.0.0"
 pytest-xdist = "^3.3.0"
 toml = "^0.10.2"
 pyinstaller = {version = "^5.11.0", python = ">=3.9,<3.12"}
