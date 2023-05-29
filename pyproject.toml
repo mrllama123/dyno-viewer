@@ -26,11 +26,11 @@ pytest-mock = "^3.10.0"
 jupyterlab = "^3.6.3"
 pytest-xdist = "^3.3.0"
 toml = "^0.10.2"
+pyinstaller = {version = "^5.11.0", python = ">=3.9,<3.12"}
 
 
 
 [tool.poetry.group.build.dependencies]
-pyinstaller = {version = "^5.11.0", python = ">=3.9,<3.12"}
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
