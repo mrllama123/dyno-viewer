@@ -164,10 +164,8 @@ class DynCli(App):
             self.SCREENS["query"].table_info = new_table_info
 
 
-def main() -> None:
+def run() -> None:
     app = DynCli()
     app.run()
 
 
-# if __name__ == "__main__":
-#     main()
