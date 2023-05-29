@@ -6,6 +6,7 @@ command: flatpak-runner.sh
 finish-args:
   - --filesystem=home
   - --filesystem=xdg-cache
+  - --share=network
 modules:
   - name: cpython
     sources:
