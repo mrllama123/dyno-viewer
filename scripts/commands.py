@@ -106,7 +106,7 @@ def build_flatpak():
     else:
         with console.status("exporting flatpak to single file"):
             subprocess.run(
-                ["flatpak", "build-bundle", ".repo", "dyna-cli.flatpak", "org.flatpak.dyna_cli"]
+                ["flatpak", "build-bundle", ".repo", "dyna_cli.flatpak", "org.flatpak.dyna_cli"]
             )
 
         console.print(":white_check_mark: exported to single file in root directory")
