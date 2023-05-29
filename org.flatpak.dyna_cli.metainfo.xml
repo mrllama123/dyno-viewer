@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="console-application">
+  <id>org.flatpak.dyna_cli</id>
+  
+  <name>dyna-cli</name>
+  <summary>a simple cli app to display dynamodb tables</summary>
+  
+  <metadata_license>MIT</metadata_license>
+  <project_license>AML</project_license>
+  
+  <description>
+    <p>
+      a simple cli app to display dynamodb tables
+    </p>
+  </description>
+  
+  <icon>org.flatpak.dyna_cli</icon>
+  
+  <categories>
+    <category>Development</category>
+    <category>IDE</category>
+  </categories>
+  
+  <provides>
+    <binary>flatpak-runner.sh</binary>
+  </provides>
+</component>

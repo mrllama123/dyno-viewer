@@ -129,3 +129,7 @@ dmypy.json
 .pyre/
 
 .idea
+
+.flatpak-builder
+.flatpak
+.repo

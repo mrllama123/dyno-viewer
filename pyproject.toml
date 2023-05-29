@@ -17,7 +17,6 @@ textual = "^0.24.1"
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
 ipykernel = "^6.22.0"
-pyinstaller = {version = "^5.11.0", python = ">=3.9,<3.12"}
 textual = {extras = ["dev"], version = "^0.24.1"}
 pytest = "^7.3.1"
 moto = {extras = ["all"], version = "^4.1.9"}
@@ -26,6 +25,12 @@ pandas = "^1.5.3"
 pytest-mock = "^3.10.0"
 jupyterlab = "^3.6.3"
 pytest-xdist = "^3.3.0"
+toml = "^0.10.2"
+pyinstaller = {version = "^5.11.0", python = ">=3.9,<3.12"}
+
+
+
+[tool.poetry.group.build.dependencies]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -34,6 +39,8 @@ testpaths = ["tests"]
 [tool.poetry.scripts]
 
 run_app = 'dyn_cli.app:main'
+build_local = 'scripts.commands:build_local'
+flatpak_build = 'scripts.commands:build_flatpak'
 
 [build-system]
 requires = ["poetry-core"]
