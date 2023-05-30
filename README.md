@@ -1,16 +1,35 @@
 # dyna-cli
 
-This is a experimental project i created out of frustration of how crap the dynamodb console is and from what i found there was no good app out there that had what i wanted.
-Which basically boils down to a few things:
+dyna-cli is dynamodb table viewer for your terminal build using [textual](https://github.com/Textualize/textual). 
 
-- display the table data in a simple spreadsheet form i.e something similar to an excel spreadsheet
-- have keyboard shortcuts for traversing the data and app
-- make it easy to switch between different aws accounts and regions
-- the ui is simple and fast
-- easy to run in cli
+This came out from me being frustrated with how clunky and slow the dynamodb viewier is in the aws console and me finding no good alternative.
 
-This also gave me a good excuse to try out the [textual](https://github.com/textualize/textual/) cli app framework :slightly-smiling-face:. I give no guaranties on the 
-code quality as this came out of a friday hack session and i'm still getting to grips with the textual library. So there is probably better ways of doing what i have done
+
+## installing
+
+### prerequisites
+
+you need the [aws cli](https://aws.amazon.com/cli/) fully configured (see [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html) for how to setup up auth) 
+
+#### note about AWS IAM Identity Center(used to be called aws sso) aws profiles:
+
+if you are using sso profiles. Then you need to make sure that you have updated your config to use a sso-session profile otherwise the app won't work see this [doc](https://docs.aws.amazon.com/cli/latest/userguide/sso-configure-profile-token.html) on how to do that. See this issue: https://github.com/boto/botocore/issues/2374 if you want to know why this is the case 
+
+### via pip
+
+The easiest way is to install the built package via: 
+
+```bash
+pip install dyna_cli-0.1.0-py3-none-any.whl
+```
+
+### via flatpak
+
+There is a bundled .flatpak file that get generated on release which can be installed via:
+
+```bash
+flatpak install dyna_cli.flatpak
+```
 
 ## dev notes
 
@@ -19,10 +38,6 @@ code quality as this came out of a friday hack session and i'm still getting to 
 this repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10.7 installed either via [pyenv](https://github.com/pyenv/pyenv)
 or [asdf](https://asdf-vm.com/) using the [asdf-community/asdf-python](https://github.com/asdf-community/asdf-python) addon
 
-you also need the [aws cli](https://aws.amazon.com/cli/) fully configured (see [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html) for how to setup up auth) 
-
-For compiling the app locally you also need to ensure that cpython library is installed, With python env setup. 
-If you are using asdf install python with this command:
 
 ```bash
 env PYTHON_CONFIGURE_OPTS="--enable-shared" asdf install python 3.10.7
