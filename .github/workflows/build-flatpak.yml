@@ -4,7 +4,7 @@ on:
   pull_request:
 name: flatpak-build
 jobs:
-  flatpak:
+  ouput-requirements:
     runs-on: ubuntu-latest
 
     steps:
@@ -13,14 +13,14 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: "3.10"
-      - run: pip install poetry
+      - run: pipx install poetry
       - run: poetry install
-      - run: apt install flatpak flatpak-builder
-      - run: poetry export -f requirements.txt -o build/requirements.txt
-  #     - uses: actions/upload-artifact@v3
-  #       with:
-  #         name: requirements
-  #         path: requirements.txt
+      - run: poetry export -f requirements.txt -o requirements.txt
+      - run: sudo apt install flatpak flatpak-builder -y
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: requirements
+      #     path: requirements.txt
 
 
   # flatpak:
@@ -42,4 +42,4 @@ jobs:
   #         bundle: dyna_cli.flatpak
   #         build-bundle: true
   #         cache-key: flatpak-builder-${{ github.sha }}
-  #         verbose: true
+          
