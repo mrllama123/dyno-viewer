@@ -17,6 +17,7 @@ jobs:
       - run: poetry install
       - run: poetry export -f requirements.txt -o requirements.txt
       - run: sudo apt install flatpak flatpak-builder -y
+      - run: flatpak install flathub org.freedesktop.Platform//22.08 org.freedesktop.Sdk//22.08
       - run: poetry run flatpak_build 
       # - uses: actions/upload-artifact@v3
       #   with:
