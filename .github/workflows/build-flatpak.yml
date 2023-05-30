@@ -12,6 +12,10 @@ jobs:
       options: --privileged
     steps:
       - uses: actions/checkout@v3
+      - name: Install poetry
+        run: pipx install poetry
+      - name: output requirements.txt
+        run: poetry export -f requirements.txt -o build/requirements.txt
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.1
         with:
           manifest-path: org.flatpak.dyna_cli.yaml
