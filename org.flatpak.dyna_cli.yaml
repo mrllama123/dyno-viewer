@@ -22,7 +22,7 @@ modules:
       - pip3 install -r requirements.txt
     sources:
       - type: file
-        path: build/requirements.txt
+        path: requirements.txt
   - name: build
     buildsystem: simple
     build-commands:

@@ -34,8 +34,8 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: requirements
-          path: build/requirements.txt
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.1
+          path: requirements.txt
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           manifest-path: org.flatpak.dyna_cli.yaml
           bundle: dyna_cli.flatpak
