@@ -23,7 +23,7 @@ def main():
         help="will install built flatpak locally",
     )
     args = parser.parse_args()
-    
+
     print(":white_check_mark: exported to build/requirements.txt")
 
     print(":package: build flatpak in .flatpak folder")
@@ -45,6 +45,16 @@ def main():
                 ".repo",
             ]
         )
+
+    subprocess.run(
+        [
+            "flatpak",
+            "install",
+            "flathub org.freedesktop.Platform//22.08",
+            "org.freedesktop.Sdk//22.08",
+        ]
+    )
+
     subprocess.run(
         [
             "flatpak-builder",
@@ -56,10 +66,16 @@ def main():
     )
     print(":white_check_mark: built flatpak")
     if args.install:
-        print("installed locally run \"flatpak run org.flatpak.dyna-cli\" to run app")
+        print('installed locally run "flatpak run org.flatpak.dyna-cli" to run app')
     else:
         subprocess.run(
-            ["flatpak", "build-bundle", ".repo", "dyna_cli.flatpak", "org.flatpak.dyna_cli"]
+            [
+                "flatpak",
+                "build-bundle",
+                ".repo",
+                "dyna_cli.flatpak",
+                "org.flatpak.dyna_cli",
+            ]
         )
 
         print(":white_check_mark: exported to single file in root directory")
