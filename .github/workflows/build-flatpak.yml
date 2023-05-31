@@ -20,7 +20,10 @@ jobs:
         with:
           name: requirements
           path: requirements.txt
-
+      - uses: actions/upload-artifact@v3
+        with:
+            name: requirements
+            path: requirements.txt
 
   flatpak:
     name: "Flatpak"
@@ -35,10 +38,15 @@ jobs:
         with:
           name: requirements
           path: requirements.txt
-      - run: chmod +x /usr/bin/fusermount
-      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
         with:
-          manifest-path: org.flatpak.dyna_cli.yaml
-          bundle: dyna_cli.flatpak
-          build-bundle: true
-          cache-key: flatpak-builder-${{ github.sha }}
+          python-version: "3.10"
+      - run: chmod +x /usr/bin/fusermount
+      - run: python scripts/ci_flatpak_build.py
+      # - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+      #   with:
+      #     manifest-path: org.flatpak.dyna_cli.yaml
+      #     bundle: dyna_cli.flatpak
+      #     build-bundle: true
+      #     cache-key: flatpak-builder-${{ github.sha }}
