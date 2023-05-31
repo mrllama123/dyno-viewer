@@ -23,21 +23,6 @@ def main():
         help="will install built flatpak locally",
     )
     args = parser.parse_args()
-    print(":clipboard: exporting requirements.txt from lockfile")
-
-    if not os.path.exists('build'):
-        os.mkdir('build')
-
-    subprocess.run(
-            [
-                "poetry",
-                "export",
-                "-f",
-                "requirements.txt",
-                "-o",
-                "build/requirements.txt",
-            ]
-    )
     
     print(":white_check_mark: exported to build/requirements.txt")
 
