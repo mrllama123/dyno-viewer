@@ -1,7 +1,7 @@
 from textual.app import App
 from textual.screen import Screen
 from textual.widgets import ListView, Label
-from dyna_cli.components.screens.profile_select import ProfileSelectScreen
+from dyno_viewer.components.screens.profile_select import ProfileSelectScreen
 from textual.reactive import reactive
 import pytest
 
@@ -23,7 +23,7 @@ def screen_app():
 
 async def test_list_profiles(iam, screen_app, mocker):
     mocker.patch(
-        "dyna_cli.components.screens.profile_select.get_available_profiles",
+        "dyno_viewer.components.screens.profile_select.get_available_profiles",
         return_value=["default", "dev", "test"],
     )
     async with screen_app().run_test() as pilot:
@@ -36,7 +36,7 @@ async def test_list_profiles(iam, screen_app, mocker):
 
 async def test_select_profiles(iam, screen_app, mocker):
     mocker.patch(
-        "dyna_cli.components.screens.profile_select.get_available_profiles",
+        "dyno_viewer.components.screens.profile_select.get_available_profiles",
         return_value=["default", "dev", "test"],
     )
     async with screen_app().run_test() as pilot:

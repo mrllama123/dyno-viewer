@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "dyna-cli"
-version = "0.1.0"
+name = "dyno-viewer"
+version = "0.1.1"
 description = ""
 authors = ["Rowan Self <piesrule123@gmail.com>"]
 readme = "README.md"
-packages = [{include = "dyna_cli"}]
+packages = [{include = "dyno_viewer"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
@@ -37,7 +37,7 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.poetry.scripts]
-dyna-cli  = 'dyna_cli.app:run'
+dyno-viewer  = 'dyno_viewer.app:run'
 build_local = 'scripts.commands:build_local'
 flatpak_build = 'scripts.commands:build_flatpak'
 

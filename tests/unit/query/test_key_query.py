@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
 from textual import events
-from dyna_cli.components.query.key_query import KeyQuery
+from dyno_viewer.components.query.key_query import KeyQuery
 from textual.widgets import Input
 import pytest
 import json

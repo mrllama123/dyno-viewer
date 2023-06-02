@@ -29,9 +29,9 @@ def build_local():
     PyInstaller.__main__.run(
         [
             "--name=app",
-            "--add-data=dyna_cli/components/css:dyna_cli/components/css",
+            "--add-data=dyno_viewer/components/css:dyno_viewer/components/css",
             *[f"--exclude-module={package}" for package in dev_packages],
-            os.path.join("dyna_cli", "__main__.py"),
+            os.path.join("dyno_viewer", "__main__.py"),
         ]
     )
 
@@ -110,13 +110,13 @@ def build_flatpak():
             "--force-clean",
             *extra_args,
             ".flatpak",
-            "org.flatpak.dyna-cli.yaml",
+            "org.flatpak.dyno-viewer.yaml",
         ]
     )
     console.print(":white_check_mark: built flatpak")
     if args.install:
         console.print(
-            'installed locally run "flatpak run org.flatpak.dyna-cli" to run app'
+            'installed locally run "flatpak run org.flatpak.dyno-viewer" to run app'
         )
     else:
         with console.status("exporting flatpak to single file"):
@@ -125,8 +125,8 @@ def build_flatpak():
                     "flatpak",
                     "build-bundle",
                     ".repo",
-                    "dyna-cli.flatpak",
-                    "org.flatpak.dyna-cli",
+                    "dyno-viewer.flatpak",
+                    "org.flatpak.dyno-viewer",
                 ]
             )
 

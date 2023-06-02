@@ -44,15 +44,15 @@ jobs:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.1
         with:
-          manifest-path: org.flatpak.dyna-cli.yaml
-          bundle: dyna-cli.flatpak
+          manifest-path: org.flatpak.dyno-viewer.yaml
+          bundle: dyno-viewer.flatpak
           build-bundle: true
           cache-key: flatpak-builder
           gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
       - uses: svenstaro/upload-release-action@v2
         with:
           overwrite: true
-          file: dyna-cli.flatpak
+          file: dyno-viewer.flatpak
           tag: ${{ github.ref }}
-          asset_name: ${{ runner.arch }}-$tag-dyna-cli.flatpak
+          asset_name: ${{ runner.arch }}-$tag-dyno-viewer.flatpak
         

@@ -1,7 +1,7 @@
 from textual.app import App
 from textual.screen import Screen
 from textual.widgets import ListView, Label
-from dyna_cli.components.screens.region_select import RegionSelectScreen
+from dyno_viewer.components.screens.region_select import RegionSelectScreen
 from textual.reactive import reactive
 import pytest
 
