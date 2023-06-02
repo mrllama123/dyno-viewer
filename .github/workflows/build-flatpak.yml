@@ -54,5 +54,5 @@ jobs:
           overwrite: true
           file: dyna-cli.flatpak
           tag: ${{ github.ref }}
-          asset_name: ${{ runner.arch }}-${{ github.ref }}-dyna-cli.flat
+          asset_name: ${{ runner.arch }}-$tag-dyna-cli.flatpak
         
