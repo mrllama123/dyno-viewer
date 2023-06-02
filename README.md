@@ -29,7 +29,7 @@ pip install dyno-viewer
 There is a bundled .flatpak file that get generated on release which can be installed via:
 
 ```bash
-flatpak install dyno_viewer.flatpak
+flatpak install <bundled .flatpak filename>
 ```
 
 ## dev notes
@@ -69,7 +69,7 @@ poetry run run_app
 
 ### flatpak notes
 
-this repo supports flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call:
+this repo supports local flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call:
 
 ```bash
 poetry run flatpak_build
