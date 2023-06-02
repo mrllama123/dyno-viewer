@@ -47,9 +47,9 @@ jobs:
           manifest-path: org.flatpak.dyna-cli.yaml
           bundle: dyna-cli.flatpak
           build-bundle: true
-          cache-key: flatpak-builder-${{ github.sha }}
+          cache-key: flatpak-builder
           gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
-      - uses: svenstaro/upload-release-action@2.6.1
+      - uses: svenstaro/upload-release-action@2
         with:
           overwrite: true
           file: dyna-cli.flatpak
