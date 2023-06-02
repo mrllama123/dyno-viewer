@@ -8,11 +8,11 @@ finish-args:
   - --filesystem=xdg-cache
   - --share=network
 modules:
-  - name: cpython
-    sources:
-      - type: archive
-        url: https://www.python.org/ftp/python/3.10.7/Python-3.10.7.tar.xz
-        sha256: 6eed8415b7516fb2f260906db5d48dd4c06acc0cb24a7d6cc15296a604dcdc48
+  # - name: cpython
+  #   sources:
+  #     - type: archive
+  #       url: https://www.python.org/ftp/python/3.10.7/Python-3.10.7.tar.xz
+  #       sha256: 6eed8415b7516fb2f260906db5d48dd4c06acc0cb24a7d6cc15296a604dcdc48
   - name: build-deps
     buildsystem: simple
     build-options:
@@ -22,7 +22,7 @@ modules:
       - pip3 install -r requirements.txt
     sources:
       - type: file
-        path: build/requirements.txt
+        path: dyna-cli/build/requirements.txt
   - name: build
     buildsystem: simple
     build-commands:
