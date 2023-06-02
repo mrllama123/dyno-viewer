@@ -37,7 +37,7 @@ jobs:
       - uses: actions/download-artifact@v3
         with:
           name: requirements
-          path: requirements.txt
+          path: build/requirements.txt
       - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
