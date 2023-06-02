@@ -7,6 +7,10 @@ This came out from me being frustrated with how clunky and slow the dynamodb vie
 Which is basically a spreadsheet with menus to change the table etc just like the aws console version and it being able to be used with just a keyboard
 
 
+**Note:**
+
+This is still in early alpha so some things to be expect things to be broken, I will fix them as i have time. Prs are welcome 
+
 ## Installing
 
 ### prerequisites
