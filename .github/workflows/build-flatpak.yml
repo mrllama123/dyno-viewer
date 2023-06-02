@@ -43,10 +43,10 @@ jobs:
         with:
           python-version: "3.10"
       - run: chmod +x /usr/bin/fusermount
-      - run: python scripts/ci_flatpak_build.py
-      # - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
-      #   with:
-      #     manifest-path: org.flatpak.dyna_cli.yaml
-      #     bundle: dyna_cli.flatpak
-      #     build-bundle: true
-      #     cache-key: flatpak-builder-${{ github.sha }}
+      # - run: python scripts/ci_flatpak_build.py
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: org.flatpak.dyna_cli.yaml
+          bundle: dyna_cli.flatpak
+          build-bundle: true
+          cache-key: flatpak-builder-${{ github.sha }}
