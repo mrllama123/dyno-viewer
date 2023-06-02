@@ -66,6 +66,10 @@ poetry shell
 poetry run run_app
 ```
 
+### testing textual notes
+
+see [testing notes doc](docs/testing-textual.md)
+
 
 ### flatpak notes
 
