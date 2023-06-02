@@ -13,7 +13,7 @@ modules:
       - type: archive
         url: https://www.python.org/ftp/python/3.10.7/Python-3.10.7.tar.xz
         sha256: 6eed8415b7516fb2f260906db5d48dd4c06acc0cb24a7d6cc15296a604dcdc48
-  - name: build-deps
+  - name: deps
     buildsystem: simple
     build-options:
       build-args:
