@@ -49,7 +49,7 @@ jobs:
           build-bundle: true
           cache-key: flatpak-builder
           gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
-      - uses: svenstaro/upload-release-action@2
+      - uses: svenstaro/upload-release-action@v2
         with:
           overwrite: true
           file: dyna-cli.flatpak
