@@ -1,3 +1,5 @@
-from dyna_cli.app import main
+from dyna_cli.app import run
 
-main()
+__all__ = ["run"]
+
+run()

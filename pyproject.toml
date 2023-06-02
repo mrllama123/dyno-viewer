@@ -37,8 +37,7 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.poetry.scripts]
-
-run_app = 'dyn_cli.app:main'
+dyna-cli  = 'dyna_cli.app:run'
 build_local = 'scripts.commands:build_local'
 flatpak_build = 'scripts.commands:build_flatpak'
 
