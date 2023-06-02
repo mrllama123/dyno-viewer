@@ -3,7 +3,8 @@
 
 dyno-viewer is dynamodb table viewer for your terminal build using [textual](https://github.com/Textualize/textual). 
 
-This came out from me being frustrated with how clunky and slow the dynamodb viewier is in the aws console and me finding no good alternative.
+This came out from me being frustrated with how clunky and slow the dynamodb viewier is in the aws console and me finding no good free alternative, That works the way i want it to work. 
+Which is basically a spreadsheet with menus to change the table etc just like the aws console version and it being able to be used with just a keyboard
 
 
 ## installing
