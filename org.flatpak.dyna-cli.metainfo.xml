@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="console-application">
-  <id>org.flatpak.dyna_cli</id>
+  <id>org.flatpak.dyna-cli</id>
   
   <name>dyna-cli</name>
   <summary>a simple cli app to display dynamodb tables</summary>
@@ -14,7 +14,7 @@
     </p>
   </description>
   
-  <icon>org.flatpak.dyna_cli</icon>
+  <icon>org.flatpak.dyna-cli</icon>
   
   <categories>
     <category>Development</category>
