@@ -35,6 +35,6 @@ async def test_sort_key_value(app):
         input_value = pilot.app.query_one("#attrValue")
         assert input_value.value == "raven"
 ```
-this instantiates the app in a context then it simulate key presses, Which calls a [helper function](tests/common.py) that wraps around the `pilot.press(char)`, Which i wrote to make the test
+this instantiates the app in a context then it simulate key presses, Which calls a [helper function](../tests/common.py) that wraps around the `pilot.press(char)`, Which i wrote to make the test
 code less boilerplate as `pilot.press(char)` will only accept one key so when you are typing text into a Input widget like in this test it becomes a pain.Then lastly the pilot context object also has a reference to the app
 object. So i use that to query for the Input value and assert if the typed out text is in the Input widget 
