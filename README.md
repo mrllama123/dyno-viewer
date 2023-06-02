@@ -1,3 +1,4 @@
+![screenshot](dyno-viewer-screenshot.png)
 # dyno-viewer
 
 dyno-viewer is dynamodb table viewer for your terminal build using [textual](https://github.com/Textualize/textual). 
