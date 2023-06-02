@@ -1,5 +1,5 @@
 ![screenshot](dyno-viewer-screenshot.png)
-# dyno-viewer
+# Dyno-viewer
 
 dyno-viewer is dynamodb table viewer for your terminal build using [textual](https://github.com/Textualize/textual). 
 
@@ -7,7 +7,7 @@ This came out from me being frustrated with how clunky and slow the dynamodb vie
 Which is basically a spreadsheet with menus to change the table etc just like the aws console version and it being able to be used with just a keyboard
 
 
-## installing
+## Installing
 
 ### prerequisites
 
@@ -33,9 +33,9 @@ There is a bundled .flatpak file that get generated on release which can be inst
 flatpak install <bundled .flatpak filename>
 ```
 
-## dev notes
+## Dev notes
 
-### prerequisites
+### Prerequisites
 
 this repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10.7 installed either via [pyenv](https://github.com/pyenv/pyenv)
 or [asdf](https://asdf-vm.com/) using the [asdf-community/asdf-python](https://github.com/asdf-community/asdf-python) addon
@@ -52,7 +52,7 @@ env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.7
 
 see [how to build cpython with --enable-shared](https://github.com/pyenv/pyenv/wiki#how-to-build-cpython-with---enable-shared) for more info
 
-### local dev setup
+### Local dev setup
 
 to install locally run:
 ```bash
@@ -63,12 +63,12 @@ poetry shell
 poetry run run_app
 ```
 
-### testing textual notes
+### Testing textual notes
 
 see [testing notes doc](docs/testing-textual.md)
 
 
-### flatpak notes
+### Flatpak notes
 
 this repo supports local flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call:
 
@@ -80,7 +80,7 @@ This will export the main packages into a requirements file and then build flatp
 
 It also has support for doing other different options via arguments:
 
-#### install locally
+#### Install locally
 
 ``` bash
 poetry run flatpak_build -i 
@@ -92,7 +92,7 @@ This will install the flatpak locally instead of exporting it to a file (Useful 
 flatpak run org.flatpak.dyno-viewer
 ```
 
-#### gpg key support
+#### Gpg key support
 
 You can pass a gpg key for signing a flatpak, Which is best practice (see more on that [here](https://docs.flatpak.org/en/latest/flatpak-builder.html#signing)) via:
 

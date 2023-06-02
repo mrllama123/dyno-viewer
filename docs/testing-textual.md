@@ -2,13 +2,13 @@
 
 As there is no documentation for unit testing a textual app. I thought i would write up some notes on how to do unit testing for my benefit (as i will probably forget this :slightly_smiling_face:) and others
 
-## how does it work ?
+## How does it work ?
 
 The way it works is that the `App` class has a special method called `run_test()` which runs the app in a headless mode and returns a context that has methods to simulate
 pressing keys, hovering mouse etc. While this isn't documented there are some really good [examples](https://github.com/Textualize/textual/tree/main/tests) in the textual repo test folder. 
 See this [discussion](https://github.com/Textualize/textual/discussions/2506#discussioncomment-5827644) for more info
 
-## how to test 
+## How to test 
 
 to test textual apps. You need to run them as async functions so for that you need have pytest plugin: pytest-aiohttp installed as a dev dependency. Also as async tests are slower using concurrency for the tests is a good idea i used the pytest-xdist pytest plugin for that
 
