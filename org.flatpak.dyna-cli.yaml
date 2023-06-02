@@ -21,10 +21,10 @@ modules:
     build-commands:
       - ls
     #   - "pip3 install -r requirements.txt"
-    # sources:
-    #   - type: file
-    #     path: build/requirements.txt
-    #     dest: requirements.txt
+    sources:
+      - type: file
+        path: build/requirements.txt
+        dest: requirements.txt
   - name: build
     buildsystem: simple
     build-commands:
