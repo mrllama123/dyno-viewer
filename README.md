@@ -1,6 +1,6 @@
 # dyno-viewer
 
-dyna-cli is dynamodb table viewer for your terminal build using [textual](https://github.com/Textualize/textual). 
+dyno-viewer is dynamodb table viewer for your terminal build using [textual](https://github.com/Textualize/textual). 
 
 This came out from me being frustrated with how clunky and slow the dynamodb viewier is in the aws console and me finding no good alternative.
 
@@ -15,12 +15,12 @@ you need the [aws cli](https://aws.amazon.com/cli/) fully configured (see [here]
 
 if you are using sso profiles. Then you need to make sure that you have updated your config to use a sso-session profile otherwise the app won't work see this [doc](https://docs.aws.amazon.com/cli/latest/userguide/sso-configure-profile-token.html) on how to do that. See this issue: https://github.com/boto/botocore/issues/2374 if you want to know why this is the case 
 
-### via pip
+right now this can be installed via flatpak and pip:
 
-The easiest way is to install the built package via: 
+### via pip 
 
 ```bash
-pip install dyna_cli-0.1.0-py3-none-any.whl
+pip install dyno-viewer
 ```
 
 ### via flatpak
@@ -28,7 +28,7 @@ pip install dyna_cli-0.1.0-py3-none-any.whl
 There is a bundled .flatpak file that get generated on release which can be installed via:
 
 ```bash
-flatpak install dyna_cli.flatpak
+flatpak install dyno_viewer.flatpak
 ```
 
 ## dev notes
