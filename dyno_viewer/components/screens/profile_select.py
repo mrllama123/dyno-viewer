@@ -8,7 +8,7 @@ from textual.screen import Screen
 from textual.message import Message
 from textual import log
 
-from dyna_cli.aws.session import get_available_profiles
+from dyno_viewer.aws.session import get_available_profiles
 
 
 class ProfileSelectScreen(Screen):

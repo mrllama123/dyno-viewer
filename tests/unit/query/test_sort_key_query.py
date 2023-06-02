@@ -1,8 +1,8 @@
 from textual.app import App, ComposeResult
 from textual import events
 from textual.pilot import Pilot
-from dyna_cli.components.screens import QueryScreen
-from dyna_cli.components.query.sort_key_filter import SortKeyFilter
+from dyno_viewer.components.screens import QueryScreen
+from dyno_viewer.components.query.sort_key_filter import SortKeyFilter
 from textual.widgets import Input, Button, RadioSet, Select
 import pytest
 import json

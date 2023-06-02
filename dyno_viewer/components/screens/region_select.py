@@ -6,7 +6,7 @@ from textual.widgets import (
 )
 from textual.screen import Screen
 from textual.message import Message
-from dyna_cli.aws.session import get_all_regions
+from dyno_viewer.aws.session import get_all_regions
 from textual import log
 
 

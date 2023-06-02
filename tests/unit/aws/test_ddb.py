@@ -15,7 +15,7 @@ import pytest
     ],
 )
 def test_convert_filter_exp_key_cond(exp):
-    from dyna_cli.aws.ddb import convert_filter_exp_key_cond
+    from dyno_viewer.aws.ddb import convert_filter_exp_key_cond
 
     result = convert_filter_exp_key_cond(exp["cond"], "sk", exp["value"])
     assert result.expression_operator.lower() == exp.get("dynoExp", exp["cond"]).lower()
@@ -36,7 +36,7 @@ def test_convert_filter_exp_key_cond(exp):
     ],
 )
 def test_convert_filter_exp_attr_cond(exp):
-    from dyna_cli.aws.ddb import convert_filter_exp_attr_cond
+    from dyno_viewer.aws.ddb import convert_filter_exp_attr_cond
 
     result = convert_filter_exp_attr_cond(exp["cond"], "sk", exp["value"])
     assert result.expression_operator.lower() == exp.get("dynoExp", exp["cond"]).lower()
@@ -53,7 +53,7 @@ def test_convert_filter_exp_attr_cond(exp):
     ],
 )
 def test_convert_filter_exp_value(attr_value):
-    from dyna_cli.aws.ddb import convert_filter_exp_value
+    from dyno_viewer.aws.ddb import convert_filter_exp_value
 
     result = convert_filter_exp_value(**attr_value["args"])
     assert isinstance(result, attr_value["resultType"])

@@ -8,15 +8,15 @@ from textual.screen import Screen
 from textual.message import Message
 from textual.reactive import reactive
 from textual import log
-from dyna_cli.components.query.filter_query import FilterQuery
-from dyna_cli.components.query.key_query import KeyQuery
+from dyno_viewer.components.query.filter_query import FilterQuery
+from dyno_viewer.components.query.key_query import KeyQuery
 from boto3.dynamodb.conditions import Key, Attr
-from dyna_cli.aws.ddb import (
+from dyno_viewer.aws.ddb import (
     convert_filter_exp_key_cond,
     convert_filter_exp_attr_cond,
     convert_filter_exp_value,
 )
-from dyna_cli.components.types import TableInfo
+from dyno_viewer.components.types import TableInfo
 
 
 class QueryScreen(Screen):
