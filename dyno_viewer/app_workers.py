@@ -3,7 +3,7 @@ from textual import work
 from textual.worker import get_current_worker
 from textual import log
 
-from dyna_cli.aws.ddb import query_items, scan_items
+from dyno_viewer.aws.ddb import query_items, scan_items
 
 
 class UpdateDynDataTable(Message):

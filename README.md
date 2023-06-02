@@ -1,4 +1,4 @@
-# dyna-cli
+# dyno-viewer
 
 dyna-cli is dynamodb table viewer for your terminal build using [textual](https://github.com/Textualize/textual). 
 
@@ -74,7 +74,7 @@ this repo supports flatpak building to make the process easy there is a script t
 poetry run flatpak_build
 ```
 
-This will export the main packages into a requirements file and then build flatpak in the `.flatpak` folder then export that flatpak to a binary file in root called `dyna-cli.flatpak` which can be installed on another computer via `flatpak install dyna-cli.flatpak`
+This will export the main packages into a requirements file and then build flatpak in the `.flatpak` folder then export that flatpak to a binary file in root called `dyno-viewer.flatpak` which can be installed on another computer via `flatpak install dyno-viewer.flatpak`
 
 It also has support for doing other different options via arguments:
 
@@ -87,7 +87,7 @@ poetry run flatpak_build -i
 This will install the flatpak locally instead of exporting it to a file (Useful for dev testing), Which then you can run it via:
 
 ```bash
-flatpak run org.flatpak.dyna-cli
+flatpak run org.flatpak.dyno-viewer
 ```
 
 #### gpg key support

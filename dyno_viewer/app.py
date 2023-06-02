@@ -3,25 +3,25 @@ from textual.widgets import (
     Footer,
 )
 from textual.reactive import reactive
-from dyna_cli.app_workers import (
+from dyno_viewer.app_workers import (
     update_dyn_table_info,
     dyn_table_query,
     UpdateDynDataTable,
 )
-from dyna_cli.aws.session import get_available_profiles
-from dyna_cli.aws.ddb import get_ddb_client, table_client_exist
-from dyna_cli.components.screens import (
+from dyno_viewer.aws.session import get_available_profiles
+from dyno_viewer.aws.ddb import get_ddb_client, table_client_exist
+from dyno_viewer.components.screens import (
     ProfileSelectScreen,
     RegionSelectScreen,
     TableSelectScreen,
     QueryScreen,
 )
-from dyna_cli.components.table import DataDynTable
+from dyno_viewer.components.table import DataDynTable
 from textual.worker import get_current_worker
 from textual import work, log, on
 
 
-from dyna_cli.components.types import TableInfo
+from dyno_viewer.components.types import TableInfo
 
 
 class DynCli(App):
@@ -164,10 +164,8 @@ class DynCli(App):
             self.SCREENS["query"].table_info = new_table_info
 
 
-def main() -> None:
+def run() -> None:
     app = DynCli()
     app.run()
 
 
-# if __name__ == "__main__":
-#     main()

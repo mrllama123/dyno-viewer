@@ -1,4 +1,4 @@
-app-id: org.flatpak.dyna_cli
+app-id: org.flatpak.dyno-viewer
 runtime: org.freedesktop.Platform
 runtime-version: '22.08'
 sdk: org.freedesktop.Sdk
@@ -6,13 +6,14 @@ command: flatpak-runner.sh
 finish-args:
   - --filesystem=home
   - --filesystem=xdg-cache
+  - --share=network
 modules:
   - name: cpython
     sources:
       - type: archive
         url: https://www.python.org/ftp/python/3.10.7/Python-3.10.7.tar.xz
         sha256: 6eed8415b7516fb2f260906db5d48dd4c06acc0cb24a7d6cc15296a604dcdc48
-  - name: build-deps
+  - name: deps
     buildsystem: simple
     build-options:
       build-args:
@@ -25,11 +26,11 @@ modules:
   - name: build
     buildsystem: simple
     build-commands:
-      - cp -r dyna_cli /app/dyna_cli
+      - cp -r dyno_viewer /app/dyno_viewer
     sources:
       - type: dir
-        path: dyna_cli/
-        dest: dyna_cli/
+        path: dyno_viewer/
+        dest: dyno_viewer/
   - name: runner
     buildsystem: simple
     build-commands:
@@ -42,16 +43,16 @@ modules:
     buildsystem: simple
     build-commands:
       - mkdir -p /app/share/icons/hicolor/scalable/apps
-      - cp org.flatpak.dyna_cli.svg /app/share/icons/hicolor/scalable/apps/org.flatpak.dyna_cli.svg
+      - cp org.flatpak.dyno-viewer.svg /app/share/icons/hicolor/scalable/apps/org.flatpak.dyno-viewer.svg
     sources:
       - type: file
-        path: icons/org.flatpak.dyna_cli.svg
+        path: icons/org.flatpak.dyno-viewer.svg
 
   - name: metainfo
     buildsystem: simple
     build-commands:
       - mkdir -p /app/share/metainfo
-      - cp org.flatpak.dyna_cli.metainfo.xml /app/share/metainfo/org.flatpak.dyna_cli.metainfo.xml
+      - cp org.flatpak.dyno-viewer.metainfo.xml /app/share/metainfo/org.flatpak.dyno-viewer.metainfo.xml
     sources:
       - type: file
-        path: org.flatpak.dyna_cli.metainfo.xml
+        path: org.flatpak.dyno-viewer.metainfo.xml

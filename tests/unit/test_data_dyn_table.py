@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
 from textual import events
-from dyna_cli.components.table import DataDynTable
+from dyno_viewer.components.table import DataDynTable
 import pytest
 
 

@@ -9,7 +9,7 @@ from textual.events import Key
 from textual.message import Message
 from textual.containers import Vertical
 from textual.widgets import Input
-from dyna_cli.aws.ddb import get_ddb_client, list_all_tables
+from dyno_viewer.aws.ddb import get_ddb_client, list_all_tables
 from textual import log
 from textual.reactive import reactive
 from textual import work

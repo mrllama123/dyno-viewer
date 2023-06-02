@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="console-application">
-  <id>org.flatpak.dyna_cli</id>
+  <id>org.flatpak.dyno-viewer</id>
   
-  <name>dyna-cli</name>
+  <name>dyno-viewer</name>
   <summary>a simple cli app to display dynamodb tables</summary>
   
   <metadata_license>MIT</metadata_license>
@@ -14,7 +14,7 @@
     </p>
   </description>
   
-  <icon>org.flatpak.dyna_cli</icon>
+  <icon>org.flatpak.dyno-viewer</icon>
   
   <categories>
     <category>Development</category>

@@ -2,9 +2,9 @@ from typing import Type
 from textual.app import App, CSSPathType, ComposeResult
 from textual import events
 from textual.driver import Driver
-from dyna_cli.components.screens import QueryScreen
-from dyna_cli.components.query.filter_query import FilterQuery
-from dyna_cli.components.query.key_query import KeyQuery
+from dyno_viewer.components.screens import QueryScreen
+from dyno_viewer.components.query.filter_query import FilterQuery
+from dyno_viewer.components.query.key_query import KeyQuery
 from textual.widgets import Input, Button
 import pytest
 from tests.common import type_commands
@@ -115,7 +115,7 @@ async def test_remove_all_filters(screen_app):
 
 
 async def test_run_query_primary_key(screen_app, ddb_table, ddb_table_with_data):
-    from dyna_cli.aws.ddb import query_items
+    from dyno_viewer.aws.ddb import query_items
 
     async with screen_app().run_test() as pilot:
         pilot.app.SCREENS["query"].table_info = {
@@ -145,7 +145,7 @@ async def test_run_query_primary_key(screen_app, ddb_table, ddb_table_with_data)
 async def test_run_query_primary_key_sort_key(
     screen_app, ddb_table, ddb_table_with_data
 ):
-    from dyna_cli.aws.ddb import query_items
+    from dyno_viewer.aws.ddb import query_items
 
     async with screen_app().run_test() as pilot:
         pilot.app.SCREENS["query"].table_info = {
@@ -177,7 +177,7 @@ async def test_run_query_primary_key_sort_key(
 async def test_run_query_primary_key_sort_key_filters(
     screen_app, ddb_table, ddb_table_with_data
 ):
-    from dyna_cli.aws.ddb import query_items
+    from dyno_viewer.aws.ddb import query_items
 
     async with screen_app().run_test() as pilot:
         pilot.app.SCREENS["query"].table_info = {

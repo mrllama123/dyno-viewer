@@ -2,7 +2,7 @@ from textual.widgets import (
     DataTable,
 )
 from textual import log
-from dyna_cli.components.types import TableInfo
+from dyno_viewer.components.types import TableInfo
 
 
 class DataDynTable(DataTable):
