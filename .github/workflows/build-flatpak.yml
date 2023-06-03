@@ -2,6 +2,7 @@ on:
   push:
     tags:
       - 'v*'
+
 name: flatpak builder
 jobs:
   ouput-requirements:
@@ -30,6 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     needs: ouput-requirements
+    permissions: write-all
     env:
       GH_TOKEN: ${{ github.token }}
     container:
@@ -48,11 +50,10 @@ jobs:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
       - name: Install GH CLI
         run: sudo dnf install gh -y && git config --global --add safe.directory /__w/dyno-viewer/dyno-viewer
-      # - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.1
-      #   with:
-      #     manifest-path: org.flatpak.dyno-viewer.yaml
-      #     bundle: dyno-viewer.flatpak
-      #     gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
-      - run: echo "test" > test.txt
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.1
+        with:
+          manifest-path: org.flatpak.dyno-viewer.yaml
+          bundle: dyno-viewer.flatpak
+          gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
       - name: upload asset
-        run: gh release upload ${{ github.ref_name }} test.txt
+        run: gh release upload ${{ github.ref_name }} dyno-viewer.flatpak
