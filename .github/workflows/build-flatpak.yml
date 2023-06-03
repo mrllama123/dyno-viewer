@@ -34,8 +34,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     # needs: ouput-requirements
-    permissions:
-      pull-requests: write
     env:
       GH_TOKEN: ${{ github.token }}
     container:
