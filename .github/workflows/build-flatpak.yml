@@ -30,6 +30,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: release
     needs: ouput-requirements
+    env:
+      GH_TOKEN: ${{ github.token }}
     container:
       image: bilelmoussaoui/flatpak-github-actions:freedesktop-20.08
       options: --privileged
