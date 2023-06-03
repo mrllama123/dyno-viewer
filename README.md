@@ -1,7 +1,7 @@
 ![screenshot](dyno-viewer-screenshot.png)
 # Dyno-viewer
 
-dyno-viewer is dynamodb table viewer for your terminal build using [textual](https://github.com/Textualize/textual). 
+Dyno-viewer is dynamodb table viewer for your terminal build using [textual](https://github.com/Textualize/textual). 
 
 This came out from me being frustrated with how clunky and slow the dynamodb viewier is in the aws console and me finding no good free alternative, That works the way i want it to work. 
 Which is basically a spreadsheet with menus to change the table etc just like the aws console version and it being able to be used with just a keyboard
@@ -15,7 +15,7 @@ This is still in early alpha so some things to be expect things to be broken, I 
 
 ### prerequisites
 
-you need the [aws cli](https://aws.amazon.com/cli/) fully configured (see [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html) for how to setup up auth) 
+You need the [aws cli](https://aws.amazon.com/cli/) fully configured (see [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-authentication.html) for how to setup up auth) 
 
 #### note about AWS IAM Identity Center(used to be called aws sso) aws profiles:
 
@@ -41,7 +41,7 @@ flatpak install <bundled .flatpak filename>
 
 ### Prerequisites
 
-this repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10.7 installed either via [pyenv](https://github.com/pyenv/pyenv)
+This repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10.7 installed either via [pyenv](https://github.com/pyenv/pyenv)
 or [asdf](https://asdf-vm.com/) using the [asdf-community/asdf-python](https://github.com/asdf-community/asdf-python) addon
 
 
@@ -58,7 +58,7 @@ see [how to build cpython with --enable-shared](https://github.com/pyenv/pyenv/w
 
 ### Local dev setup
 
-to install locally run:
+To install locally run:
 ```bash
 poetry install
 # to go into a virtual env shell 
@@ -69,12 +69,12 @@ poetry run run_app
 
 ### Testing textual notes
 
-see [testing notes doc](docs/testing-textual.md)
+See [testing notes doc](docs/testing-textual.md)
 
 
 ### Flatpak notes
 
-this repo supports local flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call:
+This repo supports local flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call:
 
 ```bash
 poetry run flatpak_build
