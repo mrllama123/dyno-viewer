@@ -1,11 +1,13 @@
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
+
 name: flatpak builder
 jobs:
   ouput-requirements:
     runs-on: ubuntu-latest
-
+    environment: release
     steps:
       - uses: actions/checkout@v3
       - name: Set up Python 3.10
@@ -27,7 +29,11 @@ jobs:
   flatpak:
     name: "Flatpak"
     runs-on: ubuntu-latest
+    environment: release
     needs: ouput-requirements
+    permissions: write-all
+    env:
+      GH_TOKEN: ${{ github.token }}
     container:
       image: bilelmoussaoui/flatpak-github-actions:freedesktop-20.08
       options: --privileged
@@ -42,17 +48,12 @@ jobs:
           echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --import
         env:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
+      - name: Install GH CLI
+        run: sudo dnf install gh -y && git config --global --add safe.directory /__w/dyno-viewer/dyno-viewer
       - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.1
         with:
           manifest-path: org.flatpak.dyno-viewer.yaml
           bundle: dyno-viewer.flatpak
-          build-bundle: true
-          cache-key: flatpak-builder
           gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
-      - uses: svenstaro/upload-release-action@v2
-        with:
-          overwrite: true
-          file: dyno-viewer.flatpak
-          tag: ${{ github.ref }}
-          asset_name: ${{ runner.arch }}-$tag-dyno-viewer.flatpak
-        
+      - name: upload asset
+        run: gh release upload ${{ github.ref_name }} dyno-viewer.flatpak
