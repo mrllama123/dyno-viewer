@@ -53,6 +53,6 @@ jobs:
       #     manifest-path: org.flatpak.dyno-viewer.yaml
       #     bundle: dyno-viewer.flatpak
       #     gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
-      - run: touch dyno-viewer.flatpak
+      - run: touch test.txt
       - name: upload asset
-        run: gh release upload ${{ github.ref_name }} dyno-viewer.flatpak
+        run: gh release upload ${{ github.ref_name }} test.txt
