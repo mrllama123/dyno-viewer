@@ -1,39 +1,36 @@
-# on:
-#   push:
-#     tags:
-#       - 'v*'
 on:
-  pull_request:
-    branches:
-      - master
+  push:
+    tags:
+      - 'v*'
+
 name: flatpak builder
 jobs:
-#   ouput-requirements:
-#     runs-on: ubuntu-latest
-#     environment: release
-#     steps:
-#       - uses: actions/checkout@v3
-#       - name: Set up Python 3.10
-#         uses: actions/setup-python@v4
-#         with:
-#           python-version: "3.10"
-#       - run: pip install poetry
-#       - run: poetry install
-#       - run: poetry export -f requirements.txt -o requirements.txt
-#       - uses: actions/upload-artifact@v3
-#         with:
-#           name: requirements
-#           path: requirements.txt
-#       - uses: actions/upload-artifact@v3
-#         with:
-#             name: requirements
-#             path: requirements.txt
+  ouput-requirements:
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      - run: pip install poetry
+      - run: poetry install
+      - run: poetry export -f requirements.txt -o requirements.txt
+      - uses: actions/upload-artifact@v3
+        with:
+          name: requirements
+          path: requirements.txt
+      - uses: actions/upload-artifact@v3
+        with:
+            name: requirements
+            path: requirements.txt
 
   flatpak:
     name: "Flatpak"
     runs-on: ubuntu-latest
     environment: release
-    # needs: ouput-requirements
+    needs: ouput-requirements
     permissions: write-all
     env:
       GH_TOKEN: ${{ github.token }}
@@ -42,10 +39,10 @@ jobs:
       options: --privileged
     steps:
       - uses: actions/checkout@v3
-      # - uses: actions/download-artifact@v3
-      #   with:
-      #     name: requirements
-      #     path: build
+      - uses: actions/download-artifact@v3
+        with:
+          name: requirements
+          path: build
       - name: Configure GPG Key
         run: |
           echo -n "$GPG_SIGNING_KEY" | base64 --decode | gpg --import
@@ -53,11 +50,10 @@ jobs:
           GPG_SIGNING_KEY: ${{ secrets.GPG_SIGNING_KEY }}
       - name: Install GH CLI
         run: sudo dnf install gh -y && git config --global --add safe.directory /__w/dyno-viewer/dyno-viewer
-      # - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.1
-      #   with:
-      #     manifest-path: org.flatpak.dyno-viewer.yaml
-      #     bundle: dyno-viewer.flatpak
-      #     gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
-      - run: echo "test" > test.txt
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@v6.1
+        with:
+          manifest-path: org.flatpak.dyno-viewer.yaml
+          bundle: dyno-viewer.flatpak
+          gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
       - name: upload asset
-        run: gh release upload v0.1.1 test.txt #${{ github.ref_name }} test.txt
+        run: gh release upload ${{ github.ref_name }} dyno-viewer.flatpak
