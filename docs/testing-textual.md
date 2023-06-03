@@ -10,9 +10,9 @@ See this [discussion](https://github.com/Textualize/textual/discussions/2506#dis
 
 ## How to test 
 
-to test textual apps. You need to run them as async functions so for that you need have pytest plugin: pytest-aiohttp installed as a dev dependency. Also as async tests are slower using concurrency for the tests is a good idea i used the pytest-xdist pytest plugin for that
+To test textual apps. You need to run them as async functions so for that you need have pytest plugin: pytest-aiohttp installed as a dev dependency. Also as async tests are slower using concurrency for the tests is a good idea i used the pytest-xdist pytest plugin for that
 
-in terms of the test structure, I have broken it down into testing the individual widgets/screens using [sort key filter](../tests/unit/query/test_sort_key_query.py) test as an example:
+In terms of the test structure, I have broken it down into testing the individual widgets/screens using [sort key filter](../tests/unit/query/test_sort_key_query.py) test as an example:
 
 - create a class that inherits the `App`  class just like you normally do for creating textual apps. That adds the SortKeyFilter widget and any setup that needs to be done before testing:
 
@@ -35,6 +35,6 @@ async def test_sort_key_value(app):
         input_value = pilot.app.query_one("#attrValue")
         assert input_value.value == "raven"
 ```
-this instantiates the app in a context then it simulate key presses, Which calls a [helper function](../tests/common.py) that wraps around the `pilot.press(char)`, Which i wrote to make the test
+This instantiates the app in a context then it simulate key presses, Which calls a [helper function](../tests/common.py) that wraps around the `pilot.press(char)`, Which i wrote to make the test
 code less boilerplate as `pilot.press(char)` will only accept one key so when you are typing text into a Input widget like in this test it becomes a pain.Then lastly the pilot context object also has a reference to the app
 object. So i use that to query for the Input value and assert if the typed out text is in the Input widget 
