@@ -49,7 +49,7 @@ jobs:
           manifest-path: org.flatpak.dyno-viewer.yaml
           bundle: dyno-viewer.flatpak
           build-bundle: true
-          cache-key: flatpak-builder
+          cache-key: flatpak-builder-x86_64
           gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
       - name: upload asset
         run: gh release upload ${{ github.ref_name }} dyno-viewer.flatpak#${{ runner.arch }}-dyno-viewer.flatpak
