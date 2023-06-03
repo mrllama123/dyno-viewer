@@ -55,4 +55,4 @@ jobs:
       #     gpg-sign: 482D785950010673538143D76E5AC8BB1FA09156
       - run: touch dyno-viewer.flatpak
       - name: upload asset
-        run: gh release upload ${{ github.ref_name }} dyno-viewer.flatpak#${{ runner.arch }}-dyno-viewer.flatpak
+        run: gh release upload ${{ github.ref_name }} dyno-viewer.flatpak
