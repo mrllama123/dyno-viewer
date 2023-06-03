@@ -49,6 +49,7 @@ class QueryScreen(Screen):
             yield KeyQuery(id="keyInput")
             yield Button("add filter", id="addFilter")
             yield Button("remove all filters", id="removeAllFilters")
+            yield Footer()
 
     def get_key_query(self) -> Key | None:
         log("generating key expression from input data")
