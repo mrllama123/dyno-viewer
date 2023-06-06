@@ -3,7 +3,7 @@ on:
     release:
       types: [published]
 jobs:
-  unit-tests:
+  publish-python-package:
     runs-on: ubuntu-latest
     environment: release
     steps:
