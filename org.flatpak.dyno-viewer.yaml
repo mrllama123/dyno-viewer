@@ -11,8 +11,8 @@ modules:
   - name: cpython
     sources:
       - type: archive
-        url: https://www.python.org/ftp/python/3.10.7/Python-3.10.7.tar.xz
-        sha256: 6eed8415b7516fb2f260906db5d48dd4c06acc0cb24a7d6cc15296a604dcdc48
+        url: https://www.python.org/ftp/python/3.10.11/Python-3.10.11.tar.xz
+        sha256: 3c3bc3048303721c904a03eb8326b631e921f11cc3be2988456a42f115daf04c
   - name: deps
     buildsystem: simple
     build-options:
