@@ -41,17 +41,17 @@ flatpak install <bundled .flatpak filename>
 
 ### Prerequisites
 
-This repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10.7 installed either via [pyenv](https://github.com/pyenv/pyenv)
+This repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10.11 installed either via [pyenv](https://github.com/pyenv/pyenv)
 or [asdf](https://asdf-vm.com/) using the [asdf-community/asdf-python](https://github.com/asdf-community/asdf-python) addon
 
 
 ```bash
-env PYTHON_CONFIGURE_OPTS="--enable-shared" asdf install python 3.10.7
+env PYTHON_CONFIGURE_OPTS="--enable-shared" asdf install python 3.10.11
 ```
 or if using pyenv:
 
 ```bash
-env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.7
+env PYTHON_CONFIGURE_OPTS="--enable-shared" pyenv install 3.10.11
 ```
 
 see [how to build cpython with --enable-shared](https://github.com/pyenv/pyenv/wiki#how-to-build-cpython-with---enable-shared) for more info
