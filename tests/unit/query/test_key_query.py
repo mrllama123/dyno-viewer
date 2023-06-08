@@ -40,7 +40,7 @@ async def test_gsi_switch(app):
 
         assert query_input.query_one("#queryIndex").option_count == 2
 
-        await pilot.press("tab")
+        # await pilot.press("tab")
         await pilot.press("tab")
         await pilot.press("down")
         await pilot.press("enter")

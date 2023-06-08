@@ -33,7 +33,7 @@ def screen_app():
 async def assert_primary_key(pilot, ddb_item):
     key_query = pilot.app.query_one(KeyQuery)
     # set pk to customer#test
-    await type_commands(["tab" for _ in range(0, 3)], pilot)
+    await type_commands(["tab" for _ in range(0, 1)], pilot)
     await type_commands([ddb_item["pk"]], pilot)
     assert key_query.query_one("#partitionKey").value == ddb_item["pk"]
 

@@ -2,10 +2,12 @@ from textual.app import App, ComposeResult
 from textual import events
 from textual.pilot import Pilot
 from dyno_viewer.components.screens import QueryScreen
+from textual.containers import Container
 from dyno_viewer.components.query.filter_query import FilterQuery
 from textual.widgets import Input, Button, RadioSet, Select
 import pytest
 import json
+import os
 
 from tests.common import type_commands
 
@@ -14,7 +16,8 @@ from tests.common import type_commands
 def app() -> App:
     class FilterQueryInputApp(App):
         def compose(self):
-            yield FilterQuery()
+            with Container(id="queryScreen"):
+                yield FilterQuery()
 
     return FilterQueryInputApp
 
@@ -29,7 +32,7 @@ async def test_initial(app):
 
 async def test_attr_name_value(app):
     async with app().run_test() as pilot:
-        await type_commands(["tab", "dawnstar"], pilot)
+        await type_commands(["dawnstar"], pilot)
 
         input_attr = pilot.app.query_one("#attr")
         assert input_attr.value == "dawnstar"
@@ -64,7 +67,7 @@ async def test_attr_name_value(app):
 async def test_conds(app, cond):
     async with app().run_test() as pilot:
         await type_commands(
-            [*["tab" for _ in range(0, 3)], "enter", *cond["condCommand"], "enter"],
+            [*["tab" for _ in range(0, 2)], "enter", *cond["condCommand"], "enter"],
             pilot,
         )
         assert pilot.app.query_one("#condition").value == cond["condLabel"]
@@ -85,7 +88,7 @@ async def test_conds(app, cond):
 async def test_types(app, type):
     async with app().run_test() as pilot:
         await type_commands(
-            ["tab", "tab", "enter", *type["typeCommand"], "enter"],
+            ["tab",  "enter", *type["typeCommand"], "enter"],
             pilot,
         )
         assert pilot.app.query_one("#attrType").value == type["type"]
