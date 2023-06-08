@@ -29,7 +29,7 @@ async def test_initial(app):
 
 async def test_sort_key_value(app):
     async with app().run_test() as pilot:
-        await type_commands(["tab", "tab", "tab", "raven"], pilot)
+        await type_commands(["tab", "tab", "raven"], pilot)
         input_value = pilot.app.query_one("#attrValue")
         assert input_value.value == "raven"
 
@@ -49,7 +49,7 @@ async def test_sort_key_value(app):
 async def test_types(app, type):
     async with app().run_test() as pilot:
         await type_commands(
-            ["tab", "enter", *type["typeCommand"], "enter"],
+            ["enter", *type["typeCommand"], "enter"],
             pilot,
         )
         assert pilot.app.query_one("#attrType").value == type["type"]
@@ -70,7 +70,7 @@ async def test_types(app, type):
 async def test_conds(app, cond):
     async with app().run_test() as pilot:
         await type_commands(
-            ["tab", "tab", "enter", *cond["condCommand"], "enter"],
+            ["tab", "enter", *cond["condCommand"], "enter"],
             pilot,
         )
         assert pilot.app.query_one("#condition").value == cond["condLabel"]
