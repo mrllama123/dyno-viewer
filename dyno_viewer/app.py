@@ -3,11 +3,7 @@ from textual.widgets import (
     Footer,
 )
 from textual.reactive import reactive
-from dyno_viewer.app_workers import (
-    update_dyn_table_info,
-    dyn_table_query,
-    UpdateDynDataTable,
-)
+
 from dyno_viewer.aws.session import get_available_profiles
 from dyno_viewer.aws.ddb import get_ddb_client, table_client_exist
 from dyno_viewer.components.screens import (
@@ -22,6 +18,21 @@ from textual import work, log, on
 
 
 from dyno_viewer.components.types import TableInfo
+
+
+from textual.message import Message
+
+
+from dyno_viewer.aws.ddb import query_items, scan_items
+
+
+class UpdateDynDataTable(Message):
+        def __init__(self, data, next_token, update_existing_data=False) -> None:
+            self.data = data
+            self.next_token = next_token
+            self.update_existing_data = update_existing_data
+            super().__init__()
+
 
 
 class DynCli(App):
@@ -80,6 +91,64 @@ class DynCli(App):
         else:
             self.dyn_query_params.pop("ExclusiveStartKey", None)
 
+
+    # worker methods
+
+    @work(exclusive=True, group="update_dyn_table_info")
+    def update_dyn_table_info(self) -> None:
+        worker = get_current_worker()
+        if not worker.is_cancelled:
+            log.info(f"updating table info")
+            log.info("key schema=", self.table_client.key_schema)
+            log.info("gsi schema=", self.table_client.global_secondary_indexes)
+            main_keys = {
+                ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
+                    "AttributeName"
+                ]
+                for key in self.table_client.key_schema
+            }
+
+            gsi_keys = {
+                gsi["IndexName"]: {
+                    ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
+                        "AttributeName"
+                    ]
+                    for key in gsi["KeySchema"]
+                }
+                for gsi in self.table_client.global_secondary_indexes or []
+            }
+
+            def update(self, main_keys, gsi_keys):
+                self.table_info = {"keySchema": main_keys, "gsi": gsi_keys}
+
+            self.call_from_thread(update, self, main_keys, gsi_keys)
+
+
+    @work(exclusive=True, group="dyn_table_query")
+    def dyn_table_query(self, dyn_query_params, update_existing=False):
+        worker = get_current_worker()
+        if not worker.is_cancelled:
+            log("dyn_params=", self.dyn_query_params)
+            result, next_token = (
+                query_items(
+                    self.table_client,
+                    paginate=False,
+                    Limit=50,
+                    **dyn_query_params,
+                )
+                if "KeyConditionExpression" in dyn_query_params
+                else scan_items(
+                    self.table_client,
+                    paginate=False,
+                    Limit=50,
+                    **dyn_query_params,
+                )
+            )
+
+        self.post_message(UpdateDynDataTable(result, next_token, update_existing))
+
+
+
     # on methods
 
     def on_mount(self):
@@ -92,7 +161,7 @@ class DynCli(App):
     ) -> None:
         if highlighted.coordinate.row == highlighted.data_table.row_count - 1:
             if "ExclusiveStartKey" in self.dyn_query_params:
-                dyn_table_query(self, self.dyn_query_params, update_existing=True)
+                self.dyn_table_query(self, self.dyn_query_params, update_existing=True)
 
     async def on_region_select_screen_region_selected(
         self, selected_region: RegionSelectScreen.RegionSelected
@@ -124,7 +193,7 @@ class DynCli(App):
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
         self.dyn_table_query = params
-        dyn_table_query(self, params)
+        self.dyn_table_query(self, params)
 
     async def on_update_dyn_data_table(self, update_data: UpdateDynDataTable) -> None:
         table = self.query_one(DataDynTable)
@@ -149,8 +218,8 @@ class DynCli(App):
         """update DynTable with new table data"""
         if new_table_client:
             log.info("table client changed and table found, Update table data")
-            update_dyn_table_info(self)
-            dyn_table_query(self, self.dyn_query_params)
+            self.update_dyn_table_info(self)
+            self.dyn_table_query(self, self.dyn_query_params)
         else:
             log.info("table client changed and table not found, Clear table data")
             self.query_one(DataDynTable).clear()
