@@ -27,10 +27,16 @@ jupyterlab = "^3.6.3"
 pytest-xdist = "^3.3.0"
 toml = "^0.10.2"
 pyinstaller = {version = "^5.11.0", python = ">=3.9,<3.12"}
+poethepoet = "^0.20.0"
 
 
 
 [tool.poetry.group.build.dependencies]
+
+[tool.poe.tasks]
+build_local.script = 'scripts.commands:build_local'
+flatpak_build.script = 'scripts.commands:build_flatpak'
+
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -38,8 +44,6 @@ testpaths = ["tests"]
 
 [tool.poetry.scripts]
 dyno-viewer  = 'dyno_viewer.app:run'
-build_local = 'scripts.commands:build_local'
-flatpak_build = 'scripts.commands:build_flatpak'
 
 [build-system]
 requires = ["poetry-core"]
