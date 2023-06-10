@@ -74,7 +74,7 @@ See [testing notes doc](docs/testing-textual.md)
 
 ### Flatpak notes
 
-This repo supports local flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call via poe (a script runner for poetry):
+This repo supports local flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call via [poe](https://poethepoet.natn.io/index.html) (a script runner for poetry):
 
 ```bash
 poetry run poe flatpak_build
