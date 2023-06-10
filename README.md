@@ -74,10 +74,10 @@ See [testing notes doc](docs/testing-textual.md)
 
 ### Flatpak notes
 
-This repo supports local flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call:
+This repo supports local flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call via poe (a script runner for poetry):
 
 ```bash
-poetry run flatpak_build
+poetry run poe flatpak_build
 ```
 
 This will export the main packages into a requirements file and then build flatpak in the `.flatpak` folder then export that flatpak to a binary file in root called `dyno-viewer.flatpak` which can be installed on another computer via `flatpak install dyno-viewer.flatpak`
@@ -87,7 +87,7 @@ It also has support for doing other different options via arguments:
 #### Install locally
 
 ``` bash
-poetry run flatpak_build -i 
+poetry run poe flatpak_build -i 
 ```
 
 This will install the flatpak locally instead of exporting it to a file (Useful for dev testing), Which then you can run it via:
@@ -101,11 +101,11 @@ flatpak run org.flatpak.dyno-viewer
 You can pass a gpg key for signing a flatpak, Which is best practice (see more on that [here](https://docs.flatpak.org/en/latest/flatpak-builder.html#signing)) via:
 
 ```bash
-poetry run flatpak_build --gpg "<key id>"
+poetry run poe flatpak_build --gpg "<key id>"
 ```
 
 If the gpg key is not in the default directory then you can also add the path to it via this argument:
 
 ```bash 
-poetry run flatpak_build --gpg "<key id>" --gh path/to/gpg/key
+poetry run poe flatpak_build --gpg "<key id>" --gh path/to/gpg/key
 ```
