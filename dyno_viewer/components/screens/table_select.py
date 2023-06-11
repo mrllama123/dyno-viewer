@@ -12,14 +12,15 @@ from textual.widgets import Input
 from dyno_viewer.aws.ddb import get_ddb_client, list_all_tables
 from textual import log
 from textual.reactive import reactive
-from textual import work
+from textual import work, on
+from textual.suggester import SuggestFromList, SuggestionReady
 from textual.worker import get_current_worker
 
 
 class TableSelectScreen(Screen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
 
-    dyn_client = reactive(None)
+    dyn_client = reactive(None, always_update=True)
 
     next_token = reactive(None)
 
@@ -29,6 +30,8 @@ class TableSelectScreen(Screen):
         self.tables = []
         super().__init__(name, id, classes)
 
+    # message classes
+
     class TableName(Message):
         """pass back what table was selected"""
 
@@ -36,22 +39,28 @@ class TableSelectScreen(Screen):
             self.table = table
             super().__init__()
 
+    class TableListResult(Message):
+        """return result from listing tables"""
+
+        def __init__(self, table_result, next_token) -> None:
+            self.table_result = table_result
+            self.next_token = next_token
+            super().__init__()
+
     def compose(self) -> ComposeResult:
-        yield Vertical(Input(placeholder="Search for table"), ListView())
-    
-    def on_mount(self) -> None:
-        table_input = self.query_one(Input)
-        table_input.focus()
+        yield Input(placeholder="Search for table", id="tableSelectInput")
+
+    # worker methods
 
     @work(exclusive=True)
-    def update_tables(self):
+    def update_tables(self, next_token):
         worker = get_current_worker()
         if not worker.is_cancelled:
-            if self.next_token:
+            if next_token:
                 dynamodb_tables, next_token = list_all_tables(
                     self.dyn_client,
                     Limit=10,
-                    ExclusiveStartTableName=self.next_token,
+                    ExclusiveStartTableName=next_token,
                     paginate=False,
                 )
             else:
@@ -59,31 +68,15 @@ class TableSelectScreen(Screen):
                     self.dyn_client, Limit=10, paginate=False
                 )
 
-            new_tables = [
-                table_name
-                for table_name in dynamodb_tables
-                if table_name not in self.tables
-            ]
-
-            def update_next_token(self, next_token):
-                self.next_token = next_token
-
-            self.app.call_from_thread(update_next_token, self, next_token)
-            self.app.call_from_thread(self.tables.extend, new_tables)
+            self.post_message(self.TableListResult(dynamodb_tables, next_token))
 
     # on methods
 
-    async def on_input_changed(self, changed: Input.Changed) -> None:
-        # TODO make the matching more smarter
-        match_tables = [table for table in self.tables if changed.value in table]
+    def on_mount(self) -> None:
+        table_input = self.query_one(Input)
+        table_input.focus()
 
-        if len(match_tables) == 0:
-            self.update_tables()
 
-        list_view = self.query_one(ListView)
-        list_view.clear()
-        for matched_table in match_tables:
-            list_view.append(ListItem(Label(matched_table), id=matched_table))
 
     def on_input_submitted(self, submitted: Input.Submitted) -> None:
         if submitted.value in self.tables:
@@ -95,10 +88,29 @@ class TableSelectScreen(Screen):
         input.value = selected.item.id
         input.focus()
 
+    @on(SuggestionReady)
+    async def on_table_suggest(self, suggestion_ready: SuggestionReady) -> None:
+
+        if not suggestion_ready.suggestion and self.next_token:
+            self.update_tables(self.next_token)
+            
+
+    @on(TableListResult)
+    async def on_table_list_result(self, result: TableListResult):
+        new_tables = [
+            table_name
+            for table_name in result.table_result
+            if table_name not in self.tables
+        ]
+        self.tables.extend(new_tables)
+        self.next_token = result.next_token
+        self.query_one(Input).suggester = SuggestFromList(
+            self.tables, case_sensitive=False
+        )
+
     # watch methods
 
     async def watch_dyn_client(self, new_dyn_client) -> None:
         if new_dyn_client:
-            self.update_tables()
-            list_view = self.query_one(ListView)
-            list_view.clear()
+
+            self.update_tables(self.next_token)
