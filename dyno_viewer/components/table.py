@@ -32,7 +32,7 @@ class DataDynTable(DataTable):
         for col in cols:
             self.add_column(col, key=col)
 
-        log.info("col keys=", [str() for col in self.columns.keys()])
+        log.info("col keys=", [str(col) for col in self.columns.keys()])
 
         rows = [[item.get(col) for col in cols] for item in data]
         log.info(f"{len(rows)} total rows")
@@ -45,11 +45,23 @@ class DataDynTable(DataTable):
         if self.row_count == 0:
             raise Exception("there must be existing data")
 
-        cols_not_exist = [
-            attrKey for item in data for attrKey in item if attrKey not in self.columns
-        ]
+        cols_not_exist = set(
+            [
+                attrKey
+                for item in data
+                for attrKey in item
+                if attrKey not in self.columns
+            ]
+        )
+
         if cols_not_exist:
-            for col in cols_not_exist:
+            log.info(f"adding cols to existing: {cols_not_exist}")
+            log.info(f" existing cols: {self.columns.keys()}")
+            for col in list(cols_not_exist):
                 self.add_column(col, key=col)
-        rows = [[item.get(col) for col in self.columns.keys()] for item in data]
-        self.add_rows(rows)
+            log.info(f"added cols to existing: {cols_not_exist}")
+        
+        # rows = [[item.get(col) for col in self.columns.keys()] for item in data]
+        # log.info(f"adding rows to existing")
+        # self.add_rows(rows)
+        #log.info(f"added rows to existing")
