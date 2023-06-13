@@ -123,7 +123,7 @@ class DynCli(App):
         params = {"KeyConditionExpression": run_query.key_cond_exp}
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
-        self.dyn_table_query = params
+        self.dyn_query_params = params
         dyn_table_query(self, params)
 
     async def on_update_dyn_data_table(self, update_data: UpdateDynDataTable) -> None:
