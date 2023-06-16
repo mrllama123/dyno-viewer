@@ -92,6 +92,8 @@ class DynCli(App):
     ) -> None:
         if highlighted.coordinate.row == highlighted.data_table.row_count - 1:
             if "ExclusiveStartKey" in self.dyn_query_params:
+                log.info("adding more items")
+
                 dyn_table_query(self, self.dyn_query_params, update_existing=True)
 
     async def on_region_select_screen_region_selected(

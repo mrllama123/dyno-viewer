@@ -32,7 +32,7 @@ class DataDynTable(DataTable):
         for col in cols:
             self.add_column(col, key=col)
 
-        log.info("col keys=", [str() for col in self.columns.keys()])
+        log.info("col keys=", [str(col.label) for col in self.columns.values()])
 
         rows = [[item.get(col) for col in cols] for item in data]
         log.info(f"{len(rows)} total rows")
@@ -45,11 +45,38 @@ class DataDynTable(DataTable):
         if self.row_count == 0:
             raise Exception("there must be existing data")
 
-        cols_not_exist = [
-            attrKey for item in data for attrKey in item if attrKey not in self.columns
-        ]
+        cols_not_exist = set(
+            [
+                attrKey
+                for item in data
+                for attrKey in item
+                if attrKey not in self.columns
+            ]
+        )
+
         if cols_not_exist:
-            for col in cols_not_exist:
+            log.info(f"adding cols to existing: {cols_not_exist}")
+            log.info(f" existing cols: {self.columns.keys()}")
+
+            # TODO hack - figure out why DataTable can't add a new col to DataTable that has existing data in it
+            old_rows = [
+                dict(zip([k.value for k in self.columns.keys()], self.get_row_at(i)))
+                for i in range(0, self.row_count)
+            ]
+            cursor_loc = self.cursor_coordinate
+            self.clear()
+            for col in list(cols_not_exist):
                 self.add_column(col, key=col)
-        rows = [[item.get(col) for col in self.columns.keys()] for item in data]
+
+            updated_col_rows = [
+                [item.get(col) for col in self.columns.keys()] for item in old_rows
+            ]
+            self.add_rows(updated_col_rows)
+            self.move_cursor(row=cursor_loc.row, column=cursor_loc.column)
+
+            log.info(f"added cols to existing: {cols_not_exist}")
+
+        rows = [[item.get(col.value) for col in self.columns.keys()] for item in data]
+        log.info(f"adding rows to existing")
         self.add_rows(rows)
+        log.info(f"added rows to existing")
