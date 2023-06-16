@@ -237,8 +237,8 @@ async def test_add_data_to_existing_table():
                 None,
                 None,
                 None,
-                "testy",
                 42,
+                "testy",
             ],
             [
                 "customer#12386876",
@@ -249,11 +249,10 @@ async def test_add_data_to_existing_table():
                 None,
                 None,
                 None,
-                "testy",
                 8909,
+                "testy",
             ],
         ]
-
 
 
 async def test_add_data_to_existing_table_new_cols():
@@ -280,38 +279,38 @@ async def test_add_data_to_existing_table_new_cols():
                     "gsisk1": "ACCOUNT",
                     "testVal1": 8909,
                     "testVal2": "testy",
-                    "testVal3": ["test1", "test2"]
+                    "testVal3": ["test1", "test2"],
                 }
             ]
         )
 
         assert table.row_count == 2
-        # table_rows = [table.get_row_at(i) for i in range(0, 2)]
-        # assert table_rows == [
-        #     [
-        #         "customer#12345",
-        #         "CUSTOMER",
-        #         "account#123",
-        #         "ACCOUNT",
-        #         None,
-        #         None,
-        #         None,
-        #         None,
-        #         "testy",
-        #         42,
-        #         None
-        #     ],
-        #     [
-        #         "customer#12386876",
-        #         "CUSTOMER",
-        #         "account#83268765",
-        #         "ACCOUNT",
-        #         None,
-        #         None,
-        #         None,
-        #         None,
-        #         "testy",
-        #         8909,
-        #         ["test1", "test2"]
-        #     ],
-        # ]
+        table_rows = [table.get_row_at(i) for i in range(0, 2)]
+        assert table_rows == [
+            [
+                "customer#12345",
+                "CUSTOMER",
+                "account#123",
+                "ACCOUNT",
+                None,
+                None,
+                None,
+                None,
+                42,
+                "testy",
+                None,
+            ],
+            [
+                "customer#12386876",
+                "CUSTOMER",
+                "account#83268765",
+                "ACCOUNT",
+                None,
+                None,
+                None,
+                None,
+                8909,
+                "testy",
+                ["test1", "test2"],
+            ],
+        ]
