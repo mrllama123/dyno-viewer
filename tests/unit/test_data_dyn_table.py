@@ -225,34 +225,20 @@ async def test_add_data_to_existing_table():
             ]
         )
         assert table.row_count == 2
-        table_rows = [table.get_row_at(i) for i in range(0, 2)]
 
-        assert table_rows == [
-            [
-                "customer#12345",
-                "CUSTOMER",
-                "account#123",
-                "ACCOUNT",
-                None,
-                None,
-                None,
-                None,
-                42,
-                "testy",
-            ],
-            [
-                "customer#12386876",
-                "CUSTOMER",
-                "account#83268765",
-                "ACCOUNT",
-                None,
-                None,
-                None,
-                None,
-                8909,
-                "testy",
-            ],
+        table_cols = [
+            (col.key.value, list(table.get_column(col.key)))
+            for col in table.ordered_columns
         ]
+
+        assert ("pk", ["customer#12345", "customer#12386876"]) in table_cols
+        assert ("sk", ["CUSTOMER", "CUSTOMER"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("testVal2", ["testy", "testy"]) in table_cols
+        assert ("testVal1", [42, 8909]) in table_cols
 
 
 async def test_add_data_to_existing_table_new_cols():
@@ -285,32 +271,18 @@ async def test_add_data_to_existing_table_new_cols():
         )
 
         assert table.row_count == 2
-        table_rows = [table.get_row_at(i) for i in range(0, 2)]
-        assert table_rows == [
-            [
-                "customer#12345",
-                "CUSTOMER",
-                "account#123",
-                "ACCOUNT",
-                None,
-                None,
-                None,
-                None,
-                42,
-                "testy",
-                None,
-            ],
-            [
-                "customer#12386876",
-                "CUSTOMER",
-                "account#83268765",
-                "ACCOUNT",
-                None,
-                None,
-                None,
-                None,
-                8909,
-                "testy",
-                ["test1", "test2"],
-            ],
+
+        table_cols = [
+            (col.key.value, list(table.get_column(col.key)))
+            for col in table.ordered_columns
         ]
+
+        assert ("pk", ["customer#12345", "customer#12386876"]) in table_cols
+        assert ("sk", ["CUSTOMER", "CUSTOMER"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("testVal2", ["testy", "testy"]) in table_cols
+        assert ("testVal1", [42, 8909]) in table_cols
+        assert ("testVal3", [None, ["test1", "test2"]]) in table_cols
