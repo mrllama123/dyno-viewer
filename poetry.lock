@@ -3632,26 +3632,38 @@ test = ["pre-commit", "pytest (>=7.0)", "pytest-timeout"]
 
 [[package]]
 name = "textual"
-version = "0.28.0"
+version = "0.29.0"
 description = "Modern Text User Interface framework"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "textual-0.28.0-py3-none-any.whl", hash = "sha256:56ec6b24de94306998a8e6ebfb700dc81077e83e126297d50c377d72cfa5423b"},
-    {file = "textual-0.28.0.tar.gz", hash = "sha256:946622e729abb8969a4556c4aef9cc2930dc72105332cf2d7efabb051ac27adc"},
+    {file = "textual-0.29.0-py3-none-any.whl", hash = "sha256:949fd8f16a412404ba785605dda1e2fab8166656e4d29d4177ec63cd73ba83d4"},
+    {file = "textual-0.29.0.tar.gz", hash = "sha256:7eb87b6d007dc9bd08e00e893b860ecb7a11ca815c8866db39fe17ec547e2fcf"},
 ]
 
 [package.dependencies]
-aiohttp = {version = ">=3.8.1", optional = true, markers = "extra == \"dev\""}
-click = {version = ">=8.1.2", optional = true, markers = "extra == \"dev\""}
 importlib-metadata = ">=4.11.3"
-markdown-it-py = {version = ">=2.1.0,<3.0.0", extras = ["linkify", "plugins"]}
-msgpack = {version = ">=1.0.3", optional = true, markers = "extra == \"dev\""}
+markdown-it-py = {version = ">=2.1.0", extras = ["linkify", "plugins"]}
 rich = ">=13.3.3"
 typing-extensions = ">=4.4.0,<5.0.0"
 
-[package.extras]
-dev = ["aiohttp (>=3.8.1)", "click (>=8.1.2)", "msgpack (>=1.0.3)"]
+[[package]]
+name = "textual-dev"
+version = "1.0.1"
+description = "Development tools for working with Textual"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "textual_dev-1.0.1-py3-none-any.whl", hash = "sha256:419fc426c120f04f89ab0cb1aa88f7873dd7cdb9c21618e709175c8eaff6b566"},
+    {file = "textual_dev-1.0.1.tar.gz", hash = "sha256:9f4c40655cbb56af7ee92805ef14fa24ae98ff8b0ae778c59de7222f1caa7281"},
+]
+
+[package.dependencies]
+aiohttp = ">=3.8.1"
+click = ">=8.1.2"
+msgpack = ">=1.0.3"
+textual = ">=0.29.0"
+typing-extensions = ">=4.4.0,<5.0.0"
 
 [[package]]
 name = "tinycss2"
@@ -4158,4 +4170,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "e7c33dadebeeddad6bcc9d42978aa9c79afa5977b3912f28a508147d17144259"
+content-hash = "70e69d5149ebe774332cffb91b8b13e36902f34e0bf9174f1eade74bdb656de6"

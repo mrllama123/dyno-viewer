@@ -56,23 +56,9 @@ class DataDynTable(DataTable):
 
         if cols_not_exist:
             log.info(f"adding cols to existing: {cols_not_exist}")
-            log.info(f" existing cols: {self.columns.keys()}")
-
-            # TODO hack - figure out why DataTable can't add a new col to DataTable that has existing data in it
-            old_rows = [
-                dict(zip([k.value for k in self.columns.keys()], self.get_row_at(i)))
-                for i in range(0, self.row_count)
-            ]
-            cursor_loc = self.cursor_coordinate
-            self.clear()
             for col in list(cols_not_exist):
                 self.add_column(col, key=col)
 
-            updated_col_rows = [
-                [item.get(col) for col in self.columns.keys()] for item in old_rows
-            ]
-            self.add_rows(updated_col_rows)
-            self.move_cursor(row=cursor_loc.row, column=cursor_loc.column)
 
             log.info(f"added cols to existing: {cols_not_exist}")
 
