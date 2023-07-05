@@ -25,8 +25,6 @@ class DataDynTableApp(App[None]):
     def on_mount(self, event: events.Mount) -> None:
         table = self.query_one(DataDynTable)
         table.add_dyn_data(self.table_info, self.data)
-        # table.add_columns(self.data)
-        # table.add_rows(self.data)
 
 
 @pytest.mark.parametrize(
@@ -196,3 +194,95 @@ async def test_pk_sk_gsi_data(data, result) -> None:
 
         table_rows = [table.get_row_at(i) for i in range(0, len(data))]
         assert table_rows == result
+
+
+async def test_add_data_to_existing_table():
+    async with DataDynTableApp(
+        [
+            {
+                "pk": "customer#12345",
+                "sk": "CUSTOMER",
+                "gsipk1": "account#123",
+                "gsisk1": "ACCOUNT",
+                "testVal1": 42,
+                "testVal2": "testy",
+            }
+        ]
+    ).run_test() as pilot:
+        table: DataDynTable = pilot.app.query_one(DataDynTable)
+        assert table.row_count == 1
+
+        table.add_dyn_data_existing(
+            [
+                {
+                    "pk": "customer#12386876",
+                    "sk": "CUSTOMER",
+                    "gsipk1": "account#83268765",
+                    "gsisk1": "ACCOUNT",
+                    "testVal1": 8909,
+                    "testVal2": "testy",
+                }
+            ]
+        )
+        assert table.row_count == 2
+
+        table_cols = [
+            (col.key.value, list(table.get_column(col.key)))
+            for col in table.ordered_columns
+        ]
+
+        assert ("pk", ["customer#12345", "customer#12386876"]) in table_cols
+        assert ("sk", ["CUSTOMER", "CUSTOMER"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("testVal2", ["testy", "testy"]) in table_cols
+        assert ("testVal1", [42, 8909]) in table_cols
+
+
+async def test_add_data_to_existing_table_new_cols():
+    async with DataDynTableApp(
+        [
+            {
+                "pk": "customer#12345",
+                "sk": "CUSTOMER",
+                "gsipk1": "account#123",
+                "gsisk1": "ACCOUNT",
+                "testVal1": 42,
+                "testVal2": "testy",
+            }
+        ]
+    ).run_test() as pilot:
+        table: DataDynTable = pilot.app.query_one(DataDynTable)
+        assert table.row_count == 1
+        table.add_dyn_data_existing(
+            [
+                {
+                    "pk": "customer#12386876",
+                    "sk": "CUSTOMER",
+                    "gsipk1": "account#83268765",
+                    "gsisk1": "ACCOUNT",
+                    "testVal1": 8909,
+                    "testVal2": "testy",
+                    "testVal3": ["test1", "test2"],
+                }
+            ]
+        )
+
+        assert table.row_count == 2
+
+        table_cols = [
+            (col.key.value, list(table.get_column(col.key)))
+            for col in table.ordered_columns
+        ]
+
+        assert ("pk", ["customer#12345", "customer#12386876"]) in table_cols
+        assert ("sk", ["CUSTOMER", "CUSTOMER"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("gsipk1", ["account#123", "account#83268765"]) in table_cols
+        assert ("testVal2", ["testy", "testy"]) in table_cols
+        assert ("testVal1", [42, 8909]) in table_cols
+        assert ("testVal3", [None, ["test1", "test2"]]) in table_cols

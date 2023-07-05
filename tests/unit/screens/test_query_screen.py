@@ -101,7 +101,6 @@ async def test_remove_all_filters(screen_app):
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
         await type_commands(["tab" for _ in range(0, 6)], pilot)
-        pilot.app.save_screenshot()
         await type_commands(["enter", "enter"], pilot)
 
         filters = pilot.app.query(FilterQuery)

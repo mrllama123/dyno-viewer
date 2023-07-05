@@ -92,6 +92,8 @@ class DynCli(App):
     ) -> None:
         if highlighted.coordinate.row == highlighted.data_table.row_count - 1:
             if "ExclusiveStartKey" in self.dyn_query_params:
+                log.info("adding more items")
+
                 dyn_table_query(self, self.dyn_query_params, update_existing=True)
 
     async def on_region_select_screen_region_selected(
@@ -123,7 +125,7 @@ class DynCli(App):
         params = {"KeyConditionExpression": run_query.key_cond_exp}
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
-        self.dyn_table_query = params
+        self.dyn_query_params = params
         dyn_table_query(self, params)
 
     async def on_update_dyn_data_table(self, update_data: UpdateDynDataTable) -> None:
