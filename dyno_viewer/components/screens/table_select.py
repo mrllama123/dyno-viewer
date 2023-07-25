@@ -1,7 +1,7 @@
 from textual import log, on, work
 from textual.app import ComposeResult
 from textual.containers import Vertical
-from textual.events import Key
+from textual.events import Key, ScreenResume
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import Screen
@@ -76,6 +76,11 @@ class TableSelectScreen(Screen):
             self.post_message(self.TableName(submitted.value))
             self.app.pop_screen()
 
+    @on(ScreenResume)
+    async def paginate_tables_on_resume(self):
+        if self.next_token:
+            self.worker_list_tables(self.next_token)
+
     @on(TableListResult)
     async def on_table_list_result(self, result: TableListResult):
         new_tables = [
@@ -91,14 +96,23 @@ class TableSelectScreen(Screen):
     @on(Input.Changed, "#tableSelectInput")
     async def on_table_search_changed(self, changed: Input.Changed) -> None:
         table_list = self.query_one(OptionList)
-        if changed.input.value:
+
+        if changed.input.value and changed.input.value not in self.tables:
             matched_tables = [
                 table for table in self.tables if changed.input.value in table
             ]
             table_list.clear_options()
             if matched_tables:
                 table_list.add_options(matched_tables)
+        elif table_list.option_count != len(self.tables):
+            table_list.clear_options()
+            table_list.add_options(self.tables)
 
+    @on(OptionList.OptionSelected, "#optionDdbTableList")
+    def on_table_selected(self, option_selected: OptionList.OptionSelected) -> None:
+        table_input = self.query_one(Input)
+        table_input.value = str(option_selected.option.prompt)
+        table_input.focus()
 
     # watch methods
 
@@ -107,3 +121,7 @@ class TableSelectScreen(Screen):
             option_list = self.query_one(OptionList)
             option_list.clear_options()
             self.worker_list_tables()
+
+    async def watch_next_token(self):
+        if self.is_current and self.next_token:
+            self.worker_list_tables(self.next_token)
