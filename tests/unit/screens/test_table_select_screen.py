@@ -3,7 +3,7 @@ import pytest
 from textual.app import App, ComposeResult
 
 from textual.reactive import reactive
-from textual.widgets import ListView, Input, Label
+from textual.widgets import ListView, Input, Label, OptionList
 from fixtures.ddb_tables import create_ddb_table
 from tests.common import type_commands
 """
@@ -45,16 +45,20 @@ async def test_select_table(screen_app, ddb_tables):
         pilot.app.SCREENS["tableSelect"].dyn_client = boto3.client("dynamodb")
         await pilot.app.push_screen("tableSelect")
 
-        list_view: ListView = pilot.app.query_one(ListView)
+        table_list: OptionList = pilot.app.query_one(OptionList)
         input: Input = pilot.app.query_one(Input)
 
         assert input.value == ""
+        pilot.app.save_screenshot()
 
         # search dawn
         await type_commands(["dawn"], pilot)
 
+        pilot.app.save_screenshot()
+
         # update list with result
-        assert len(list_view.children) == 1
+        assert table_list.option_count == 1
+
 
         # add to input
         await type_commands(["tab", "enter"], pilot)
