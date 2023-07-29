@@ -6,6 +6,7 @@ from textual.reactive import reactive
 from textual.widgets import ListView, Input, Label, OptionList
 from fixtures.ddb_tables import create_ddb_table
 from tests.common import type_commands
+
 """
 NOTE: anything in class instantiated outside of __init__ or method does teardown well with pytest e.g
 class TestClass(App):
@@ -21,7 +22,7 @@ def screen_app() -> App:
     from dyno_viewer.components.screens.table_select import TableSelectScreen
 
     class ScreensApp(App):
-        SCREENS = {"tableSelect": TableSelectScreen}
+        SCREENS = {"tableSelect": TableSelectScreen()}
 
         table_name = reactive("")
 
@@ -49,19 +50,15 @@ async def test_select_table(screen_app, ddb_tables):
         input: Input = pilot.app.query_one(Input)
 
         assert input.value == ""
-        pilot.app.save_screenshot()
 
         # search dawn
         await type_commands(["dawn"], pilot)
 
-        pilot.app.save_screenshot()
-
         # update list with result
         assert table_list.option_count == 1
 
-
         # add to input
-        await type_commands(["tab", "enter"], pilot)
+        await type_commands(["tab", "down", "enter"], pilot)
         assert input.value == "dawnstar"
 
         # send to root node
@@ -75,15 +72,10 @@ async def test_select_no_tables(screen_app, dynamodb):
     import boto3
 
     async with screen_app().run_test() as pilot:
-        # fgff = pilot.app.SCREENS["tableSelect"].tables
-
-        # ttt = list(dynamodb.tables.all())
         pilot.app.SCREENS["tableSelect"].dyn_client = boto3.client("dynamodb")
         await pilot.app.push_screen("tableSelect")
 
-        # tttt= pilot.app.SCREENS["tableSelect"].dyn_client.list_tables()
-
-        list_view: ListView = pilot.app.query_one(ListView)
+        list_view: ListView = pilot.app.query_one(OptionList)
         input: Input = pilot.app.query_one(Input)
 
         assert input.value == ""
