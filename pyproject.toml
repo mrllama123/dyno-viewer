@@ -12,6 +12,7 @@ boto3 = "^1.26.135"
 simplejson = "^3.19.1"
 dynamodb-json = "^1.3"
 textual = ">=0.24.1,<0.31.0"
+pyperclip = "^1.8.2"
 
 
 [tool.poetry.group.dev.dependencies]
