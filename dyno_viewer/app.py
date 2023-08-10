@@ -149,10 +149,12 @@ class DynCli(App):
         self.app.exit()
     
     async def action_copy_table_data(self) -> None:
-        table = self.query_one(DataDynTable)
-        if table.row_count > 0:
-            value = table.get_cell_at(table.cursor_coordinate)
-            pyperclip.copy(value)
+        query_table = self.query(DataDynTable)
+        if query_table:
+            table = query_table[0]
+            if table.row_count > 0:
+                value = table.get_cell_at(table.cursor_coordinate)
+                pyperclip.copy(value)
 
     # watcher methods
 
