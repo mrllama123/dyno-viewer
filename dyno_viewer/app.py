@@ -18,7 +18,9 @@ from dyno_viewer.components.screens import (
 )
 from dyno_viewer.components.table import DataDynTable
 from textual.worker import get_current_worker
+from textual.binding import Binding
 from textual import work, log, on
+import pyperclip
 
 
 from dyno_viewer.components.types import TableInfo
@@ -31,6 +33,7 @@ class DynCli(App):
         ("t", "push_screen('tableSelect')", "Table"),
         ("r", "push_screen('regionSelect')", "Region"),
         ("q", "push_screen('query')", "Query"),
+        Binding("ctrl+c", "copy_table_data", "Copy", show=False),
     ]
     SCREENS = {
         "tableSelect": TableSelectScreen(),
@@ -144,6 +147,12 @@ class DynCli(App):
         # ensure we don't have any dirty data for next time app runs
         table.clear()
         self.app.exit()
+    
+    async def action_copy_table_data(self) -> None:
+        table = self.query_one(DataDynTable)
+        if table.row_count > 0:
+            value = table.get_cell_at(table.cursor_coordinate)
+            pyperclip.copy(value)
 
     # watcher methods
 
@@ -169,5 +178,3 @@ class DynCli(App):
 def run() -> None:
     app = DynCli()
     app.run()
-
-
