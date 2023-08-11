@@ -22,8 +22,8 @@ from textual.binding import Binding
 from textual import work, log, on
 import pyclip
 from itertools import cycle
-
 from dyno_viewer.components.types import TableInfo
+from dyno_viewer.util import output_to_csv_str
 
 cursors = cycle(["column", "row", "cell"])
 
@@ -157,17 +157,16 @@ class DynCli(App):
             table = query_table[0]
             if table.row_count > 0:
                 if table.cursor_type == "cell":
-                    value = table.get_cell_at(table.cursor_coordinate)
-                    pyclip.copy(value)
+                    cell = table.get_cell_at(table.cursor_coordinate)
+                    pyclip.copy(cell)
                 elif table.cursor_type == "row":
-                    value = table.get_row_at(table.cursor_row)
-                    if value:
-                        
-                        pyclip.copy(",".join(value))
+                    row = table.get_row_at(table.cursor_row)
+                    if row:
+                        pyclip.copy(output_to_csv_str(row))
                 elif table.cursor_type == "column":
-                    value = table.get_column_at(table.cursor_column)
-                    if value:
-                        pyclip.copy(",".join(value))
+                    col = table.get_column_at(table.cursor_column)
+                    if row:
+                        pyclip.copy(output_to_csv_str(col))
 
     async def action_change_cursor_type(self) -> None:
         query_table = self.query(DataDynTable)
