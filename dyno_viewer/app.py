@@ -21,9 +21,11 @@ from textual.worker import get_current_worker
 from textual.binding import Binding
 from textual import work, log, on
 import pyclip
-
+from itertools import cycle
 
 from dyno_viewer.components.types import TableInfo
+
+cursors = cycle(["column", "row", "cell"])
 
 
 class DynCli(App):
@@ -34,6 +36,7 @@ class DynCli(App):
         ("r", "push_screen('regionSelect')", "Region"),
         ("q", "push_screen('query')", "Query"),
         Binding("ctrl+c", "copy_table_data", "Copy", show=False),
+        Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
     ]
     SCREENS = {
         "tableSelect": TableSelectScreen(),
@@ -147,14 +150,30 @@ class DynCli(App):
         # ensure we don't have any dirty data for next time app runs
         table.clear()
         self.app.exit()
-    
+
     async def action_copy_table_data(self) -> None:
         query_table = self.query(DataDynTable)
         if query_table:
             table = query_table[0]
             if table.row_count > 0:
-                value = table.get_cell_at(table.cursor_coordinate)
-                pyclip.copy(value)
+                if table.cursor_type == "cell":
+                    value = table.get_cell_at(table.cursor_coordinate)
+                    pyclip.copy(value)
+                elif table.cursor_type == "row":
+                    value = table.get_row_at(table.cursor_row)
+                    if value:
+                        
+                        pyclip.copy(",".join(value))
+                elif table.cursor_type == "column":
+                    value = table.get_column_at(table.cursor_column)
+                    if value:
+                        pyclip.copy(",".join(value))
+
+    async def action_change_cursor_type(self) -> None:
+        query_table = self.query(DataDynTable)
+        if query_table:
+            table = query_table[0]
+            table.cursor_type = next(cursors)
 
     # watcher methods
 
