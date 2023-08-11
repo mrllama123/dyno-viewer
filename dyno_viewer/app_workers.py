@@ -14,7 +14,7 @@ class UpdateDynDataTable(Message):
         super().__init__()
 
 
-@work(exclusive=True, group="update_dyn_table_info")
+@work(exclusive=True, group="update_dyn_table_info", thread=True)
 def update_dyn_table_info(app) -> None:
     worker = get_current_worker()
     if not worker.is_cancelled:
@@ -44,7 +44,7 @@ def update_dyn_table_info(app) -> None:
         app.call_from_thread(update, app, main_keys, gsi_keys)
 
 
-@work(exclusive=True, group="dyn_table_query")
+@work(exclusive=True, group="dyn_table_query", thread=True)
 def dyn_table_query(app, dyn_query_params, update_existing=False):
     worker = get_current_worker()
     if not worker.is_cancelled:
