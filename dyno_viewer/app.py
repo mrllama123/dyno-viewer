@@ -20,7 +20,7 @@ from dyno_viewer.components.table import DataDynTable
 from textual.worker import get_current_worker
 from textual.binding import Binding
 from textual import work, log, on
-import pyperclip
+import pyclip
 
 
 from dyno_viewer.components.types import TableInfo
@@ -154,7 +154,7 @@ class DynCli(App):
             table = query_table[0]
             if table.row_count > 0:
                 value = table.get_cell_at(table.cursor_coordinate)
-                pyperclip.copy(value)
+                pyclip.copy(value)
 
     # watcher methods
 
