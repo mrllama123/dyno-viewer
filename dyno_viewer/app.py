@@ -165,7 +165,7 @@ class DynCli(App):
                         pyclip.copy(output_to_csv_str(row))
                 elif table.cursor_type == "column":
                     col = table.get_column_at(table.cursor_column)
-                    if row:
+                    if col:
                         pyclip.copy(output_to_csv_str(col))
 
     async def action_change_cursor_type(self) -> None:
