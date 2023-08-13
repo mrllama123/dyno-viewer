@@ -4,7 +4,6 @@ from textual.app import App, ComposeResult
 
 from textual.reactive import reactive
 from textual.widgets import ListView, Input, Label, OptionList
-from fixtures.ddb_tables import create_ddb_table
 from tests.common import type_commands
 
 """
