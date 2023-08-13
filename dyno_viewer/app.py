@@ -18,10 +18,14 @@ from dyno_viewer.components.screens import (
 )
 from dyno_viewer.components.table import DataDynTable
 from textual.worker import get_current_worker
+from textual.binding import Binding
 from textual import work, log, on
-
-
+import pyclip
+from itertools import cycle
 from dyno_viewer.components.types import TableInfo
+from dyno_viewer.util import output_to_csv_str
+
+cursors = cycle(["column", "row", "cell"])
 
 
 class DynCli(App):
@@ -31,6 +35,8 @@ class DynCli(App):
         ("t", "push_screen('tableSelect')", "Table"),
         ("r", "push_screen('regionSelect')", "Region"),
         ("q", "push_screen('query')", "Query"),
+        Binding("ctrl+c", "copy_table_data", "Copy", show=False),
+        Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
     ]
     SCREENS = {
         "tableSelect": TableSelectScreen(),
@@ -145,6 +151,31 @@ class DynCli(App):
         table.clear()
         self.app.exit()
 
+    async def action_copy_table_data(self) -> None:
+        query_table = self.query(DataDynTable)
+        if query_table:
+            table = query_table[0]
+            if table.row_count > 0:
+                if table.cursor_type == "cell":
+                    cell = table.get_cell_at(table.cursor_coordinate)
+                    pyclip.copy(cell)
+                elif table.cursor_type == "row":
+                    row = table.get_row_at(table.cursor_row)
+                    if row:
+                        pyclip.copy(output_to_csv_str(row))
+                elif table.cursor_type == "column":
+                    col = table.get_column_at(table.cursor_column)
+                    if row:
+                        pyclip.copy(output_to_csv_str(col))
+
+    async def action_change_cursor_type(self) -> None:
+        query_table = self.query(DataDynTable)
+        if query_table:
+            table = query_table[0]
+            next_cursor = next(cursors)
+            self.notify(f"selection mode: {next_cursor}", timeout=1)
+            table.cursor_type = next_cursor
+
     # watcher methods
 
     async def watch_table_client(self, new_table_client) -> None:
@@ -169,5 +200,3 @@ class DynCli(App):
 def run() -> None:
     app = DynCli()
     app.run()
-
-
