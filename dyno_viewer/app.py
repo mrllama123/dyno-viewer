@@ -172,7 +172,9 @@ class DynCli(App):
         query_table = self.query(DataDynTable)
         if query_table:
             table = query_table[0]
-            table.cursor_type = next(cursors)
+            next_cursor = next(cursors)
+            self.notify(f"selection mode: {next_cursor}", timeout=1)
+            table.cursor_type = next_cursor
 
     # watcher methods
 
