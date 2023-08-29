@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dyno-viewer"
-version = "0.1.3"
+version = "0.2.0"
 description = ""
 authors = ["Rowan Self <piesrule123@gmail.com>"]
 readme = "README.md"
