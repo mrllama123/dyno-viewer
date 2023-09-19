@@ -34,8 +34,6 @@ textual-dev = "^1.0.1"
 
 [tool.poe.tasks]
 build_local.script = 'scripts.commands:build_local'
-flatpak_build.script = 'scripts.commands:build_flatpak'
-
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
