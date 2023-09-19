@@ -2,6 +2,7 @@ from typing import Type
 from textual.app import App, CSSPathType, ComposeResult
 from textual import events
 from textual.driver import Driver
+from dyno_viewer.aws.ddb import scan_items
 from dyno_viewer.components.screens import QueryScreen
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_query import KeyQuery
@@ -141,7 +142,6 @@ async def test_run_query_primary_key(screen_app, ddb_table, ddb_table_with_data)
         assert query_result
 
 
-# TODO once concurrency is enabled add more test cases for all the other conditions
 async def test_run_query_primary_key_sort_key(
     screen_app, ddb_table, ddb_table_with_data
 ):
@@ -173,7 +173,7 @@ async def test_run_query_primary_key_sort_key(
         assert query_result
 
 
-# TODO once concurrency is enabled add more test cases for all the other conditions
+
 async def test_run_query_primary_key_sort_key_filters(
     screen_app, ddb_table, ddb_table_with_data
 ):
@@ -206,3 +206,46 @@ async def test_run_query_primary_key_sort_key_filters(
         )
 
         assert query_result
+
+
+async def test_run_query_scan(
+    screen_app, ddb_table, ddb_table_with_data
+):
+    from dyno_viewer.aws.ddb import query_items
+
+    async with screen_app().run_test() as pilot:
+        pilot.app.SCREENS["query"].table_info = {
+            "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
+            "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
+        }
+
+
+
+        await pilot.app.push_screen("query")
+        assert pilot.app.SCREENS["query"].is_current
+        await pilot.press("enter", "tab", "tab",)
+
+        key_query = pilot.app.query_one(KeyQuery)
+
+        assert not key_query.query_one("#partitionKey").display
+        assert not key_query.query_one("#sortKeyFilter").display
+    
+        
+
+        await assert_filter_one(pilot, "test", "test1")
+
+        # send run query message back to root app
+        await type_commands(["tab", "r"], pilot)
+        dyn_query = pilot.app.dyn_query
+        assert dyn_query
+        assert not dyn_query.key_cond_exp
+        assert dyn_query.filter_cond_exp
+
+        query_result = scan_items(
+            ddb_table,
+            FilterExpression=dyn_query.filter_cond_exp,
+        )
+
+        assert query_result
+
+

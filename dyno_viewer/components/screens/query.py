@@ -7,7 +7,7 @@ from textual.containers import Container
 from textual.screen import Screen
 from textual.message import Message
 from textual.reactive import reactive
-from textual import log
+from textual import log, on
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_query import KeyQuery
 from boto3.dynamodb.conditions import Key, Attr
@@ -26,6 +26,7 @@ class QueryScreen(Screen):
     ]
 
     table_info = reactive(None)
+    scan_mode = reactive(False)
 
     class RunQuery(Message):
         """
@@ -105,7 +106,7 @@ class QueryScreen(Screen):
         key_cond_exp = self.get_key_query()
         filter_cond_exp = self.get_filter_queries()
         index_mode = self.query_one(KeyQuery).index_mode
-        if key_cond_exp:
+        if key_cond_exp or self.scan_mode:
             self.post_message(
                 self.RunQuery(
                     key_cond_exp,
@@ -130,6 +131,10 @@ class QueryScreen(Screen):
         if self.table_info:
             key_query = self.query_one(KeyQuery)
             self.update_key_schema(key_query)
+
+    @on(Switch.Changed, "#scanToggleSwitch")
+    def set_scan_mode(self, changed: Switch.Changed) -> None:
+        self.scan_mode = changed.value
 
     # watcher methods
 
