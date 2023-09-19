@@ -23,27 +23,22 @@ if you are using sso profiles. Then you need to make sure that you have updated 
 
 right now this can be installed via flatpak and pip:
 
-### via pip 
+### install
+
+I recommend using [pipx](https://github.com/pypa/pipx):
 
 ```bash
-pip install dyno-viewer
-```
-
-### via flatpak
-
-There is a bundled .flatpak file that get generated on release which can be installed via:
-
-```bash
-flatpak install <bundled .flatpak filename>
+pipx install dyno-viewer
 ```
 
 ## Dev notes
 
 ### Prerequisites
 
-This repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10.11 installed either via [pyenv](https://github.com/pyenv/pyenv)
+This repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10 installed either via [pyenv](https://github.com/pyenv/pyenv)
 or [asdf](https://asdf-vm.com/) using the [asdf-community/asdf-python](https://github.com/asdf-community/asdf-python) addon
 
+e.g:
 
 ```bash
 env PYTHON_CONFIGURE_OPTS="--enable-shared" asdf install python 3.10.11
@@ -64,48 +59,10 @@ poetry install
 # to go into a virtual env shell 
 poetry shell
 # or run app via script
-poetry run run_app
+poetry run dyno-viewer
 ```
 
 ### Testing textual notes
 
 See [testing notes doc](docs/testing-textual.md)
 
-
-### Flatpak notes
-
-This repo supports local flatpak building to make the process easy there is a script that builds the flatpak, Which are loosely created from this really useful [blog post](https://www.loganasherjones.com/2018/05/using-flatpak-with-python/). To run call via [poe](https://poethepoet.natn.io/index.html) (a script runner for poetry):
-
-```bash
-poetry run poe flatpak_build
-```
-
-This will export the main packages into a requirements file and then build flatpak in the `.flatpak` folder then export that flatpak to a binary file in root called `dyno-viewer.flatpak` which can be installed on another computer via `flatpak install dyno-viewer.flatpak`
-
-It also has support for doing other different options via arguments:
-
-#### Install locally
-
-``` bash
-poetry run poe flatpak_build -i 
-```
-
-This will install the flatpak locally instead of exporting it to a file (Useful for dev testing), Which then you can run it via:
-
-```bash
-flatpak run org.flatpak.dyno-viewer
-```
-
-#### Gpg key support
-
-You can pass a gpg key for signing a flatpak, Which is best practice (see more on that [here](https://docs.flatpak.org/en/latest/flatpak-builder.html#signing)) via:
-
-```bash
-poetry run poe flatpak_build --gpg "<key id>"
-```
-
-If the gpg key is not in the default directory then you can also add the path to it via this argument:
-
-```bash 
-poetry run poe flatpak_build --gpg "<key id>" --gh path/to/gpg/key
-```
