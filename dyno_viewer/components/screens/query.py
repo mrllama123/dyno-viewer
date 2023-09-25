@@ -39,10 +39,12 @@ class QueryScreen(Screen):
             key_cond_exp: Key | None,
             filter_cond_exp: Attr | None,
             index: str | None,
+            scan_mode: bool,
         ) -> None:
             self.key_cond_exp = key_cond_exp
             self.filter_cond_exp = filter_cond_exp
             self.index = index
+            self.scan_mode = scan_mode
             super().__init__()
 
     def compose(self) -> ComposeResult:
@@ -112,6 +114,7 @@ class QueryScreen(Screen):
                     key_cond_exp,
                     filter_cond_exp,
                     None if index_mode == "table" else index_mode,
+                    self.scan_mode,
                 )
             )
             self.app.pop_screen()

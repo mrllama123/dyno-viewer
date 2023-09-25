@@ -28,6 +28,8 @@ from dyno_viewer.util import output_to_csv_str
 cursors = cycle(["column", "row", "cell"])
 
 
+
+
 class DynCli(App):
     BINDINGS = [
         ("x", "exit", "Exit"),
@@ -85,6 +87,15 @@ class DynCli(App):
             self.dyn_query_params["ExclusiveStartKey"] = next_token
         else:
             self.dyn_query_params.pop("ExclusiveStartKey", None)
+
+    # workers
+
+    @work(exclusive=True, group="dyn_table_scan", thread=True)
+    def dyn_table_scan():
+        worker = get_current_worker()
+        if not worker.is_cancelled:
+            pass
+            
 
     # on methods
 
