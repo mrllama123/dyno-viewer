@@ -26,7 +26,6 @@ class QueryScreen(Screen):
     ]
 
     table_info = reactive(None)
-    scan_mode = reactive(False)
 
     class RunQuery(Message):
         """
@@ -39,12 +38,10 @@ class QueryScreen(Screen):
             key_cond_exp: Key | None,
             filter_cond_exp: Attr | None,
             index: str | None,
-            scan_mode: bool,
         ) -> None:
             self.key_cond_exp = key_cond_exp
             self.filter_cond_exp = filter_cond_exp
             self.index = index
-            self.scan_mode = scan_mode
             super().__init__()
 
     def compose(self) -> ComposeResult:
@@ -108,13 +105,12 @@ class QueryScreen(Screen):
         key_cond_exp = self.get_key_query()
         filter_cond_exp = self.get_filter_queries()
         index_mode = self.query_one(KeyQuery).index_mode
-        if key_cond_exp or self.scan_mode:
+        if key_cond_exp or filter_cond_exp:
             self.post_message(
                 self.RunQuery(
                     key_cond_exp,
                     filter_cond_exp,
                     None if index_mode == "table" else index_mode,
-                    self.scan_mode,
                 )
             )
             self.app.pop_screen()
@@ -134,10 +130,6 @@ class QueryScreen(Screen):
         if self.table_info:
             key_query = self.query_one(KeyQuery)
             self.update_key_schema(key_query)
-
-    @on(Switch.Changed, "#scanToggleSwitch")
-    def set_scan_mode(self, changed: Switch.Changed) -> None:
-        self.scan_mode = changed.value
 
     # watcher methods
 
