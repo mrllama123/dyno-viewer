@@ -7,7 +7,7 @@ from textual.containers import Container
 from textual.screen import Screen
 from textual.message import Message
 from textual.reactive import reactive
-from textual import log
+from textual import log, on
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_query import KeyQuery
 from boto3.dynamodb.conditions import Key, Attr
@@ -105,7 +105,7 @@ class QueryScreen(Screen):
         key_cond_exp = self.get_key_query()
         filter_cond_exp = self.get_filter_queries()
         index_mode = self.query_one(KeyQuery).index_mode
-        if key_cond_exp:
+        if key_cond_exp or filter_cond_exp:
             self.post_message(
                 self.RunQuery(
                     key_cond_exp,

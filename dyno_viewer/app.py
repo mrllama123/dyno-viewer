@@ -128,7 +128,12 @@ class DynCli(App):
         self.update_table_client()
 
     async def on_query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
-        params = {"KeyConditionExpression": run_query.key_cond_exp}
+        params = (
+            {"KeyConditionExpression": run_query.key_cond_exp}
+            if run_query.key_cond_exp
+            else {}
+        )
+
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
         self.dyn_query_params = params
