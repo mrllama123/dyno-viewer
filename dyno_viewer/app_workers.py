@@ -18,6 +18,7 @@ class UpdateDynDataTable(Message):
 def update_dyn_table_info(app) -> None:
     worker = get_current_worker()
     if not worker.is_cancelled:
+        # temp disable logging doesn't work
         #app.log.info(f"updating table info")
         # log.info("key schema=", app.table_client.key_schema)
         # log.info("gsi schema=", app.table_client.global_secondary_indexes)
@@ -48,6 +49,7 @@ def update_dyn_table_info(app) -> None:
 def dyn_table_query(app, dyn_query_params, update_existing=False):
     worker = get_current_worker()
     if not worker.is_cancelled:
+        # temp disable logging doesn't work
         # app.log("dyn_params=", app.dyn_query_params)
         result, next_token = (
             query_items(
