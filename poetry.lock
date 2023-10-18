@@ -3905,13 +3905,13 @@ test = ["pre-commit", "pytest (>=7.0)", "pytest-timeout"]
 
 [[package]]
 name = "textual"
-version = "0.32.0"
+version = "0.39.0"
 description = "Modern Text User Interface framework"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "textual-0.32.0-py3-none-any.whl", hash = "sha256:81fc68406c8806bc864e2f035874a868b4ff0cf466289dce5f7b31869949383b"},
-    {file = "textual-0.32.0.tar.gz", hash = "sha256:f7b6683bc18faee6fd3c47cfbad43fbf8273c5fecc12230d52ce5ee089021327"},
+    {file = "textual-0.39.0-py3-none-any.whl", hash = "sha256:bf98d7eb5a8a39ed87488640e2a18b2825dd340d36eab6193c9a47af98a3b818"},
+    {file = "textual-0.39.0.tar.gz", hash = "sha256:4103c0cb4e87bf9f87f4960213d3c1c33fbe7301a1a1c2df0903ecb62212983c"},
 ]
 
 [package.dependencies]
@@ -3919,6 +3919,9 @@ importlib-metadata = ">=4.11.3"
 markdown-it-py = {version = ">=2.1.0", extras = ["linkify", "plugins"]}
 rich = ">=13.3.3"
 typing-extensions = ">=4.4.0,<5.0.0"
+
+[package.extras]
+syntax = ["tree-sitter (>=0.20.1,<0.21.0)", "tree_sitter_languages (>=1.7.0)"]
 
 [[package]]
 name = "textual-dev"
@@ -4388,4 +4391,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "3391a8afdd70a0b5e1aadfe99b79d04a272ce80f2865b4dd0c4e143bab448396"
+content-hash = "5ee0d01f69f0edba63fa4fc77d5a0936ad4817b11efc06b7fb9d1f7c60e6ee30"
