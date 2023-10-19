@@ -51,7 +51,7 @@ class QueryScreen(Screen):
                 Switch(name="scan", id="scanToggleSwitch"),
                 id="scanToggle",
             )
-            yield KeyFilter(id="keyInput")
+            yield KeyFilter(id="keyFilter")
             yield Button("add filter", id="addFilter")
             yield Button("remove all filters", id="removeAllFilters")
             yield Footer()
@@ -107,7 +107,7 @@ class QueryScreen(Screen):
     # action methods
 
     def action_run_query(self) -> None:
-        key_filter = self.query("#keyInput")
+        key_filter = self.query("#keyFilter")
 
         if key_filter:
             key_cond_exp = self.get_key_query()
@@ -149,7 +149,7 @@ class QueryScreen(Screen):
             key_filter = self.query_one(KeyFilter)
             key_filter.remove()
         else:
-            self.mount(KeyFilter(id="keyInput"), after="#scanToggle")
+            self.mount(KeyFilter(id="keyFilter"), after="#scanToggle")
 
     # watcher methods
 

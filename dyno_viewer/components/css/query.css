@@ -13,7 +13,7 @@
 
 }
 
-#keyInput {
+#keyFilter {
     margin: 1 1;
     background: $boost;
     border: heavy grey;
@@ -26,18 +26,18 @@
 }
 
 
-#keyInput > #queryIndex {
+#keyFilter > #queryIndex {
     margin: 1 1;
     height: 4;
 }
 
-#keyInput > #partitionKey {
+#keyFilter > #partitionKey {
     height: 2;
 }
 
 
 
-#keyInput > #sortKeyFilter > #attr {
+#keyFilter > #sortKeyFilter > #attr {
     margin: 1 1;
 
 }
