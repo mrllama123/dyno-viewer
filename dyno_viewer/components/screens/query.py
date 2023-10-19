@@ -151,15 +151,6 @@ class QueryScreen(Screen):
         else:
             self.mount(KeyFilter(id="keyInput"), after="#scanToggle")
 
-        # input = self.query_one("#partitionKey")
-        # sort_key = self.query_one("#sortKeyFilter")
-        # if changed.value:
-        #     input.display = False
-        #     sort_key.display = False
-        # else:
-        #     sort_key.display = True
-        #     input.display = True
-
     # watcher methods
 
     def watch_table_info(self, new_table_info: TableInfo) -> None:
