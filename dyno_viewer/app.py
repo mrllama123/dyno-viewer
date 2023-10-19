@@ -48,7 +48,7 @@ class DynCli(App):
         ("p", "push_screen('profile')", "Profile"),
         ("t", "push_screen('tableSelect')", "Table"),
         ("r", "push_screen('regionSelect')", "Region"),
-        ("q", "push_screen('query')", "Query"),
+        ("q", "push_screen_query", "Query"),
         Binding("ctrl+c", "copy_table_data", "Copy", show=False),
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
     ]
@@ -226,6 +226,12 @@ class DynCli(App):
         # ensure we don't have any dirty data for next time app runs
         table.clear()
         self.app.exit()
+
+    async def action_push_screen_query(self) -> None:
+        if self.table_client:
+            self.push_screen("query")
+        else:
+            self.notify("No table selected")
 
     async def action_copy_table_data(self) -> None:
         query_table = self.query(DataDynTable)
