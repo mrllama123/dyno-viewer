@@ -136,6 +136,9 @@ class DynCli(App):
         if not worker.is_cancelled:
             # temp disable logging doesn't work
             # self.log("dyn_params=", app.dyn_query_params)
+            table = self.app.query_one(DataDynTable)
+            if not update_existing:
+                table.loading = True
             result, next_token = (
                 query_items(
                     self.table_client,
@@ -218,6 +221,7 @@ class DynCli(App):
         else:
             table.add_dyn_data(self.table_info, update_data.data)
             self.set_pagination_token(update_data.next_token)
+            table.loading = False
 
     # action methods
 
