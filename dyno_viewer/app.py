@@ -22,7 +22,7 @@ from textual.binding import Binding
 from textual import work, log, on
 import pyclip
 from itertools import cycle
-from dyno_viewer.components.types import TableInfo
+from dyno_viewer.types import TableInfo
 from textual.message import Message
 from dyno_viewer.util import output_to_csv_str
 
@@ -34,6 +34,11 @@ class UpdateDynDataTable(Message):
         self.data = data
         self.next_token = next_token
         self.update_existing_data = update_existing_data
+        super().__init__()
+
+class UpdateDynTableInfo(Message):
+    def __init__(self, table_info: TableInfo) -> None:
+        self.table_info = table_info
         super().__init__()
 
 
@@ -98,7 +103,7 @@ class DynCli(App):
     # worker methods
 
     @work(exclusive=True, group="update_dyn_table_info", thread=True)
-    def update_dyn_table_info(self) -> None:
+    def get_dyn_table_info(self) -> None:
         worker = get_current_worker()
         if not worker.is_cancelled:
             # temp disable logging doesn't work
@@ -121,14 +126,12 @@ class DynCli(App):
                 }
                 for gsi in self.table_client.global_secondary_indexes or []
             }
+            
 
-            def update(self, main_keys, gsi_keys):
-                self.table_info = {"keySchema": main_keys, "gsi": gsi_keys}
-
-            self.call_from_thread(update, self, main_keys, gsi_keys)
+            self.post_message(UpdateDynTableInfo({"keySchema": main_keys, "gsi": gsi_keys}))
 
     @work(exclusive=True, group="dyn_table_query", thread=True)
-    def dyn_table_query(self, dyn_query_params, update_existing=False):
+    def run_table_query(self, dyn_query_params, update_existing=False):
         worker = get_current_worker()
         if not worker.is_cancelled:
             # temp disable logging doesn't work
@@ -165,7 +168,10 @@ class DynCli(App):
             if "ExclusiveStartKey" in self.dyn_query_params:
                 log.info("adding more items")
 
-                self.dyn_table_query(self.dyn_query_params, update_existing=True)
+                self.run_table_query(self.dyn_query_params, update_existing=True)
+    @on(UpdateDynTableInfo)
+    async def update_table_info(self, update: UpdateDynTableInfo) -> None:
+        self.table_info = update.table_info
 
     async def on_region_select_screen_region_selected(
         self, selected_region: RegionSelectScreen.RegionSelected
@@ -202,7 +208,7 @@ class DynCli(App):
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
         self.dyn_query_params = params
-        self.dyn_table_query(params)
+        self.run_table_query(params)
 
     async def on_update_dyn_data_table(self, update_data: UpdateDynDataTable) -> None:
         table = self.query_one(DataDynTable)
@@ -252,8 +258,8 @@ class DynCli(App):
         """update DynTable with new table data"""
         if new_table_client:
             log.info("table client changed and table found, Update table data")
-            self.update_dyn_table_info()
-            self.dyn_table_query(self.dyn_query_params)
+            self.get_dyn_table_info()
+            self.run_table_query(self.dyn_query_params)
         else:
             log.info("table client changed and table not found, Clear table data")
             self.query_one(DataDynTable).clear()

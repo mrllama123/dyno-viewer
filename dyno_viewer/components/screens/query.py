@@ -16,7 +16,7 @@ from dyno_viewer.aws.ddb import (
     convert_filter_exp_attr_cond,
     convert_filter_exp_value,
 )
-from dyno_viewer.components.types import TableInfo
+from dyno_viewer.types import TableInfo
 
 
 class QueryScreen(Screen):
