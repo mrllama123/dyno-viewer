@@ -7,7 +7,7 @@ from textual.widgets import Label, Switch, OptionList, Input
 from dyno_viewer.components.query.sort_key_filter import SortKeyFilter
 
 
-class KeyQuery(Widget):
+class KeyFilter(Widget):
     index_mode = reactive("table")
 
     gsi_indexes = reactive({})
@@ -16,11 +16,6 @@ class KeyQuery(Widget):
     sort_key_attr_name = reactive("")
 
     def compose(self) -> ComposeResult:
-        yield Horizontal(
-            Label("Scan "),
-            Switch(name="scan", id="scanToggleSwitch"),
-            id="scanToggle",
-        )
         yield OptionList("table", id="queryIndex")
         yield Input(placeholder="pk", id="partitionKey")
         yield SortKeyFilter(id="sortKeyFilter")
@@ -31,16 +26,7 @@ class KeyQuery(Widget):
         option_list = self.query_one("#queryIndex")
         option_list.action_first()
         option_list.action_select()
-    
-    def on_switch_changed(self, changed: Switch.Changed) -> None:
-        input = self.query_one("#partitionKey")
-        sort_key = self.query_one("#sortKeyFilter")
-        if changed.value:
-            input.display = False
-            sort_key.display = False
-        else:
-            sort_key.display = True
-            input.display = True
+
 
     def on_option_list_option_selected(self, selected: OptionList.OptionSelected):
         self.index_mode = selected.option.prompt
@@ -64,7 +50,7 @@ class KeyQuery(Widget):
             option_list.clear_options()
             for option in ["table", *list(new_gsi_indexes.keys())]:
                 option_list.add_option(option)
-            
+
             option_list.action_first()
             option_list.action_select()
 
