@@ -47,8 +47,8 @@ async def test_gsi_switch(app):
 
         assert query_input.query_one("#sortKeyFilter").attr_name == "gsisk1"
 
-        await pilot.press("up")
-        await pilot.press("enter")
+        await pilot.press("up", "enter")
+
 
         assert query_input.query_one("#partitionKey").placeholder == "pk"
         assert query_input.query_one("#sortKeyFilter").attr_name == "sk"

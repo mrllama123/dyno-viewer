@@ -213,6 +213,10 @@ class DynCli(App):
 
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
+        
+        if run_query.index != "table":
+            params["IndexName"] = run_query.index
+        
         self.dyn_query_params = params
         self.run_table_query(params)
 
