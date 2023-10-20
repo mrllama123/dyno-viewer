@@ -1,3 +1,4 @@
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Horizontal, Container, VerticalScroll
 from textual.reactive import reactive
@@ -27,20 +28,24 @@ class KeyFilter(Widget):
         option_list.action_first()
         option_list.action_select()
 
-
-    def on_option_list_option_selected(self, selected: OptionList.OptionSelected):
+    @on(OptionList.OptionSelected)
+    def gsi_index_update(self, selected: OptionList.OptionSelected):
         self.index_mode = selected.option.prompt
         if selected.option.prompt != "table":
-            self.query_one("#partitionKey").placeholder = self.gsi_indexes[
-                selected.option.prompt
-            ]["primaryKey"]
-            self.query_one("#sortKeyFilter").attr_name = self.gsi_indexes[
-                selected.option.prompt
-            ]["sortKey"]
+            new_primary_key = self.gsi_indexes[selected.option.prompt]["primaryKey"]
+            new_sort_key = self.gsi_indexes[selected.option.prompt]["sortKey"]
+
+            self.log("new_primary_key=", new_primary_key)
+            self.log("new_sort_key=", new_sort_key)
+
+            self.query_one("#partitionKey").placeholder = new_primary_key
+            self.query_one("#sortKeyFilter").attr_name = new_sort_key
+
 
         else:
             self.query_one("#partitionKey").placeholder = self.partition_key_attr_name
             self.query_one("#sortKeyFilter").attr_name = self.sort_key_attr_name
+
 
     # watch methods
 

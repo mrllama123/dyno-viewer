@@ -72,6 +72,8 @@ def ddb_test_data():
         {
             "pk": "customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
             "sk": "CUSOMER",
+            "gsipk1": "CUSTOMER",
+            "gsisk1": "customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
             "test": "test1",
         },
         {
