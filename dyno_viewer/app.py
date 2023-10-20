@@ -23,7 +23,7 @@ from textual.binding import Binding
 from textual import work, log, on
 import pyclip
 from itertools import cycle
-from dyno_viewer.types import TableInfo
+from dyno_viewer.app_types import TableInfo
 from textual.message import Message
 from dyno_viewer.util import output_to_csv_str
 
