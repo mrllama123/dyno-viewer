@@ -15,6 +15,7 @@ from dyno_viewer.components.screens import (
     RegionSelectScreen,
     TableSelectScreen,
     QueryScreen,
+    HelpMenu,
 )
 from dyno_viewer.components.table import DataDynTable
 from textual.worker import get_current_worker
@@ -36,6 +37,7 @@ class UpdateDynDataTable(Message):
         self.update_existing_data = update_existing_data
         super().__init__()
 
+
 class UpdateDynTableInfo(Message):
     def __init__(self, table_info: TableInfo) -> None:
         self.table_info = table_info
@@ -49,6 +51,7 @@ class DynCli(App):
         ("t", "push_screen('tableSelect')", "Table"),
         ("r", "push_screen('regionSelect')", "Region"),
         ("q", "push_screen_query", "Query"),
+        ("?", "push_screen('help')", "help"),
         Binding("ctrl+c", "copy_table_data", "Copy", show=False),
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
     ]
@@ -57,6 +60,7 @@ class DynCli(App):
         "regionSelect": RegionSelectScreen(),
         "profile": ProfileSelectScreen(),
         "query": QueryScreen(),
+        "help": HelpMenu(),
     }
 
     CSS_PATH = ["components/css/query.css", "components/css/table.css"]
@@ -126,9 +130,10 @@ class DynCli(App):
                 }
                 for gsi in self.table_client.global_secondary_indexes or []
             }
-            
 
-            self.post_message(UpdateDynTableInfo({"keySchema": main_keys, "gsi": gsi_keys}))
+            self.post_message(
+                UpdateDynTableInfo({"keySchema": main_keys, "gsi": gsi_keys})
+            )
 
     @work(exclusive=True, group="dyn_table_query", thread=True)
     def run_table_query(self, dyn_query_params, update_existing=False):
@@ -169,6 +174,7 @@ class DynCli(App):
                 log.info("adding more items")
 
                 self.run_table_query(self.dyn_query_params, update_existing=True)
+
     @on(UpdateDynTableInfo)
     async def update_table_info(self, update: UpdateDynTableInfo) -> None:
         self.table_info = update.table_info
