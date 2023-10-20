@@ -23,25 +23,12 @@ from textual.binding import Binding
 from textual import work, log, on
 import pyclip
 from itertools import cycle
+from dyno_viewer.messages import ErrorException, UpdateDynDataTable, UpdateDynTableInfo
 from dyno_viewer.types import TableInfo
 from textual.message import Message
 from dyno_viewer.util import output_to_csv_str
 
 cursors = cycle(["column", "row", "cell"])
-
-
-class UpdateDynDataTable(Message):
-    def __init__(self, data, next_token, update_existing_data=False) -> None:
-        self.data = data
-        self.next_token = next_token
-        self.update_existing_data = update_existing_data
-        super().__init__()
-
-
-class UpdateDynTableInfo(Message):
-    def __init__(self, table_info: TableInfo) -> None:
-        self.table_info = table_info
-        super().__init__()
 
 
 class DynCli(App):
@@ -141,23 +128,27 @@ class DynCli(App):
         if not worker.is_cancelled:
             # temp disable logging doesn't work
             # self.log("dyn_params=", app.dyn_query_params)
-            result, next_token = (
-                query_items(
-                    self.table_client,
-                    paginate=False,
-                    Limit=50,
-                    **dyn_query_params,
+            try:
+                result, next_token = (
+                    query_items(
+                        self.table_client,
+                        paginate=False,
+                        Limit=50,
+                        **dyn_query_params,
+                    )
+                    if "KeyConditionExpression" in dyn_query_params
+                    else scan_items(
+                        self.table_client,
+                        paginate=False,
+                        Limit=50,
+                        **dyn_query_params,
+                    )
                 )
-                if "KeyConditionExpression" in dyn_query_params
-                else scan_items(
-                    self.table_client,
-                    paginate=False,
-                    Limit=50,
-                    **dyn_query_params,
+                self.post_message(
+                    UpdateDynDataTable(result, next_token, update_existing)
                 )
-            )
-
-            self.post_message(UpdateDynDataTable(result, next_token, update_existing))
+            except Exception as e:
+                self.post_message(ErrorException(e))
 
     # on methods
 
@@ -194,6 +185,13 @@ class DynCli(App):
             self.table_name = new_table_name.table
             self.update_table_client()
 
+    @on(ErrorException)
+    async def on_error_exception(self, error: ErrorException) -> None:
+        self.notify(str(error.exception),title="error", severity="error")
+        
+
+        # raise error.exception
+
     async def on_profile_select_screen_profile_selected(
         self, selected_profile: ProfileSelectScreen.ProfileSelected
     ) -> None:
@@ -213,10 +211,10 @@ class DynCli(App):
 
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
-        
+
         if run_query.index != "table":
             params["IndexName"] = run_query.index
-        
+
         self.dyn_query_params = params
         self.run_table_query(params)
 

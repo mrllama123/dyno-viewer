@@ -9,6 +9,7 @@ from textual.widgets import Input, OptionList
 from textual.worker import get_current_worker
 
 from dyno_viewer.aws.ddb import list_all_tables
+from dyno_viewer.messages import ErrorException
 
 
 class TableSelectScreen(Screen):
@@ -51,19 +52,22 @@ class TableSelectScreen(Screen):
     def worker_list_tables(self, next_token=None):
         worker = get_current_worker()
         if not worker.is_cancelled:
-            if next_token:
-                list_tables_result, next_token = list_all_tables(
-                    self.dyn_client,
-                    Limit=10,
-                    ExclusiveStartTableName=next_token,
-                    paginate=False,
-                )
-            else:
-                list_tables_result, next_token = list_all_tables(
-                    self.dyn_client, Limit=10, paginate=False
-                )
+            try:
+                if next_token:
+                    list_tables_result, next_token = list_all_tables(
+                        self.dyn_client,
+                        Limit=10,
+                        ExclusiveStartTableName=next_token,
+                        paginate=False,
+                    )
+                else:
+                    list_tables_result, next_token = list_all_tables(
+                        self.dyn_client, Limit=10, paginate=False
+                    )
 
-            self.post_message(self.TableListResult(list_tables_result, next_token))
+                self.post_message(self.TableListResult(list_tables_result, next_token))
+            except Exception as e:
+                self.post_message(ErrorException(e))
 
     # on methods
 
