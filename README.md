@@ -35,7 +35,7 @@ pipx install dyno-viewer
 
 ### Prerequisites
 
-This repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10 installed either via [pyenv](https://github.com/pyenv/pyenv)
+This repo uses [poetry](https://python-poetry.org/docs/) for package management and needs python 3.10+ installed either via [pyenv](https://github.com/pyenv/pyenv)
 or [asdf](https://asdf-vm.com/) using the [asdf-community/asdf-python](https://github.com/asdf-community/asdf-python) addon
 
 e.g:
