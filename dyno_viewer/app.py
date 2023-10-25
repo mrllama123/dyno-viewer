@@ -213,10 +213,10 @@ class DynCli(App):
 
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
-        
+
         if run_query.index != "table":
             params["IndexName"] = run_query.index
-        
+
         self.dyn_query_params = params
         self.run_table_query(params)
 
@@ -232,8 +232,13 @@ class DynCli(App):
     # action methods
 
     async def action_exit(self) -> None:
+        if not self.query(DataDynTable):
+            # ensure we don't have any dirty data for next time app runs
+            table = self.query_one(DataDynTable)
+            table.clear()
+        else:
+            self.pop_screen()
         table = self.query_one(DataDynTable)
-        # ensure we don't have any dirty data for next time app runs
         table.clear()
         self.app.exit()
 
