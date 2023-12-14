@@ -1,6 +1,6 @@
 from textual.app import App, ComposeResult
 from textual import events
-from dyno_viewer.components.query.key_query import KeyQuery
+from dyno_viewer.components.query.key_filter import KeyFilter
 from textual.widgets import Input
 import pytest
 import json
@@ -10,7 +10,7 @@ import json
 def app() -> App:
     class QueryInputApp(App):
         def compose(self):
-            yield KeyQuery()
+            yield KeyFilter()
 
     return QueryInputApp
 
@@ -20,7 +20,7 @@ async def test_toggle_scan(app):
         await pilot.press("tab")
         await pilot.press("enter")
 
-        query_input: KeyQuery = pilot.app.query_one(KeyQuery)
+        query_input: KeyFilter = pilot.app.query_one(KeyFilter)
 
         inputs = query_input.query(Input)
 
@@ -31,7 +31,7 @@ async def test_toggle_scan(app):
 
 async def test_gsi_switch(app):
     async with app().run_test() as pilot:
-        query_input: KeyQuery = pilot.app.query_one(KeyQuery)
+        query_input: KeyFilter = pilot.app.query_one(KeyFilter)
         query_input.gsi_indexes = {
             "gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}
         }
@@ -40,8 +40,6 @@ async def test_gsi_switch(app):
 
         assert query_input.query_one("#queryIndex").option_count == 2
 
-        # await pilot.press("tab")
-        await pilot.press("tab")
         await pilot.press("down")
         await pilot.press("enter")
 
@@ -49,8 +47,8 @@ async def test_gsi_switch(app):
 
         assert query_input.query_one("#sortKeyFilter").attr_name == "gsisk1"
 
-        await pilot.press("up")
-        await pilot.press("enter")
+        await pilot.press("up", "enter")
+
 
         assert query_input.query_one("#partitionKey").placeholder == "pk"
         assert query_input.query_one("#sortKeyFilter").attr_name == "sk"

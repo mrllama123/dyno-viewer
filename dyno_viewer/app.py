@@ -15,6 +15,7 @@ from dyno_viewer.components.screens import (
     RegionSelectScreen,
     TableSelectScreen,
     QueryScreen,
+    HelpMenu,
 )
 from dyno_viewer.components.table import DataDynTable
 from textual.worker import get_current_worker
@@ -22,7 +23,7 @@ from textual.binding import Binding
 from textual import work, log, on
 import pyclip
 from itertools import cycle
-from dyno_viewer.types import TableInfo
+from dyno_viewer.app_types import TableInfo
 from textual.message import Message
 from dyno_viewer.util import output_to_csv_str
 
@@ -36,6 +37,7 @@ class UpdateDynDataTable(Message):
         self.update_existing_data = update_existing_data
         super().__init__()
 
+
 class UpdateDynTableInfo(Message):
     def __init__(self, table_info: TableInfo) -> None:
         self.table_info = table_info
@@ -48,7 +50,8 @@ class DynCli(App):
         ("p", "push_screen('profile')", "Profile"),
         ("t", "push_screen('tableSelect')", "Table"),
         ("r", "push_screen('regionSelect')", "Region"),
-        ("q", "push_screen('query')", "Query"),
+        ("q", "push_screen_query", "Query"),
+        ("?", "push_screen('help')", "help"),
         Binding("ctrl+c", "copy_table_data", "Copy", show=False),
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
     ]
@@ -57,6 +60,7 @@ class DynCli(App):
         "regionSelect": RegionSelectScreen(),
         "profile": ProfileSelectScreen(),
         "query": QueryScreen(),
+        "help": HelpMenu(),
     }
 
     CSS_PATH = ["components/css/query.css", "components/css/table.css"]
@@ -126,16 +130,16 @@ class DynCli(App):
                 }
                 for gsi in self.table_client.global_secondary_indexes or []
             }
-            
 
-            self.post_message(UpdateDynTableInfo({"keySchema": main_keys, "gsi": gsi_keys}))
+            self.post_message(
+                UpdateDynTableInfo({"keySchema": main_keys, "gsi": gsi_keys})
+            )
 
     @work(exclusive=True, group="dyn_table_query", thread=True)
     def run_table_query(self, dyn_query_params, update_existing=False):
         worker = get_current_worker()
         if not worker.is_cancelled:
-            # temp disable logging doesn't work
-            # self.log("dyn_params=", app.dyn_query_params)
+            self.log("dyn_params=", dyn_query_params)
             result, next_token = (
                 query_items(
                     self.table_client,
@@ -169,6 +173,7 @@ class DynCli(App):
                 log.info("adding more items")
 
                 self.run_table_query(self.dyn_query_params, update_existing=True)
+
     @on(UpdateDynTableInfo)
     async def update_table_info(self, update: UpdateDynTableInfo) -> None:
         self.table_info = update.table_info
@@ -207,6 +212,10 @@ class DynCli(App):
 
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
+        
+        if run_query.index != "table":
+            params["IndexName"] = run_query.index
+        
         self.dyn_query_params = params
         self.run_table_query(params)
 
@@ -226,6 +235,12 @@ class DynCli(App):
         # ensure we don't have any dirty data for next time app runs
         table.clear()
         self.app.exit()
+
+    async def action_push_screen_query(self) -> None:
+        if self.table_client:
+            self.push_screen("query")
+        else:
+            self.notify("No table selected")
 
     async def action_copy_table_data(self) -> None:
         query_table = self.query(DataDynTable)

@@ -5,7 +5,7 @@ from textual.driver import Driver
 from dyno_viewer.aws.ddb import scan_items
 from dyno_viewer.components.screens import QueryScreen
 from dyno_viewer.components.query.filter_query import FilterQuery
-from dyno_viewer.components.query.key_query import KeyQuery
+from dyno_viewer.components.query.key_filter import KeyFilter
 from textual.widgets import Input, Button
 import pytest
 from tests.common import type_commands
@@ -32,16 +32,38 @@ def screen_app():
 
 
 async def assert_primary_key(pilot, ddb_item):
-    key_query = pilot.app.query_one(KeyQuery)
+    key_query = pilot.app.query_one(KeyFilter)
     # set pk to customer#test
     await type_commands(["tab" for _ in range(0, 2)], pilot)
     await type_commands([ddb_item["pk"]], pilot)
     assert key_query.query_one("#partitionKey").value == ddb_item["pk"]
 
 
+async def assert_gsi_primary_key(pilot, ddb_item):
+    key_query = pilot.app.query_one(KeyFilter)
+    # set pk to customer#test
+    await pilot.press("tab", "down", "enter", "tab")
+    await type_commands([ddb_item["gsipk1"]], pilot)
+    assert key_query.query_one("#partitionKey").value == ddb_item["gsipk1"]
+
+
+async def assert_gsi_sort_key(pilot, ddb_item):
+    # TODO handle different cond and types
+    sort_key = pilot.app.query_one(KeyFilter).query_one("#sortKeyFilter")
+    # attr filter type is string
+    assert sort_key.query_one("#attrType").value == "string"
+    # cond is ==
+    assert sort_key.query_one("#condition").value == "=="
+    # set sort key value
+    await type_commands(["tab" for _ in range(0, 3)], pilot)
+    await type_commands([ddb_item["gsisk1"]], pilot)
+    assert sort_key.query_one("#attrValue").value == ddb_item["gsisk1"]
+    await type_commands(["tab"], pilot)
+
+
 async def assert_sort_key(pilot, ddb_item):
     # TODO handle different cond and types
-    sort_key = pilot.app.query_one(KeyQuery).query_one("#sortKeyFilter")
+    sort_key = pilot.app.query_one(KeyFilter).query_one("#sortKeyFilter")
     # attr filter type is string
     assert sort_key.query_one("#attrType").value == "string"
     # cond is ==
@@ -75,7 +97,7 @@ async def test_initial_state(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
-        assert pilot.app.query_one(KeyQuery)
+        assert pilot.app.query_one(KeyFilter)
         add_filter_button: Button = pilot.app.query_one("#addFilter")
         assert add_filter_button
         assert str(add_filter_button.label) == "add filter"
@@ -173,6 +195,38 @@ async def test_run_query_primary_key_sort_key(
         assert query_result
 
 
+async def test_run_query_primary_key_sort_key_gsi(
+    screen_app, ddb_table, ddb_table_with_data
+):
+    from dyno_viewer.aws.ddb import query_items
+
+    async with screen_app().run_test() as pilot:
+        pilot.app.SCREENS["query"].table_info = {
+            "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
+            "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
+        }
+        ddb_item = ddb_table_with_data[0]
+        await pilot.app.push_screen("query")
+        assert pilot.app.SCREENS["query"].is_current
+
+        await assert_gsi_primary_key(pilot, ddb_item)
+        await assert_gsi_sort_key(pilot, ddb_item)
+
+        await type_commands(["r"], pilot)
+        dyn_query = pilot.app.dyn_query
+        assert dyn_query
+        assert dyn_query.key_cond_exp
+        assert dyn_query.index == "gsi1Index"
+        assert not dyn_query.filter_cond_exp
+
+        query_result = query_items(
+            ddb_table,
+            IndexName=dyn_query.index,
+            KeyConditionExpression=dyn_query.key_cond_exp,
+        )
+
+        assert query_result
+
 
 async def test_run_query_primary_key_sort_key_filters(
     screen_app, ddb_table, ddb_table_with_data
@@ -208,9 +262,7 @@ async def test_run_query_primary_key_sort_key_filters(
         assert query_result
 
 
-async def test_run_query_scan(
-    screen_app, ddb_table, ddb_table_with_data
-):
+async def test_run_query_scan(screen_app, ddb_table, ddb_table_with_data):
     from dyno_viewer.aws.ddb import query_items
 
     async with screen_app().run_test() as pilot:
@@ -219,19 +271,14 @@ async def test_run_query_scan(
             "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
         }
 
-
-
         await pilot.app.push_screen("query")
         assert pilot.app.SCREENS["query"].is_current
-        await pilot.press("enter", "tab", "tab",)
+        await pilot.press(
+            "enter",
+            "tab",
+        )
 
-        key_query = pilot.app.query_one(KeyQuery)
-
-        assert not key_query.query_one("#partitionKey").display
-        assert not key_query.query_one("#sortKeyFilter").display
-    
-        
-
+        assert not pilot.app.query(KeyFilter)
         await assert_filter_one(pilot, "test", "test1")
 
         # send run query message back to root app
@@ -247,5 +294,3 @@ async def test_run_query_scan(
         )
 
         assert query_result
-
-
