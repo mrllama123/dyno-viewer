@@ -140,7 +140,7 @@ class DynCli(App):
         worker = get_current_worker()
         if not worker.is_cancelled:
             # temp disable logging doesn't work
-            # self.log("dyn_params=", app.dyn_query_params)
+            self.log("dyn_params=", dyn_query_params)
             result, next_token = (
                 query_items(
                     self.table_client,
