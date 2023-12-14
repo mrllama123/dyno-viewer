@@ -139,7 +139,7 @@ class QueryScreen(Screen):
                 self.RunQuery(
                     key_cond_exp,
                     filter_cond_exp,
-                    None if index_mode == "table" else index_mode,
+                    index_mode,
                 )
             )
             self.app.pop_screen()
