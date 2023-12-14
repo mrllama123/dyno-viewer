@@ -1,9 +1,8 @@
 from textual import on
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Container, VerticalScroll
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Label, Switch, OptionList, Input
+from textual.widgets import  OptionList, Input
 
 from dyno_viewer.components.query.sort_key_filter import SortKeyFilter
 
