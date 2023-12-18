@@ -26,6 +26,7 @@ from itertools import cycle
 from dyno_viewer.app_types import TableInfo
 from textual.message import Message
 from dyno_viewer.util import output_to_csv_str
+from dyno_viewer.util.util import format_output
 
 cursors = cycle(["column", "row", "cell"])
 
@@ -249,7 +250,8 @@ class DynCli(App):
             if table.row_count > 0:
                 if table.cursor_type == "cell":
                     cell = table.get_cell_at(table.cursor_coordinate)
-                    pyclip.copy(cell)
+                    if cell is not None:
+                        pyclip.copy(format_output(cell))
                 elif table.cursor_type == "row":
                     row = table.get_row_at(table.cursor_row)
                     if row:
