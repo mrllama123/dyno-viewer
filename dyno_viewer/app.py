@@ -84,7 +84,7 @@ class DynCli(App):
     table_info = reactive(None)
 
     def compose(self) -> ComposeResult:
-        yield DataDynTable()
+        yield DataDynTable(id="dynDataTable")
         yield Footer()
 
     def update_table_client(self):
@@ -213,10 +213,10 @@ class DynCli(App):
 
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
-        
+
         if run_query.index != "table":
             params["IndexName"] = run_query.index
-        
+
         self.dyn_query_params = params
         self.run_table_query(params)
 
