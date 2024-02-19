@@ -18,7 +18,7 @@ textual = ">=0.24.1,<0.48.0"
 [tool.poetry.group.dev.dependencies]
 black = "^23.3.0"
 ipykernel = "^6.22.0"
-pytest = "^7.3.1"
+pytest = ">=7.3.1,<9.0.0"
 moto = {extras = ["all"], version = "^4.1.9"}
 pytest-aiohttp = "^1.0.4"
 pandas = ">=1.5.3,<3.0.0"
