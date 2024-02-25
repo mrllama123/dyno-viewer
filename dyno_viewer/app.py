@@ -2,6 +2,7 @@ from textual.app import App, ComposeResult
 from textual.widgets import (
     Footer,
 )
+from textual.worker import Worker
 from textual.reactive import reactive
 from dyno_viewer.aws.session import get_available_profiles
 from dyno_viewer.aws.ddb import (
@@ -112,9 +113,9 @@ class DynCli(App):
         worker = get_current_worker()
         if not worker.is_cancelled:
             # temp disable logging doesn't work
-            # self.log(f"updating table info")
-            # self.log("key schema=", self.table_client.key_schema)
-            # self.log("gsi schema=", self.table_client.global_secondary_indexes)
+            self.log(f"updating table info")
+            self.log("key schema=", self.table_client.key_schema)
+            self.log("gsi schema=", self.table_client.global_secondary_indexes)
             main_keys = {
                 ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
                     "AttributeName"
@@ -160,6 +161,11 @@ class DynCli(App):
             self.post_message(UpdateDynDataTable(result, next_token, update_existing))
 
     # on methods
+
+    def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
+        """Called when the worker state changes."""
+        self.log(event)
+        
 
     def on_mount(self):
         table = self.query_one(DataDynTable)
