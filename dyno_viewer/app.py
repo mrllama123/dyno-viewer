@@ -112,9 +112,9 @@ class DynCli(App):
         worker = get_current_worker()
         if not worker.is_cancelled:
             # temp disable logging doesn't work
-            # self.log(f"updating table info")
-            # self.log("key schema=", self.table_client.key_schema)
-            # self.log("gsi schema=", self.table_client.global_secondary_indexes)
+            self.log(f"updating table info")
+            self.log("key schema=", self.table_client.key_schema)
+            self.log("gsi schema=", self.table_client.global_secondary_indexes)
             main_keys = {
                 ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
                     "AttributeName"

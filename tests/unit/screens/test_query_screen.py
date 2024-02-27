@@ -263,7 +263,6 @@ async def test_run_query_primary_key_sort_key_filters(
 
 
 async def test_run_query_scan(screen_app, ddb_table, ddb_table_with_data):
-    from dyno_viewer.aws.ddb import query_items
 
     async with screen_app().run_test() as pilot:
         pilot.app.SCREENS["query"].table_info = {
@@ -294,3 +293,28 @@ async def test_run_query_scan(screen_app, ddb_table, ddb_table_with_data):
         )
 
         assert query_result
+
+
+async def test_run_query_scan_no_filters(screen_app, ddb_table, ddb_table_with_data):
+
+    async with screen_app().run_test() as pilot:
+        pilot.app.SCREENS["query"].table_info = {
+            "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
+            "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
+        }
+
+        await pilot.app.push_screen("query")
+        assert pilot.app.SCREENS["query"].is_current
+        await pilot.press(
+            "enter",
+            "tab",
+        )
+
+        assert not pilot.app.query(KeyFilter)
+
+        # send run query message back to root app
+        await type_commands(["tab", "r"], pilot)
+        dyn_query = pilot.app.dyn_query
+        assert dyn_query
+        assert not dyn_query.key_cond_exp
+        assert not dyn_query.filter_cond_exp

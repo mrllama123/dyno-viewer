@@ -26,6 +26,7 @@ class QueryScreen(Screen):
     ]
 
     table_info = reactive(None)
+    scan_mode = reactive(False)
 
     class RunQuery(Message):
         """
@@ -134,7 +135,8 @@ class QueryScreen(Screen):
             index_mode = "table"
 
         filter_cond_exp = self.get_filter_queries()
-        if key_cond_exp or filter_cond_exp:
+
+        if key_cond_exp or filter_cond_exp or self.scan_mode:
             self.post_message(
                 self.RunQuery(
                     key_cond_exp,
@@ -162,6 +164,7 @@ class QueryScreen(Screen):
 
     @on(Switch.Changed, "#scanToggleSwitch")
     def toggle_scan_mode(self, changed: Switch.Changed) -> None:
+        self.scan_mode = changed.value
         if changed.value:
             key_filter = self.query_one(KeyFilter)
             key_filter.remove()
