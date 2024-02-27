@@ -16,6 +16,7 @@ from dyno_viewer.components.screens import (
     TableSelectScreen,
     QueryScreen,
     HelpMenu,
+    TableOptions,
 )
 from dyno_viewer.components.table import DataDynTable
 from textual.worker import get_current_worker
@@ -52,6 +53,7 @@ class DynCli(App):
         ("t", "push_screen('tableSelect')", "Table"),
         ("r", "push_screen('regionSelect')", "Region"),
         ("q", "push_screen_query", "Query"),
+        ("o", "push_screen('tableOptions')", "Options"),
         ("?", "push_screen('help')", "help"),
         Binding("ctrl+c", "copy_table_data", "Copy", show=False),
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
@@ -59,6 +61,7 @@ class DynCli(App):
     SCREENS = {
         "tableSelect": TableSelectScreen(),
         "regionSelect": RegionSelectScreen(),
+        "tableOptions": TableOptions(),
         "profile": ProfileSelectScreen(),
         "query": QueryScreen(),
         "help": HelpMenu(),
@@ -213,10 +216,10 @@ class DynCli(App):
 
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
-        
+
         if run_query.index != "table":
             params["IndexName"] = run_query.index
-        
+
         self.dyn_query_params = params
         self.run_table_query(params)
 
@@ -228,6 +231,8 @@ class DynCli(App):
         else:
             table.add_dyn_data(self.table_info, update_data.data)
             self.set_pagination_token(update_data.next_token)
+        with self.SCREENS["tableOptions"].prevent(TableOptions.TableOptionColToggle):
+            self.SCREENS["tableOptions"].table_cols = [col.value for col in table.columns.keys()]
 
     # action methods
 
@@ -288,7 +293,6 @@ class DynCli(App):
     def watch_table_info(self, new_table_info: TableInfo) -> None:
         with self.SCREENS["query"].prevent(QueryScreen.RunQuery):
             self.SCREENS["query"].table_info = new_table_info
-
 
 def run() -> None:
     app = DynCli()
