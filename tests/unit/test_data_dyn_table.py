@@ -196,6 +196,157 @@ async def test_pk_sk_gsi_data(data, result) -> None:
         assert table_rows == result
 
 
+async def test_disable_col():
+    async with DataDynTableApp(
+        [
+            {
+                "pk": "customer#12345",
+                "sk": "CUSTOMER",
+                "gsipk1": "account#123",
+                "gsisk1": "ACCOUNT",
+                "testVal1": 42,
+                "testVal2": "testy",
+            },
+            {
+                "pk": "customer#12386876",
+                "sk": "CUSTOMER",
+                "gsipk1": "account#83268765",
+                "gsisk1": "ACCOUNT",
+                "testVal1": 8909,
+                "testVal2": "testy",
+            },
+        ]
+    ).run_test() as pilot:
+        table: DataDynTable = pilot.app.query_one(DataDynTable)
+        assert table.row_count == 2
+
+        table_col_keys = [col.key.value for col in table.ordered_columns]
+
+        assert any(
+            col_key
+            in [
+                "pk",
+                "sk",
+                "gsipk1",
+                "gsisk1",
+                "gsipk2",
+                "gsisk2",
+                "gsipk3",
+                "gsisk3",
+                "testVal2",
+                "testVal1",
+            ]
+            for col_key in table_col_keys
+        )
+
+        table.disable_column("testVal1")
+
+        table_col_keys = [col.key.value for col in table.ordered_columns]
+
+        assert any(
+            col_key
+            in [
+                "pk",
+                "sk",
+                "gsipk1",
+                "gsisk1",
+                "gsipk2",
+                "gsisk2",
+                "gsipk3",
+                "gsisk3",
+                "testVal2",
+            ]
+            for col_key in table_col_keys
+        )
+
+        disabled_col = table.disabled_cols.get("testVal1", [])
+        assert disabled_col == [42, 8909]
+
+
+async def test_re_enable_col():
+    async with DataDynTableApp(
+        [
+            {
+                "pk": "customer#12345",
+                "sk": "CUSTOMER",
+                "gsipk1": "account#123",
+                "gsisk1": "ACCOUNT",
+                "testVal1": 42,
+                "testVal2": "testy",
+            },
+            {
+                "pk": "customer#12386876",
+                "sk": "CUSTOMER",
+                "gsipk1": "account#83268765",
+                "gsisk1": "ACCOUNT",
+                "testVal1": 8909,
+                "testVal2": "testy",
+            },
+        ]
+    ).run_test() as pilot:
+        table: DataDynTable = pilot.app.query_one(DataDynTable)
+
+        assert table.row_count == 2
+
+        table_col_keys = [col.key.value for col in table.ordered_columns]
+
+        assert any(
+            col_key
+            in [
+                "pk",
+                "sk",
+                "gsipk1",
+                "gsisk1",
+                "gsipk2",
+                "gsisk2",
+                "gsipk3",
+                "gsisk3",
+                "testVal2",
+                "testVal1",
+            ]
+            for col_key in table_col_keys
+        )
+
+        table.disable_column("testVal1")
+
+        table_col_keys = [col.key.value for col in table.ordered_columns]
+
+        assert any(
+            col_key
+            in [
+                "pk",
+                "sk",
+                "gsipk1",
+                "gsisk1",
+                "gsipk2",
+                "gsisk2",
+                "gsipk3",
+                "gsisk3",
+                "testVal2",
+            ]
+            for col_key in table_col_keys
+        )
+
+        table.enable_column("testVal1")
+        assert any(
+            col_key
+            in [
+                "pk",
+                "sk",
+                "gsipk1",
+                "gsisk1",
+                "gsipk2",
+                "gsisk2",
+                "gsipk3",
+                "gsisk3",
+                "testVal2",
+                "testVal1",
+            ]
+            for col_key in table_col_keys
+        )
+        assert list(table.get_column("testVal1")) == [42, 8909]
+
+
 async def test_add_data_to_existing_table():
     async with DataDynTableApp(
         [

@@ -1,11 +1,29 @@
 from textual.widgets import (
     DataTable,
 )
+from textual.coordinate import Coordinate
 from textual import log
+from textual.reactive import reactive
+from textual.widgets._data_table import ColumnKey
 from dyno_viewer.app_types import TableInfo
 
 
 class DataDynTable(DataTable):
+    disabled_cols = reactive({})
+
+    def disable_column(self, column_key: ColumnKey | str) -> None:
+        col = list(self.get_column(column_key)) 
+        self.disabled_cols[(column_key)] = col
+        return super().remove_column(column_key)
+    
+    def enable_column(self, column_key: ColumnKey | str) -> None:
+        col_data = self.disabled_cols.pop(column_key)
+        self.add_column(column_key, key=column_key)
+        col_index = self.get_column_index(column_key)
+        if col_data:
+            for row_index, row in enumerate(col_data):
+                self.update_cell_at(Coordinate(row_index, col_index), row)
+
     def add_dyn_data(self, table_info: TableInfo, data: list[dict]) -> None:
         """
         add dynamodb table data with keys sorted to always be first
