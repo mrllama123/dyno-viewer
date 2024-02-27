@@ -67,7 +67,11 @@ class DynCli(App):
         "help": HelpMenu(),
     }
 
-    CSS_PATH = ["components/css/query.tcss", "components/css/table.tcss"]
+    CSS_PATH = [
+        "components/css/query.tcss",
+        "components/css/table.tcss",
+        "components/css/tableOptions.tcss",
+    ]
 
     profiles = reactive(get_available_profiles())
 
@@ -163,6 +167,17 @@ class DynCli(App):
             self.post_message(UpdateDynDataTable(result, next_token, update_existing))
 
     # on methods
+    @on(TableOptions.TableOptionColToggle)
+    def toggle_col(self, col_toggle: TableOptions.TableOptionColToggle) -> None:
+        table = (
+            self.query_one(DataDynTable)
+            if self.visible
+            else self.r.query_one(DataDynTable)
+        )
+        if col_toggle.enabled:
+            table.enable_column(col_toggle.col_key)
+        else:
+            table.disable_column(col_toggle.col_key)
 
     def on_mount(self):
         table = self.query_one(DataDynTable)
@@ -232,7 +247,9 @@ class DynCli(App):
             table.add_dyn_data(self.table_info, update_data.data)
             self.set_pagination_token(update_data.next_token)
         with self.SCREENS["tableOptions"].prevent(TableOptions.TableOptionColToggle):
-            self.SCREENS["tableOptions"].table_cols = [col.value for col in table.columns.keys()]
+            self.SCREENS["tableOptions"].table_cols = [
+                col.value for col in table.columns.keys()
+            ]
 
     # action methods
 
@@ -293,6 +310,7 @@ class DynCli(App):
     def watch_table_info(self, new_table_info: TableInfo) -> None:
         with self.SCREENS["query"].prevent(QueryScreen.RunQuery):
             self.SCREENS["query"].table_info = new_table_info
+
 
 def run() -> None:
     app = DynCli()

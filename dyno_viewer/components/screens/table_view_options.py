@@ -1,8 +1,9 @@
 from textual.widgets import ListItem, ListView, Label, Switch
 from textual.screen import Screen
 from textual.message import Message
-from textual.containers import Horizontal, Vertical
+from textual.containers import Container
 from textual.reactive import reactive
+from textual import on
 
 
 class TableOptions(Screen):
@@ -16,33 +17,36 @@ class TableOptions(Screen):
             super().__init__()
 
     def compose(self):
-        yield Horizontal(
-            id="tableColSelect",
-            *[
-                Vertical(
-                    Label(table_col),
-                    Switch(value=True, name=table_col, id=f"tableColSelect{table_col}"),
-                )
-                for table_col in self.table_cols
-            ],
-        )
+        with Container(id="tableOptionsScreen"):
+            yield Container(
+                id="tableColSelect",
+                *[
+                    Container(
+                        id=f"tableColSelect{table_col}",
+                        *[
+                            Label(table_col),
+                            Switch(value=True, name=table_col, id=table_col),
+                        ],
+                    )
+                    for table_col in self.table_cols
+                ],
+            )
 
     def watch_table_cols(self, table_cols):
         if table_cols:
-            list_view = self.query("tableColSelect")
-            if list_view:
-                list_view[0].remove_children()
+            col_select = self.query("tableColSelect")
+            if col_select:
+                col_select[0].remove_children()
                 for table_col in table_cols:
-                    list_view[0].mount(
-                        Vertical(
-                            Label(table_col),
-                            Switch(
-                                value=True,
-                                name=table_col,
-                                id=f"tableColSelect{table_col}",
-                            ),
+                    col_select[0].mount(
+                        Container(
+                            id=f"tableColSelect{table_col}",
+                            children=[
+                                Label(table_col),
+                                Switch(value=True, name=table_col, id=table_col),
+                            ],
                         )
                     )
-
-    async def on_switch_change(self, name, value):
-        self.post_message(self.TableOptionColToggle(name, value))
+    # @on(Switch.Changed)
+    # def on_switch_change(self, changed: Switch.Changed) -> None:
+    #     self.post_message(self.TableOptionColToggle(changed.switch.id, changed.value))
