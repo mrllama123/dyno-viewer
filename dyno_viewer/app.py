@@ -64,7 +64,7 @@ class DynCli(App):
         "help": HelpMenu(),
     }
 
-    CSS_PATH = ["components/css/query.css", "components/css/table.css"]
+    CSS_PATH = ["components/css/query.tcss", "components/css/table.tcss"]
 
     profiles = reactive(get_available_profiles())
 
