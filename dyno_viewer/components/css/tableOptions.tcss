@@ -1,0 +1,17 @@
+#tableOptionsScreen {
+    layout: vertical;
+    overflow-y: auto;
+}
+
+#tableOptionsScreen > #tableColSelect {
+    margin: 1 1;
+    background: $boost;
+    border: heavy grey;
+    overflow-y: auto;
+    width: 10%;
+}
+
+#tableOptionsScreen > #tableColSelect > Container {
+    margin: 1 1;
+    height: 4;
+}
