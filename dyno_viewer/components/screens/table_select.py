@@ -47,7 +47,7 @@ class TableSelectScreen(Screen):
 
     # worker methods
 
-    @work(exclusive=True, thread=True)
+    @work(exclusive=True, group="worker_list_tables", thread=True)
     def worker_list_tables(self, next_token=None):
         worker = get_current_worker()
         if not worker.is_cancelled:

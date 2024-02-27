@@ -2,6 +2,7 @@ from textual.app import App, ComposeResult
 from textual.widgets import (
     Footer,
 )
+from textual.worker import Worker
 from textual.reactive import reactive
 from dyno_viewer.aws.session import get_available_profiles
 from dyno_viewer.aws.ddb import (
@@ -66,7 +67,7 @@ class DynCli(App):
 
     CSS_PATH = ["components/css/query.css", "components/css/table.css"]
 
-    profiles = reactive(get_available_profiles())
+    profiles = reactive(None)
 
     aws_profile = reactive(None)
 
@@ -79,12 +80,12 @@ class DynCli(App):
     # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :(
     table_client = reactive(None, always_update=True)
 
-    dyn_client = reactive(get_ddb_client())
+    dyn_client = reactive(None)
 
     table_info = reactive(None)
 
     def compose(self) -> ComposeResult:
-        yield DataDynTable()
+        yield DataDynTable(id="dynDataTable")
         yield Footer()
 
     def update_table_client(self):
@@ -161,6 +162,11 @@ class DynCli(App):
 
     # on methods
 
+    def on_worker_state_changed(self, event: Worker.StateChanged) -> None:
+        """Called when the worker state changes."""
+        self.log(event)
+        
+
     def on_mount(self):
         table = self.query_one(DataDynTable)
         table.focus()
@@ -213,10 +219,10 @@ class DynCli(App):
 
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
-        
+
         if run_query.index != "table":
             params["IndexName"] = run_query.index
-        
+
         self.dyn_query_params = params
         self.run_table_query(params)
 
@@ -271,6 +277,10 @@ class DynCli(App):
 
     # watcher methods
 
+    def watch_profiles(self, new_profiles) -> None:
+        if not new_profiles:
+            self.profiles = get_available_profiles()
+
     async def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
         if new_table_client:
@@ -282,8 +292,11 @@ class DynCli(App):
             self.query_one(DataDynTable).clear()
 
     def watch_dyn_client(self, new_dyn_client):
+        if not new_dyn_client:
+            self.dyn_client = get_ddb_client()
+
         with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):
-            self.SCREENS["tableSelect"].dyn_client = new_dyn_client
+            self.SCREENS["tableSelect"].dyn_client = self.dyn_client
 
     def watch_table_info(self, new_table_info: TableInfo) -> None:
         with self.SCREENS["query"].prevent(QueryScreen.RunQuery):
