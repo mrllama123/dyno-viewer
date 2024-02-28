@@ -11,6 +11,8 @@ from dyno_viewer.app_types import TableInfo
 class DataDynTable(DataTable):
     disabled_cols = reactive({})
 
+    
+
     def disable_column(self, column_key: ColumnKey | str) -> None:
         col = list(self.get_column(column_key)) 
         self.disabled_cols[(column_key)] = col

@@ -5,15 +5,16 @@ from textual.containers import Container
 from textual.reactive import reactive
 from textual import on
 
+from dyno_viewer.app_types import ColToggleTable
+
 
 class TableOptions(Screen):
-    BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
+    BINDINGS = [("escape", "pop_screen", "Pop screen")]
     table_cols = reactive([])
 
-    class TableOptionColToggle(Message):
-        def __init__(self, col_key: str, enabled: bool) -> None:
-            self.col_key = col_key
-            self.enabled = enabled
+    class ColToggle(Message):
+        def __init__(self, cols_toggled: ColToggleTable) -> None:
+            self.col_toggled = cols_toggled
             super().__init__()
 
     def compose(self):
@@ -22,7 +23,6 @@ class TableOptions(Screen):
                 id="tableColSelect",
                 *[
                     Container(
-                        id=f"tableColSelect{table_col}",
                         *[
                             Label(table_col),
                             Switch(value=True, name=table_col, id=table_col),
@@ -40,13 +40,18 @@ class TableOptions(Screen):
                 for table_col in table_cols:
                     col_select[0].mount(
                         Container(
-                            id=f"tableColSelect{table_col}",
+                            id="tableColSelect",
                             children=[
                                 Label(table_col),
                                 Switch(value=True, name=table_col, id=table_col),
                             ],
                         )
                     )
-    # @on(Switch.Changed)
-    # def on_switch_change(self, changed: Switch.Changed) -> None:
-    #     self.post_message(self.TableOptionColToggle(changed.switch.id, changed.value))
+
+    def action_pop_screen(self):
+        col_toggles = []
+        for col in self.query("#tableColSelect"):
+            for switch in col.query(Switch):
+                col_toggles.append({"col_key": switch.id, "enabled": switch.value})
+        self.post_message(self.ColToggle(col_toggles))
+        self.app.pop_screen()

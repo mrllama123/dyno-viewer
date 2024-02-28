@@ -9,3 +9,8 @@ class KeySchema(TypedDict):
 class TableInfo(TypedDict):
     keySchema: KeySchema
     gsi: dict[str, KeySchema]
+
+
+class ColToggleTable(TypedDict):
+    col_key: str
+    enabled: bool

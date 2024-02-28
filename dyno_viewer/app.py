@@ -53,7 +53,7 @@ class DynCli(App):
         ("t", "push_screen('tableSelect')", "Table"),
         ("r", "push_screen('regionSelect')", "Region"),
         ("q", "push_screen_query", "Query"),
-        ("o", "push_screen('tableOptions')", "Options"),
+        ("o", "push_table_options", "Options"),
         ("?", "push_screen('help')", "help"),
         Binding("ctrl+c", "copy_table_data", "Copy", show=False),
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
@@ -167,18 +167,6 @@ class DynCli(App):
             self.post_message(UpdateDynDataTable(result, next_token, update_existing))
 
     # on methods
-    @on(TableOptions.TableOptionColToggle)
-    def toggle_col(self, col_toggle: TableOptions.TableOptionColToggle) -> None:
-        table = (
-            self.query_one(DataDynTable)
-            if self.visible
-            else self.r.query_one(DataDynTable)
-        )
-        if col_toggle.enabled:
-            table.enable_column(col_toggle.col_key)
-        else:
-            table.disable_column(col_toggle.col_key)
-
     def on_mount(self):
         table = self.query_one(DataDynTable)
         table.focus()
@@ -246,10 +234,43 @@ class DynCli(App):
         else:
             table.add_dyn_data(self.table_info, update_data.data)
             self.set_pagination_token(update_data.next_token)
-        with self.SCREENS["tableOptions"].prevent(TableOptions.TableOptionColToggle):
+        with self.SCREENS["tableOptions"].prevent(TableOptions.ColToggle):
             self.SCREENS["tableOptions"].table_cols = [
                 col.value for col in table.columns.keys()
             ]
+
+    @on(TableOptions.ColToggle)
+    def toggle_cols(self, toggle_options: TableOptions.ColToggle):
+        table = self.query_one(DataDynTable)
+        col_table_enabled = [key.value for key in table.columns.keys()]
+        col_table_disabled = table.disabled_cols.keys()
+
+        self.log(f"toggle_options={toggle_options.col_toggled}")
+
+        self.log(f"col_table_enabled={col_table_enabled}")
+        self.log(f"col_table_disabled={col_table_disabled}")
+
+        toggle_col_enabled = [
+            col["col_key"] for col in toggle_options.col_toggled if col["enabled"]
+        ]
+        toggle_col_disabled = [
+            col["col_key"] for col in toggle_options.col_toggled if not col["enabled"]
+        ]
+
+        self.log(f"toggle_col_enabled={toggle_col_enabled}")
+        self.log(f"toggle_col_disabled={toggle_col_disabled}")
+
+        for col in toggle_col_enabled:
+            if col in col_table_disabled:
+                self.log(f"enabling col {col}")
+                table.enable_column(col)
+
+        for col in toggle_col_disabled:
+            if col in col_table_enabled:
+                self.log(f"disabling col {col}")
+                table.disable_column(col)
+
+        table.refresh()
 
     # action methods
 
@@ -258,6 +279,12 @@ class DynCli(App):
         # ensure we don't have any dirty data for next time app runs
         table.clear()
         self.app.exit()
+
+    async def action_push_table_options(self) -> None:
+        if self.table_client:
+            self.push_screen("tableOptions")
+        else:
+            self.notify("No table selected")
 
     async def action_push_screen_query(self) -> None:
         if self.table_client:
