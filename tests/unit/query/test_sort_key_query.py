@@ -1,12 +1,7 @@
-from textual.app import App, ComposeResult
-from textual import events
-from textual.pilot import Pilot
-from dyno_viewer.components.screens import QueryScreen
-from dyno_viewer.components.query.sort_key_filter import SortKeyFilter
-from textual.widgets import Input, Button, RadioSet, Select
 import pytest
-import json
+from textual.app import App
 
+from dyno_viewer.components.query.sort_key_filter import SortKeyFilter
 from tests.common import type_commands
 
 

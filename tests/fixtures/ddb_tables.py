@@ -1,8 +1,8 @@
 import random
 import uuid
-import pytest
-from tests.fixtures.moto import dynamodb
 from decimal import Decimal as D
+
+import pytest
 
 
 def create_ddb_table(dynamodb, name, gsi_count=0):
@@ -31,15 +31,15 @@ def create_ddb_table(dynamodb, name, gsi_count=0):
         for i in range(gsi_count)
     ]
 
-    props = dict(
-        TableName=name,
-        KeySchema=[
+    props = {
+        "TableName": name,
+        "KeySchema": [
             {"AttributeName": "pk", "KeyType": "HASH"},  # Partition key
             {"AttributeName": "sk", "KeyType": "RANGE"},  # Sort key
         ],
-        AttributeDefinitions=AttributeDefinitions,
-        ProvisionedThroughput={"ReadCapacityUnits": 10, "WriteCapacityUnits": 10},
-    )
+        "AttributeDefinitions": AttributeDefinitions,
+        "ProvisionedThroughput": {"ReadCapacityUnits": 10, "WriteCapacityUnits": 10},
+    }
 
     if gsi_count:
         props.setdefault("GlobalSecondaryIndexes", GlobalSecondaryIndexes)

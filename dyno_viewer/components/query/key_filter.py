@@ -2,7 +2,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import  OptionList, Input
+from textual.widgets import Input, OptionList
 
 from dyno_viewer.components.query.sort_key_filter import SortKeyFilter
 
@@ -40,11 +40,9 @@ class KeyFilter(Widget):
             self.query_one("#partitionKey").placeholder = new_primary_key
             self.query_one("#sortKeyFilter").attr_name = new_sort_key
 
-
         else:
             self.query_one("#partitionKey").placeholder = self.partition_key_attr_name
             self.query_one("#sortKeyFilter").attr_name = self.sort_key_attr_name
-
 
     # watch methods
 

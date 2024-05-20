@@ -1,17 +1,12 @@
 import logging
-
-import simplejson as json
-from decimal import Decimal as D
-
-from boto3.dynamodb.conditions import Attr, Key
-from dynamodb_json import json_util as dyn_json
-from boto3.session import Session
-import boto3
-from botocore.exceptions import ClientError
-from decimal import Decimal
 import re
-from textual import log
+from decimal import Decimal, Decimal as D
 
+import boto3
+import simplejson as json
+from boto3.dynamodb.conditions import Attr, Key
+from boto3.session import Session
+from dynamodb_json import json_util as dyn_json
 
 LOG_LEVEL = logging.INFO
 

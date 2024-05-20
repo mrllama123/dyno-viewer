@@ -1,14 +1,8 @@
-from textual.app import App, ComposeResult
-from textual import events
-from textual.pilot import Pilot
-from dyno_viewer.components.screens import QueryScreen
-from textual.containers import Container
-from dyno_viewer.components.query.filter_query import FilterQuery
-from textual.widgets import Input, Button, RadioSet, Select
 import pytest
-import json
-import os
+from textual.app import App
+from textual.containers import Container
 
+from dyno_viewer.components.query.filter_query import FilterQuery
 from tests.common import type_commands
 
 
@@ -88,7 +82,7 @@ async def test_conds(app, cond):
 async def test_types(app, type):
     async with app().run_test() as pilot:
         await type_commands(
-            ["tab",  "enter", *type["typeCommand"], "enter"],
+            ["tab", "enter", *type["typeCommand"], "enter"],
             pilot,
         )
         assert pilot.app.query_one("#attrType").value == type["type"]

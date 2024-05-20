@@ -1,12 +1,11 @@
 from textual.app import ComposeResult
+from textual.message import Message
+from textual.screen import Screen
 from textual.widgets import (
+    Label,
     ListItem,
     ListView,
-    Label,
 )
-from textual.screen import Screen
-from textual.message import Message
-from textual import log
 
 from dyno_viewer.aws.session import get_available_profiles
 

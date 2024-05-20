@@ -1,22 +1,26 @@
+from boto3.dynamodb.conditions import Attr, Key
+from textual import log, on
 from textual.app import ComposeResult
-from textual.css.query import NoMatches
-from textual.widgets import ListItem, ListView, Button, Input, Switch, Label, RadioSet
-from textual.widget import Widget
-from textual.widgets import Footer
 from textual.containers import Container, Horizontal
-from textual.screen import Screen
+from textual.css.query import NoMatches
 from textual.message import Message
 from textual.reactive import reactive
-from textual import log, on
-from dyno_viewer.components.query.filter_query import FilterQuery
-from dyno_viewer.components.query.key_filter import KeyFilter
-from boto3.dynamodb.conditions import Key, Attr
+from textual.screen import Screen
+from textual.widgets import (
+    Button,
+    Footer,
+    Label,
+    Switch,
+)
+
+from dyno_viewer.app_types import TableInfo
 from dyno_viewer.aws.ddb import (
-    convert_filter_exp_key_cond,
     convert_filter_exp_attr_cond,
+    convert_filter_exp_key_cond,
     convert_filter_exp_value,
 )
-from dyno_viewer.app_types import TableInfo
+from dyno_viewer.components.query.filter_query import FilterQuery
+from dyno_viewer.components.query.key_filter import KeyFilter
 
 
 class QueryScreen(Screen):

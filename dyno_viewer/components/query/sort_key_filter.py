@@ -1,7 +1,7 @@
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Label, Button, RadioSet, Input, Select
+from textual.widgets import Button, Input, Label, RadioSet, Select
 
 
 class SortKeyFilter(Widget):

@@ -1,30 +1,32 @@
+from itertools import cycle
+
+import pyclip
+from textual import log, on, work
 from textual.app import App, ComposeResult
+from textual.binding import Binding
+from textual.message import Message
+from textual.reactive import reactive
 from textual.widgets import (
     Footer,
 )
-from textual.reactive import reactive
-from dyno_viewer.aws.session import get_available_profiles
+from textual.worker import get_current_worker
+
+from dyno_viewer.app_types import TableInfo
 from dyno_viewer.aws.ddb import (
     get_ddb_client,
     query_items,
     scan_items,
     table_client_exist,
 )
+from dyno_viewer.aws.session import get_available_profiles
 from dyno_viewer.components.screens import (
+    HelpMenu,
     ProfileSelectScreen,
+    QueryScreen,
     RegionSelectScreen,
     TableSelectScreen,
-    QueryScreen,
-    HelpMenu,
 )
 from dyno_viewer.components.table import DataDynTable
-from textual.worker import get_current_worker
-from textual.binding import Binding
-from textual import work, log, on
-import pyclip
-from itertools import cycle
-from dyno_viewer.app_types import TableInfo
-from textual.message import Message
 from dyno_viewer.util import output_to_csv_str
 from dyno_viewer.util.util import format_output
 
@@ -213,10 +215,10 @@ class DynCli(App):
 
         if run_query.filter_cond_exp:
             params["FilterExpression"] = run_query.filter_cond_exp
-        
+
         if run_query.index != "table":
             params["IndexName"] = run_query.index
-        
+
         self.dyn_query_params = params
         self.run_table_query(params)
 

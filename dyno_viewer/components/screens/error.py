@@ -1,12 +1,10 @@
 from textual.app import ComposeResult
+from textual.containers import Vertical
+from textual.screen import Screen
 from textual.widgets import (
+    Button,
     Label,
 )
-from textual.screen import Screen
-from textual.containers import Vertical
-from textual.widgets import Button
-from textual import log
-from botocore.exceptions import ClientError
 
 
 class ErrorScreen(Screen):
