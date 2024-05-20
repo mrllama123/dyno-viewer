@@ -28,14 +28,20 @@ pytest-xdist = "^3.3.0"
 toml = "^0.10.2"
 poethepoet = ">=0.20,<0.26"
 textual-dev = "^1.0.1"
+shed = "^2024.3.1"
 
 
-
+isort = "^5.13.2"
 [tool.poe.tasks]
 build_local.script = 'scripts.commands:build_local'
 test = 'pytest -n auto'
 dev = 'textual run --dev dyno_viewer/__main__.py'
 dev-console = 'textual console'
+pylint = { cmd = "pylint src", help = "Run pylint on codebase" }
+check_black = { cmd = "black dyno_viewer --check" }
+check_imports = { cmd = "isort --check-only --profile=black dyno_viewer" }
+lint = ["check_black", "check_imports", "pylint"]
+lint-fix = { cmd = "shed", help = "Run shed to fix lint and formatting issues" }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
@@ -47,6 +53,11 @@ dyno-viewer  = 'dyno_viewer.app:run'
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+# Same as Black.
+line-length = 88
+target-version = ["py38"]
 
 [tool.pylint.messages_control]
 disable = [
