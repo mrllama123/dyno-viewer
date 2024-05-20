@@ -86,7 +86,7 @@ class QueryScreen(Screen):
         primary_key_name, primary_key_value = self.get_primary_key()
 
         if not primary_key_value:
-            return
+            return None
 
         sort_key_name, sort_key_value, cond = self.get_sort_key_()
 

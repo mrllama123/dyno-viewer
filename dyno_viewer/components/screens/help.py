@@ -10,6 +10,8 @@ class HelpMenu(Screen):
 
     def compose(self) -> ComposeResult:
         parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-        with open(os.path.join(parent_dir, "help", "help-doc.md")) as f:
+        with open(
+            os.path.join(parent_dir, "help", "help-doc.md"), encoding="utf-8"
+        ) as f:
             text = f.read()
             yield Markdown(text, id="helpMarkdown")
