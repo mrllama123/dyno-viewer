@@ -32,12 +32,13 @@ shed = "^2024.3.1"
 
 
 isort = "^5.13.2"
+pylint = "^3.2.1"
 [tool.poe.tasks]
 build_local.script = 'scripts.commands:build_local'
 test = 'pytest -n auto'
 dev = 'textual run --dev dyno_viewer/__main__.py'
 dev-console = 'textual console'
-pylint = { cmd = "pylint src", help = "Run pylint on codebase" }
+pylint = { cmd = "pylint dyno_viewer", help = "Run pylint on codebase" }
 check_black = { cmd = "black dyno_viewer --check" }
 check_imports = { cmd = "isort --check-only --profile=black dyno_viewer" }
 lint = ["check_black", "check_imports", "pylint"]
@@ -94,7 +95,10 @@ disable = [
     "unexpected-special-method-signature",
     "consider-using-from-import",
     "try-except-raise",
-    "line-too-long"
+    "line-too-long",
+    "redefined-builtin",
+    "unsubscriptable-object",
+    "import-outside-toplevel",
 ]
 
 
