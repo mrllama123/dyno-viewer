@@ -1,6 +1,6 @@
 import logging
 import re
-from decimal import Decimal, Decimal as D
+from decimal import Decimal
 
 import boto3
 import simplejson as json
@@ -261,7 +261,7 @@ def convert_filter_exp_value(value: str, type: str):
 
 
 def float_to_decimal(payload):
-    return json.loads(json.dumps(payload), parse_float=D)
+    return json.loads(json.dumps(payload), parse_float=Decimal)
 
 
 def serialise_dynamodb_json(json_obj):

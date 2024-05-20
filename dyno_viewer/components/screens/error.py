@@ -1,10 +1,7 @@
 from textual.app import ComposeResult
 from textual.containers import Vertical
 from textual.screen import Screen
-from textual.widgets import (
-    Button,
-    Label,
-)
+from textual.widgets import Button, Label
 
 
 class ErrorScreen(Screen):
