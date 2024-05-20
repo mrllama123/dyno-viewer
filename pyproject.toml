@@ -61,7 +61,7 @@ build-backend = "poetry.core.masonry.api"
 line-length = 88
 target-version = ["py38"]
 
-[tool.pylint.messages_control]
+[tool.pylint."messages control"]
 disable = [
     "arguments-differ",
     "attribute-defined-outside-init",

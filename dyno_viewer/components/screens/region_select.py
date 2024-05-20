@@ -10,8 +10,6 @@ class RegionSelectScreen(Screen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
 
     class RegionSelected(Message):
-        """"""
-
         def __init__(self, region: str) -> None:
             self.region = region
             super().__init__()

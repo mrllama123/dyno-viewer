@@ -12,8 +12,8 @@ def chunk(list_to_split, amount):
 def format_output(value):
     if isinstance(value, Decimal):
         return str(value)
-    else:
-        return value
+
+    return value
 
 
 def output_to_csv_str(iterable):

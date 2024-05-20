@@ -20,5 +20,5 @@ class ErrorScreen(Screen):
     def compose(self) -> ComposeResult:
         yield Vertical(Label(self.error_msg), Button("OK"))
 
-    def on_button_pressed(self, event: Button.Pressed) -> None:
+    def on_button_pressed(self, _) -> None:
         self.app.pop_screen()

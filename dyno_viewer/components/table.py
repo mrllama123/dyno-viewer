@@ -42,7 +42,7 @@ class DataDynTable(DataTable):
         add more data to table that has already been setup with dynamodb table data
         """
         if self.row_count == 0:
-            raise Exception("there must be existing data")
+            raise ValueError("there must be existing data")
 
         cols_not_exist = {
             attrKey for item in data for attrKey in item if attrKey not in self.columns
@@ -55,7 +55,7 @@ class DataDynTable(DataTable):
 
             log.info(f"added cols to existing: {cols_not_exist}")
 
-        rows = [[item.get(col.value) for col in self.columns.keys()] for item in data]
-        log.info(f"adding rows to existing")
+        rows = [[item.get(col.value) for col in self.columns] for item in data]
+        log.info("adding rows to existing")
         self.add_rows(rows)
-        log.info(f"added rows to existing")
+        log.info("added rows to existing")

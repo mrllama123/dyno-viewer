@@ -56,11 +56,11 @@ class SortKeyFilter(Widget):
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if str(event.button.label) == "type":
             radio_set = self.query_one("#attrType")
-            radio_set.display = False if radio_set.display else True
+            radio_set.display = not radio_set.display
             self.scroll_visible()
         if str(event.button.label) == "condition":
             radio_set = self.query_one("#condition")
-            radio_set.display = False if radio_set.display else True
+            radio_set.display = not radio_set.display
             self.scroll_visible()
 
     # watch methods
