@@ -28,7 +28,6 @@ pytest-xdist = "^3.3.0"
 toml = "^0.10.2"
 poethepoet = ">=0.20,<0.26"
 textual-dev = "^1.0.1"
-shed = "^2024.3.1"
 
 
 isort = "^5.13.2"
@@ -41,8 +40,10 @@ dev-console = 'textual console'
 pylint = { cmd = "pylint dyno_viewer", help = "Run pylint on codebase" }
 check_black = { cmd = "black dyno_viewer --check" }
 check_imports = { cmd = "isort --check-only --profile=black dyno_viewer" }
+black = { cmd = "black dyno_viewer", help = "Run black on codebase" }
+isort = { cmd = "isort --profile=black dyno_viewer", help = "Run isort on codebase" }
 lint = ["check_black", "check_imports", "pylint"]
-lint-fix = { cmd = "shed", help = "Run shed to fix lint and formatting issues" }
+lint-fix = ["black", "isort"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
