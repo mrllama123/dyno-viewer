@@ -6,9 +6,7 @@ from textual.app import App, ComposeResult
 from textual.binding import Binding
 from textual.message import Message
 from textual.reactive import reactive
-from textual.widgets import (
-    Footer,
-)
+from textual.widgets import Footer
 from textual.worker import get_current_worker
 
 from dyno_viewer.app_types import TableInfo
