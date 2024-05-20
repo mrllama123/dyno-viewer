@@ -36,6 +36,11 @@ build_local.script = 'scripts.commands:build_local'
 test = 'pytest -n auto'
 dev = 'textual run --dev dyno_viewer/__main__.py'
 dev-console = 'textual console'
+pylint = { cmd = "pylint src", help = "Run pylint on codebase" }
+check_black = { cmd = "black dyno_viewer --check" }
+check_imports = { cmd = "isort --check-only --profile=black dyno_viewer" }
+lint = ["check_black", "check_imports", "pylint"]
+lint-fix = { cmd = "shed", help = "Run shed to fix lint and formatting issues" }
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
