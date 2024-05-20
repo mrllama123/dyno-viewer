@@ -47,3 +47,43 @@ dyno-viewer  = 'dyno_viewer.app:run'
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pylint.messages_control]
+disable = [
+    "arguments-differ",
+    "attribute-defined-outside-init",
+    "blacklisted-name",
+    "duplicate-code",
+    "fixme",
+    "import-error",
+    "no-member",
+    "no-name-in-module",
+    "protected-access",
+    "stop-iteration-return",
+    "too-few-public-methods",
+    "too-many-arguments",
+    "too-many-branches",
+    "too-many-instance-attributes",
+    "too-many-lines",
+    "too-many-locals",
+    "too-many-return-statements",
+    "too-many-statements",
+    "abstract-method",
+    "chained-comparison",
+    "eval-used",
+    "exec-used",
+    "expression-not-assigned",
+    "global-statement",
+    "missing-docstring",
+    "missing-function-docstring",
+    "redefined-argument-from-local",
+    "redefined-outer-name",
+    "reimported",
+    "too-many-ancestors",
+    "unexpected-special-method-signature",
+    "consider-using-from-import",
+    "try-except-raise",
+    "line-too-long"
+]
+
+
