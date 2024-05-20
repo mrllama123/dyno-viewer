@@ -1,7 +1,5 @@
 from textual import log
-from textual.widgets import (
-    DataTable,
-)
+from textual.widgets import DataTable
 
 from dyno_viewer.app_types import TableInfo
 

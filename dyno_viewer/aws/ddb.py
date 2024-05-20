@@ -1,6 +1,6 @@
 import logging
 import re
-from decimal import Decimal, Decimal as D
+from decimal import Decimal
 
 import boto3
 import simplejson as json
@@ -97,7 +97,7 @@ def get_item(table, item_key, return_none=False, consistent_read=False):
         return resp.get("Item")
 
 
-def get_items(table_name, item_keys, return_none=False, **kwargs):
+def get_items(table_name, item_keys, **kwargs):
     """
     Use the BatchGetItem API to bulk read items.
     """
@@ -107,7 +107,7 @@ def get_items(table_name, item_keys, return_none=False, **kwargs):
 
     items = []
     keys = [make_key(d) for d in item_keys]
-    logger.info(f"Batch reading {len(keys)} item keys.")
+    logger.info("Batch reading %s item keys.", len(keys))
     batch_size = 100  # the max ddb supports.
     batches = [keys[n : n + batch_size] for n in range(0, len(keys), batch_size)]
 
@@ -117,9 +117,9 @@ def get_items(table_name, item_keys, return_none=False, **kwargs):
     for n, batch in enumerate(batches):
         request["RequestItems"][table_name]["Keys"] = batch
         res = client.batch_get_item(**request)
-        for k, v in res["Responses"].items():
+        for v in res["Responses"].values():
             items.extend(v)
-        logger.info(f"{n}/{len(batches)}")
+        logger.info("%s/%s", n, len(batches))
 
     return items
 
@@ -152,7 +152,7 @@ def query_first(table, return_none=False, **query_kwargs):
         return None
 
     if items_count == 0:
-        raise Exception(f"Item not found")
+        raise ValueError(f"Item not found")
 
     return items[0]
 
@@ -261,7 +261,7 @@ def convert_filter_exp_value(value: str, type: str):
 
 
 def float_to_decimal(payload):
-    return json.loads(json.dumps(payload), parse_float=D)
+    return json.loads(json.dumps(payload), parse_float=Decimal)
 
 
 def serialise_dynamodb_json(json_obj):

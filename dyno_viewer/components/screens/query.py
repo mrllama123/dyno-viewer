@@ -6,12 +6,7 @@ from textual.css.query import NoMatches
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import Screen
-from textual.widgets import (
-    Button,
-    Footer,
-    Label,
-    Switch,
-)
+from textual.widgets import Button, Footer, Label, Switch
 
 from dyno_viewer.app_types import TableInfo
 from dyno_viewer.aws.ddb import (
