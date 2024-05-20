@@ -28,6 +28,7 @@ def table_client_exist(table_name, region_name, profile_name):
         client = get_table(table_name, region_name, profile_name)
         if client.table_status in ("CREATING", "UPDATING", "ACTIVE"):
             return client
+        return None
     except Exception as error:
         if error.response["Error"]["Code"] in [
             "ResourceNotFoundException",
@@ -93,8 +94,8 @@ def get_item(table, item_key, return_none=False, consistent_read=False):
     )
     if not return_none:
         return resp["Item"]
-    else:
-        return resp.get("Item")
+
+    return resp.get("Item")
 
 
 def get_items(table_name, item_keys, **kwargs):
