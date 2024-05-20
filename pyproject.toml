@@ -48,6 +48,11 @@ dyno-viewer  = 'dyno_viewer.app:run'
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[tool.black]
+# Same as Black.
+line-length = 88
+target-version = ["py38"]
+
 [tool.pylint.messages_control]
 disable = [
     "arguments-differ",
