@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.widget import Widget
-from textual.widgets import Input, Button, RadioSet, Select, Label
+from textual.widgets import Button, Input, Label, RadioSet, Select
 
 
 class FilterQuery(Widget):

@@ -1,9 +1,9 @@
-from textual.app import App
-from textual.screen import Screen
-from textual.widgets import ListView, Label
-from dyno_viewer.components.screens.region_select import RegionSelectScreen
-from textual.reactive import reactive
 import pytest
+from textual.app import App
+from textual.reactive import reactive
+from textual.widgets import ListView
+
+from dyno_viewer.components.screens.region_select import RegionSelectScreen
 
 
 @pytest.fixture()

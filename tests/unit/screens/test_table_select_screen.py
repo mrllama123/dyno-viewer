@@ -1,9 +1,8 @@
-from unittest.mock import MagicMock
 import pytest
 from textual.app import App, ComposeResult
-
 from textual.reactive import reactive
-from textual.widgets import ListView, Input, Label, OptionList
+from textual.widgets import Input, Label, ListView, OptionList
+
 from tests.common import type_commands
 
 """

@@ -1,7 +1,6 @@
-from textual import log, on, work
+from textual import on, work
 from textual.app import ComposeResult
-from textual.containers import Vertical
-from textual.events import Key, ScreenResume
+from textual.events import ScreenResume
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import Screen

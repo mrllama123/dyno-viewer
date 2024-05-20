@@ -1,13 +1,14 @@
 from typing import Type
-from textual.app import App, CSSPathType, ComposeResult
-from textual import events
+
+import pytest
+from textual.app import App, CSSPathType
 from textual.driver import Driver
+from textual.widgets import Button
+
 from dyno_viewer.aws.ddb import scan_items
-from dyno_viewer.components.screens import QueryScreen
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
-from textual.widgets import Input, Button
-import pytest
+from dyno_viewer.components.screens import QueryScreen
 from tests.common import type_commands
 
 

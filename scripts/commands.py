@@ -1,15 +1,14 @@
 import os
-import subprocess
+
 import PyInstaller.__main__
 import toml
-import argparse
 from rich.console import Console
 
 console = Console()
 
 
 def get_pyproject():
-    with open("pyproject.toml", "r") as f:
+    with open("pyproject.toml") as f:
         return toml.load(f)
 
 
@@ -34,5 +33,3 @@ def build_local():
             os.path.join("dyno_viewer", "__main__.py"),
         ]
     )
-
-

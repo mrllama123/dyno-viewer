@@ -2,8 +2,6 @@ import boto3
 import moto
 import pytest
 
-from tests.fixtures.setup import aws_credentials
-
 
 @pytest.fixture
 def dynamodb(aws_credentials):

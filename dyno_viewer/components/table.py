@@ -1,7 +1,8 @@
+from textual import log
 from textual.widgets import (
     DataTable,
 )
-from textual import log
+
 from dyno_viewer.app_types import TableInfo
 
 
@@ -20,9 +21,9 @@ class DataDynTable(DataTable):
         log.info(f"{len(gsis_col)} gsi cols")
 
         cols = [key_schema["primaryKey"], key_schema["sortKey"], *gsis_col]
-        data_cols = set(
-            [attrKey for item in data for attrKey in item if attrKey not in cols]
-        )
+        data_cols = {
+            attrKey for item in data for attrKey in item if attrKey not in cols
+        }
         log.info(f"{len(data_cols)} other cols")
         cols.extend(data_cols)
 
@@ -45,20 +46,14 @@ class DataDynTable(DataTable):
         if self.row_count == 0:
             raise Exception("there must be existing data")
 
-        cols_not_exist = set(
-            [
-                attrKey
-                for item in data
-                for attrKey in item
-                if attrKey not in self.columns
-            ]
-        )
+        cols_not_exist = {
+            attrKey for item in data for attrKey in item if attrKey not in self.columns
+        }
 
         if cols_not_exist:
             log.info(f"adding cols to existing: {cols_not_exist}")
             for col in list(cols_not_exist):
                 self.add_column(col, key=col)
-
 
             log.info(f"added cols to existing: {cols_not_exist}")
 

@@ -1,7 +1,8 @@
-from textual.app import App, ComposeResult
-from textual import events
-from dyno_viewer.components.table import DataDynTable
 import pytest
+from textual import events
+from textual.app import App, ComposeResult
+
+from dyno_viewer.components.table import DataDynTable
 
 
 class DataDynTableApp(App[None]):
