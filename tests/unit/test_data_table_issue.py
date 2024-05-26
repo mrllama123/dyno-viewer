@@ -8,7 +8,7 @@ from textual.app import App, ComposeResult
 from textual.reactive import reactive
 
 from dyno_viewer.app_types import TableInfo
-
+from datetime import datetime
 
 class DataDynTable(Widget):
 
@@ -24,51 +24,11 @@ class DataDynTable(Widget):
 
     def compose(self) -> ComposeResult:
         yield DataTable()
-
-    def on_mount(self) -> None:
-        table = self.get_table()
+        print(datetime.now().isoformat(), f" data: {self.table_pages}")
 
     def add_data(self, data: list[dict]) -> None:
         self.table_pages.append(data)
         self.current_page = 0
-        # if not self.table_pages:
-        #     self.table_pages.append(data)
-        #     self.current_page = 0
-        # else:
-        #     self.table_pages.append(data)
-        #     self.current_page += 1
-
-    # def increment_page(self, highlighted: DataTable.CellHighlighted) -> None:
-    #     cell_row = highlighted.coordinate.row
-    #     row_size = highlighted.data_table.row_count - 1
-
-    #     valid_upper_index = self.current_page + 1 < len(self.table_pages) - 1
-
-    #     if cell_row == row_size and valid_upper_index:
-    #         self.current_page += 1
-    #         log.info(f"Incrementing page to {self.current_page}")
-    #     else:
-    #         log.info(f"Cannot increment page to {self.current_page + 1}")
-
-    # def decrement_page(self, highlighted: DataTable.CellHighlighted) -> None:
-    #     cell_row = highlighted.coordinate.row
-    #     valid_lower_index = self.current_page - 1 >= 0
-    #     if cell_row == 0 and valid_lower_index:
-    #         self.current_page -= 1
-    #         log.info(f"Decrementing page to {self.current_page}")
-    #     else:
-    #         log.info(f"Cannot decrement page to {self.current_page -1}")
-
-    # def send_paginate_request(self, highlighted: DataTable.CellHighlighted):
-    #     cell_row = highlighted.coordinate.row
-    #     row_size = highlighted.data_table.row_count - 1
-
-    #     valid_upper_index = self.current_page + 1 < len(self.table_pages) - 1
-    #     if cell_row == row_size and not valid_upper_index:
-    #         log.info(
-    #             "hit table pages sending paginate request to main app too see if there is more data to add"
-    #         )
-    #         self.post_message(self.PaginateTable())
 
     def get_table(self) -> DataTable:
         return self.query_one(DataTable)
@@ -115,20 +75,11 @@ class DataDynTable(Widget):
         log.info(f"{len(rows)} total rows")
         table.add_rows(rows)
 
-    # def on_data_table_cell_highlighted(
-    #     self, highlighted: DataTable.CellHighlighted
-    # ) -> None:
-    #     if self.current_page == -1 or not self.table_pages:
-    #         log.info("no data added for table skipping")
-    #         return
-
-    #     self.increment_page(highlighted)
-    #     self.decrement_page(highlighted)
-    #     self.send_paginate_request(highlighted)
 
     def on_unmount(self) -> None:
         self.table_pages = []
         self.current_page = -1
+        print(datetime.now().isoformat(), f" data on unmount: {self.table_pages}")
 
 
 class TestApp(App[None]):
@@ -150,6 +101,7 @@ class TestApp(App[None]):
         super().__init__()
 
     def compose(self) -> ComposeResult:
+
         yield DataDynTable().data_bind(TestApp.table_info)
 
     def on_mount(self) -> None:
@@ -164,7 +116,7 @@ async def test_1_primary_keys():
     ]
     app = TestApp(data)
     async with app.run_test() as pilot:
-        pilot.pause()
+        await pilot.pause()
         data_table = pilot.app.query_one(DataDynTable)
         data_table.refresh()
         table = data_table.query_one(DataTable)
@@ -183,7 +135,7 @@ async def test_gsi_keys():
         {"pk": "customer#789", "sk": "CUSTOMER", "gsipk3": "gsi3", "gsisk3": "gsi3"},
     ]
     app = TestApp(data)
-    async with app.run() as pilot:
+    async with app.run_test() as pilot:
         data_table = pilot.app.query_one(DataDynTable)
         table = data_table.get_table()
         assert table.row_count == len(data)
