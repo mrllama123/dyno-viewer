@@ -1,30 +1,26 @@
 from typing import Type
 
 import pytest
-from textual.app import App, CSSPathType
+from textual.app import App, CSSPathType, ComposeResult
 from textual.driver import Driver
-from textual.widgets import Button
+from textual.widgets import Button, Label
 
 from dyno_viewer.aws.ddb import scan_items
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
 from dyno_viewer.components.screens import QueryScreen
 from tests.common import type_commands
+from textual.reactive import reactive
 
 
 @pytest.fixture
 def screen_app():
     class QueryScreenApp(App):
-        SCREENS = {"query": QueryScreen()}
+        SCREENS = {"query": QueryScreen(name="QueryScreen")}
+        dyn_query = reactive(None)
 
-        def __init__(
-            self,
-            driver_class: Type[Driver] | None = None,
-            css_path: CSSPathType | None = None,
-            watch_css: bool = False,
-        ):
-            self.dyn_query = None
-            super().__init__(driver_class, css_path, watch_css)
+        def compose(self):
+            yield Label("Query Screen")
 
         async def on_query_screen_run_query(self, run_query):
             self.dyn_query = run_query
@@ -146,9 +142,9 @@ async def test_run_query_primary_key(screen_app, ddb_table, ddb_table_with_data)
             "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
             "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
         }
-        ddb_item = ddb_table_with_data[0]
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        ddb_item = ddb_table_with_data[0]
+        assert pilot.app.screen.name == "QueryScreen"
         await assert_primary_key(pilot, ddb_item)
         # run query
         await type_commands(["tab", "r"], pilot)
@@ -177,7 +173,7 @@ async def test_run_query_primary_key_sort_key(
         }
         ddb_item = ddb_table_with_data[0]
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        assert pilot.app.screen.name == "QueryScreen"
 
         await assert_primary_key(pilot, ddb_item)
         await assert_sort_key(pilot, ddb_item)
@@ -242,7 +238,7 @@ async def test_run_query_primary_key_sort_key_filters(
 
         ddb_item = ddb_table_with_data[0]
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        assert pilot.app.screen.name == "QueryScreen"
         await assert_primary_key(pilot, ddb_item)
         await assert_sort_key(pilot, ddb_item)
         await assert_filter_one(pilot, "test", "test1")
@@ -272,7 +268,7 @@ async def test_run_query_scan(screen_app, ddb_table, ddb_table_with_data):
         }
 
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        assert pilot.app.screen.name == "QueryScreen"
         await pilot.press(
             "enter",
             "tab",
