@@ -64,6 +64,8 @@ class DataDynTable(Widget):
 
     def watch_table_info(self, new_table: TableInfo) -> None:
         log.info("table_info updated, updating gsi and other key cols for table")
+        if not new_table:
+            return
         key_schema = new_table["keySchema"]
         gsi = new_table["gsi"]
         gsi_cols = [
@@ -71,28 +73,29 @@ class DataDynTable(Widget):
         ]
         log.info(f"{len(gsi_cols)} gsi cols")
 
-        cols = [key_schema["primaryKey"], key_schema["sortKey"], *gsi_cols]
+        self.key_cols = [key_schema["primaryKey"], key_schema["sortKey"], *gsi_cols]
 
-        log.info(f"{len(cols)} total cols")
+        log.info(f"{len(self.key_cols)} total cols")
 
     def watch_current_page(self, new_page: int) -> None:
         if new_page == -1:
             return
 
-        table = self.query(DataTable)
+        table: DataTable = self.query_one(DataTable)
         log("add dynamodb data from table")
 
         new_data = self.table_pages[new_page].copy()
 
         data_cols = {
-            attrKey for item in new_data for attrKey in item if attrKey not in self.cols
+            attrKey for item in new_data for attrKey in item if attrKey not in self.key_cols
         }
         cols = [*self.key_cols, *data_cols]
-        self.clear(columns=True)
+
+        table.clear(columns=True)
         for col in cols:
             table.add_column(col, key=col)
 
-        log.info("col keys=", [str(col.label) for col in self.table.columns.values()])
+        log.info("col keys=", [str(col.label) for col in table.columns.values()])
 
         rows = [[item.get(col) for col in cols] for item in new_data]
         log.info(f"{len(rows)} total rows")
