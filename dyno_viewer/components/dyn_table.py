@@ -1,10 +1,11 @@
 from textual import log, on, work
-from textual.message import Message
-from textual.widgets import DataTable
-from textual.widget import Widget
 from textual.app import ComposeResult
-from dyno_viewer.app_types import TableInfo
+from textual.message import Message
 from textual.reactive import reactive
+from textual.widget import Widget
+from textual.widgets import DataTable
+
+from dyno_viewer.app_types import TableInfo
 
 
 class DataDynTable(Widget):
@@ -62,6 +63,9 @@ class DataDynTable(Widget):
             )
             self.post_message(self.PaginateTable())
 
+    def get_table(self) -> DataTable:
+        return self.query_one(DataTable)
+
     def watch_table_info(self, new_table: TableInfo) -> None:
         log.info("table_info updated, updating gsi and other key cols for table")
         if not new_table:
@@ -87,7 +91,10 @@ class DataDynTable(Widget):
         new_data = self.table_pages[new_page].copy()
 
         data_cols = {
-            attrKey for item in new_data for attrKey in item if attrKey not in self.key_cols
+            attrKey
+            for item in new_data
+            for attrKey in item
+            if attrKey not in self.key_cols
         }
         cols = [*self.key_cols, *data_cols]
 
@@ -101,8 +108,10 @@ class DataDynTable(Widget):
         log.info(f"{len(rows)} total rows")
         table.add_rows(rows)
 
-    @on(DataTable.CellHighlighted)
-    async def paginate_dyn_data(self, highlighted: DataTable.CellHighlighted) -> None:
+    # @on(DataTable.CellHighlighted)
+    def on_data_table_cell_highlighted(
+        self, highlighted: DataTable.CellHighlighted
+    ) -> None:
         if self.current_page == -1 or not self.table_pages:
             log.info("no data added for table skipping")
             return
@@ -110,3 +119,8 @@ class DataDynTable(Widget):
         self.increment_page(highlighted)
         self.decrement_page(highlighted)
         self.send_paginate_request(highlighted)
+
+    def on_unmount(self) -> None:
+        self.table_pages = []
+        self.current_page = -1
+        
