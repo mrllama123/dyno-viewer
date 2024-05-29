@@ -24,14 +24,14 @@ from dyno_viewer.components.screens import (
     RegionSelectScreen,
     TableSelectScreen,
 )
-from dyno_viewer.components.table import DataDynTable
+from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.util import output_to_csv_str
 from dyno_viewer.util.util import format_output
 
 cursors = cycle(["column", "row", "cell"])
 
 
-class UpdateDynDataTable(Message):
+class QueryResult(Message):
     def __init__(self, data, next_token, update_existing_data=False) -> None:
         self.data = data
         self.next_token = next_token
@@ -53,8 +53,9 @@ class DynCli(App):
         ("r", "push_screen('regionSelect')", "Region"),
         ("q", "push_screen_query", "Query"),
         ("?", "push_screen('help')", "help"),
-        Binding("ctrl+c", "copy_table_data", "Copy", show=False),
-        Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
+        # TODO: temp  until migrated to new table widget
+        # Binding("ctrl+c", "copy_table_data", "Copy", show=False),
+        # Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
     ]
     SCREENS = {
         "tableSelect": TableSelectScreen(),
@@ -83,8 +84,10 @@ class DynCli(App):
 
     table_info = reactive(None)
 
+    data = reactive([], always_update=True)
+
     def compose(self) -> ComposeResult:
-        yield DataDynTable()
+        yield DataTableManager().data_bind(DynCli.data, DynCli.table_info)
         yield Footer()
 
     def update_table_client(self):
@@ -96,8 +99,10 @@ class DynCli(App):
             if new_table_client:
                 self.table_client = new_table_client
             else:
-                table = self.query_one(DataDynTable)
-                table.clear()
+                self.data = []
+            # else:
+            #     table = self.query_one(DataTableManager)
+            #     table.action_clear_table()
 
     def set_pagination_token(self, next_token: str | None) -> None:
         if next_token:
@@ -156,24 +161,21 @@ class DynCli(App):
                     **dyn_query_params,
                 )
             )
-
-            self.post_message(UpdateDynDataTable(result, next_token, update_existing))
+            self.post_message(QueryResult(result, next_token, update_existing))
 
     # on methods
 
-    def on_mount(self):
-        table = self.query_one(DataDynTable)
-        table.focus()
+    # def on_mount(self):
+    #     table = self.query_one(DataTableManager)
+    #     table.focus()
 
-    @on(DataDynTable.CellHighlighted)
-    async def paginate_dyn_data(
-        self, highlighted: DataDynTable.CellHighlighted
-    ) -> None:
-        if highlighted.coordinate.row == highlighted.data_table.row_count - 1:
-            if "ExclusiveStartKey" in self.dyn_query_params:
-                log.info("adding more items")
-
-                self.run_table_query(self.dyn_query_params, update_existing=True)
+    @on(DataTableManager.PaginateRequest)
+    async def paginate_table(self, _) -> None:
+        table = self.query_one(DataTableManager)
+        if "ExclusiveStartKey" in self.dyn_query_params:
+            self.run_table_query(self.dyn_query_params, update_existing=True)
+        else:
+            table.loading = False
 
     @on(UpdateDynTableInfo)
     async def update_table_info(self, update: UpdateDynTableInfo) -> None:
@@ -220,21 +222,17 @@ class DynCli(App):
         self.dyn_query_params = params
         self.run_table_query(params)
 
-    async def on_update_dyn_data_table(self, update_data: UpdateDynDataTable) -> None:
-        table = self.query_one(DataDynTable)
-        if update_data.update_existing_data:
-            table.add_dyn_data_existing(update_data.data)
-            self.set_pagination_token(update_data.next_token)
-        else:
-            table.add_dyn_data(self.table_info, update_data.data)
-            self.set_pagination_token(update_data.next_token)
+    @on(QueryResult)
+    async def update_table(self, update_data: QueryResult) -> None:
+        table = self.query_one(DataTableManager)
+        self.data = self.data + [update_data.data]
+        self.set_pagination_token(update_data.next_token)
+        table.loading = False
+        # log.info("table updated", self.data)
 
     # action methods
 
     async def action_exit(self) -> None:
-        table = self.query_one(DataDynTable)
-        # ensure we don't have any dirty data for next time app runs
-        table.clear()
         self.app.exit()
 
     async def action_push_screen_query(self) -> None:
@@ -243,31 +241,33 @@ class DynCli(App):
         else:
             self.notify("No table selected")
 
-    async def action_copy_table_data(self) -> None:
-        query_table = self.query(DataDynTable)
-        if query_table:
-            table = query_table[0]
-            if table.row_count > 0:
-                if table.cursor_type == "cell":
-                    cell = table.get_cell_at(table.cursor_coordinate)
-                    if cell is not None:
-                        pyclip.copy(format_output(cell))
-                elif table.cursor_type == "row":
-                    row = table.get_row_at(table.cursor_row)
-                    if row:
-                        pyclip.copy(output_to_csv_str(row))
-                elif table.cursor_type == "column":
-                    col = table.get_column_at(table.cursor_column)
-                    if col:
-                        pyclip.copy(output_to_csv_str(col))
+    # TODO: temporary disable copy table data until migrated to new table widget
+    # async def action_copy_table_data(self) -> None:
+    #     query_table = self.query(DataDynTable)
+    #     if query_table:
+    #         table = query_table[0]
+    #         if table.row_count > 0:
+    #             if table.cursor_type == "cell":
+    #                 cell = table.get_cell_at(table.cursor_coordinate)
+    #                 if cell is not None:
+    #                     pyclip.copy(format_output(cell))
+    #             elif table.cursor_type == "row":
+    #                 row = table.get_row_at(table.cursor_row)
+    #                 if row:
+    #                     pyclip.copy(output_to_csv_str(row))
+    #             elif table.cursor_type == "column":
+    #                 col = table.get_column_at(table.cursor_column)
+    #                 if col:
+    #                     pyclip.copy(output_to_csv_str(col))
 
-    async def action_change_cursor_type(self) -> None:
-        query_table = self.query(DataDynTable)
-        if query_table:
-            table = query_table[0]
-            next_cursor = next(cursors)
-            self.notify(f"selection mode: {next_cursor}", timeout=1)
-            table.cursor_type = next_cursor
+    # TODO: temporary disable change cursor type until migrated to new table widget
+    # async def action_change_cursor_type(self) -> None:
+    #     query_table = self.query(DataDynTable)
+    #     if query_table:
+    #         table = query_table[0]
+    #         next_cursor = next(cursors)
+    #         self.notify(f"selection mode: {next_cursor}", timeout=1)
+    #         table.cursor_type = next_cursor
 
     # watcher methods
 
@@ -277,9 +277,9 @@ class DynCli(App):
             log.info("table client changed and table found, Update table data")
             self.get_dyn_table_info()
             self.run_table_query(self.dyn_query_params)
-        else:
-            log.info("table client changed and table not found, Clear table data")
-            self.query_one(DataDynTable).clear()
+        # else:
+        #     log.info("table client changed and table not found, Clear table data")
+        #     self.query_one(DataDynTable).clear()
 
     def watch_dyn_client(self, new_dyn_client):
         with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):
