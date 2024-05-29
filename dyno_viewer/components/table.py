@@ -119,6 +119,15 @@ class DataTableManager(Widget):
 
     def watch_data(self, new_data):
         # only update first time data is added
+        log.info("data updated, updating table", new_data)
+        table = self.query_one(DataTable)
+        if not new_data and table.row_count > 0:
+            table.clear(columns=True)
+            return
+        
+        if not new_data:
+            return
+
         if len(new_data) == 1:
             self._update_table(self.page_index)
 
@@ -143,4 +152,3 @@ class DataTableManager(Widget):
     def watch_page_index(self, new_page: int):
         if self.data:
             self._update_table(new_page)
-

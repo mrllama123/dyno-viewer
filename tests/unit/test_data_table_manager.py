@@ -87,6 +87,29 @@ async def test_data_table_manager_extra_data():
         ]
 
 
+async def test_data_table_manager_empty_data():
+    data = [
+        [
+            {"pk": "customer#12345", "sk": "CUSTOMER", "testAttr": "test"},
+            {"pk": "customer#54321", "sk": "CUSTOMER", "testAttr": "test"},
+        ]
+    ]   
+    app = DataTableManagerApp()
+    async with app.run_test() as pilot:
+        pilot.app.data = data
+        await pilot.pause()
+        table = app.query_one(DataTable)
+        assert table.row_count == len(data[0])
+        table_rows = [table.get_row_at(i) for i in range(0, len(data[0]))]
+        assert table_rows == [
+            ["customer#12345", "CUSTOMER", None, None, None, None, "test"],
+            ["customer#54321", "CUSTOMER", None, None, None, None, "test"],
+        ]
+
+        pilot.app.data = []
+        assert table.row_count == 0
+
+
 async def test_data_table_manager_pagination():
     data = [
         [
