@@ -1,9 +1,9 @@
 from textual import log
-from textual.widgets import DataTable
-from textual.reactive import reactive
-from textual.widget import Widget
 from textual.binding import Binding
 from textual.message import Message
+from textual.reactive import reactive
+from textual.widget import Widget
+from textual.widgets import DataTable
 
 from dyno_viewer.app_types import TableInfo
 
