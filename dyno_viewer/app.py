@@ -98,11 +98,8 @@ class DynCli(App):
             )
             if new_table_client:
                 self.table_client = new_table_client
-            else:
-                self.data = []
-            # else:
-            #     table = self.query_one(DataTableManager)
-            #     table.action_clear_table()
+
+            self.data = []
 
     def set_pagination_token(self, next_token: str | None) -> None:
         if next_token:
@@ -165,10 +162,6 @@ class DynCli(App):
 
     # on methods
 
-    # def on_mount(self):
-    #     table = self.query_one(DataTableManager)
-    #     table.focus()
-
     @on(DataTableManager.PaginateRequest)
     async def paginate_table(self, _) -> None:
         table = self.query_one(DataTableManager)
@@ -228,7 +221,6 @@ class DynCli(App):
         self.data = self.data + [update_data.data]
         self.set_pagination_token(update_data.next_token)
         table.loading = False
-        # log.info("table updated", self.data)
 
     # action methods
 
@@ -277,9 +269,9 @@ class DynCli(App):
             log.info("table client changed and table found, Update table data")
             self.get_dyn_table_info()
             self.run_table_query(self.dyn_query_params)
-        # else:
-        #     log.info("table client changed and table not found, Clear table data")
-        #     self.query_one(DataDynTable).clear()
+        else:
+            log.info("table client changed and table not found, Clear table data")
+            self.data = []
 
     def watch_dyn_client(self, new_dyn_client):
         with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):
