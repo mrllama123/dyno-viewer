@@ -55,7 +55,6 @@ class DynCli(App):
         ("?", "push_screen('help')", "help"),
         # TODO: temp  until migrated to new table widget
         # Binding("ctrl+c", "copy_table_data", "Copy", show=False),
-        # Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
     ]
     SCREENS = {
         "tableSelect": TableSelectScreen(),
@@ -252,14 +251,7 @@ class DynCli(App):
     #                 if col:
     #                     pyclip.copy(output_to_csv_str(col))
 
-    # TODO: temporary disable change cursor type until migrated to new table widget
-    # async def action_change_cursor_type(self) -> None:
-    #     query_table = self.query(DataDynTable)
-    #     if query_table:
-    #         table = query_table[0]
-    #         next_cursor = next(cursors)
-    #         self.notify(f"selection mode: {next_cursor}", timeout=1)
-    #         table.cursor_type = next_cursor
+
 
     # watcher methods
 

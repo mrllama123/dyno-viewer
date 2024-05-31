@@ -1,3 +1,4 @@
+from itertools import cycle
 from textual import log
 from textual.binding import Binding
 from textual.message import Message
@@ -16,12 +17,14 @@ class DataTableManager(Widget):
     BINDINGS = {
         Binding("[", action="page_decrement", description="prev results", show=True),
         Binding("]", action="page_increment", description="next results", show=True),
+        Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
     }
 
     table_info = reactive(None)
     data = reactive([])
     static_cols = reactive([])
     page_index = reactive(0)
+    cursors = cycle(["column", "row", "cell"])
 
     class PaginateRequest(Message):
         pass
@@ -59,6 +62,14 @@ class DataTableManager(Widget):
         else:
             self.post_message(self.PaginateRequest())
             self.loading = True
+
+    async def action_change_cursor_type(self) -> None:
+        query_table = self.query(DataTable)
+        if query_table:
+            table = query_table[0]
+            next_cursor = next(self.cursors)
+            self.notify(f"selection mode: {next_cursor}", timeout=1)
+            table.cursor_type = next_cursor
 
     def watch_data(self, new_data):
         # only update first time data is added
