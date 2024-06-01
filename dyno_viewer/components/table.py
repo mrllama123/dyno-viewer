@@ -1,11 +1,12 @@
 from itertools import cycle
+
+import pyclip
 from textual import log
 from textual.binding import Binding
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import DataTable
-import pyclip
 
 from dyno_viewer.app_types import TableInfo
 from dyno_viewer.util.util import format_output, output_to_csv_str
@@ -22,7 +23,7 @@ class DataTableManager(Widget):
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
         Binding("c", "copy_table_data", "Copy", show=False),
     }
-    
+
     table_info = reactive(None)
     data = reactive([])
     static_cols = reactive([])
