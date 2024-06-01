@@ -5,8 +5,10 @@ from textual.message import Message
 from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import DataTable
+import pyclip
 
 from dyno_viewer.app_types import TableInfo
+from dyno_viewer.util.util import format_output, output_to_csv_str
 
 
 class DataTableManager(Widget):
@@ -18,8 +20,9 @@ class DataTableManager(Widget):
         Binding("[", action="page_decrement", description="prev results", show=True),
         Binding("]", action="page_increment", description="next results", show=True),
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
+        Binding("c", "copy_table_data", "Copy", show=False),
     }
-
+    
     table_info = reactive(None)
     data = reactive([])
     static_cols = reactive([])
@@ -70,6 +73,25 @@ class DataTableManager(Widget):
             next_cursor = next(self.cursors)
             self.notify(f"selection mode: {next_cursor}", timeout=1)
             table.cursor_type = next_cursor
+
+    def action_copy_table_data(self) -> None:
+        query_table = self.query(DataTable)
+        if query_table:
+            table = query_table[0]
+            if table.row_count > 0:
+                if table.cursor_type == "cell":
+                    log.info("copying cell")
+                    cell = table.get_cell_at(table.cursor_coordinate)
+                    if cell is not None:
+                        pyclip.copy(format_output(cell))
+                elif table.cursor_type == "row":
+                    row = table.get_row_at(table.cursor_row)
+                    if row:
+                        pyclip.copy(output_to_csv_str(row))
+                elif table.cursor_type == "column":
+                    col = table.get_column_at(table.cursor_column)
+                    if col:
+                        pyclip.copy(output_to_csv_str(col))
 
     def watch_data(self, new_data):
         # only update first time data is added

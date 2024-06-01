@@ -53,8 +53,6 @@ class DynCli(App):
         ("r", "push_screen('regionSelect')", "Region"),
         ("q", "push_screen_query", "Query"),
         ("?", "push_screen('help')", "help"),
-        # TODO: temp  until migrated to new table widget
-        # Binding("ctrl+c", "copy_table_data", "Copy", show=False),
     ]
     SCREENS = {
         "tableSelect": TableSelectScreen(),
@@ -231,27 +229,6 @@ class DynCli(App):
             self.push_screen("query")
         else:
             self.notify("No table selected")
-
-    # TODO: temporary disable copy table data until migrated to new table widget
-    # async def action_copy_table_data(self) -> None:
-    #     query_table = self.query(DataDynTable)
-    #     if query_table:
-    #         table = query_table[0]
-    #         if table.row_count > 0:
-    #             if table.cursor_type == "cell":
-    #                 cell = table.get_cell_at(table.cursor_coordinate)
-    #                 if cell is not None:
-    #                     pyclip.copy(format_output(cell))
-    #             elif table.cursor_type == "row":
-    #                 row = table.get_row_at(table.cursor_row)
-    #                 if row:
-    #                     pyclip.copy(output_to_csv_str(row))
-    #             elif table.cursor_type == "column":
-    #                 col = table.get_column_at(table.cursor_column)
-    #                 if col:
-    #                     pyclip.copy(output_to_csv_str(col))
-
-
 
     # watcher methods
 
