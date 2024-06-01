@@ -1,9 +1,5 @@
-from itertools import cycle
-
-import pyclip
 from textual import log, on, work
 from textual.app import App, ComposeResult
-from textual.binding import Binding
 from textual.message import Message
 from textual.reactive import reactive
 from textual.widgets import Footer
@@ -25,10 +21,6 @@ from dyno_viewer.components.screens import (
     TableSelectScreen,
 )
 from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.util import output_to_csv_str
-from dyno_viewer.util.util import format_output
-
-cursors = cycle(["column", "row", "cell"])
 
 
 class QueryResult(Message):

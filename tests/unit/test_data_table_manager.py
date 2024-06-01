@@ -1,11 +1,6 @@
-from textual import events
-from textual.app import App, on, log
-from textual.widget import Widget
+from textual.app import App, on
 from textual.widgets import DataTable
 from textual.reactive import reactive
-from dyno_viewer.app_types import TableInfo
-from textual.binding import Binding
-from textual.message import Message
 
 from dyno_viewer.components.table import DataTableManager
 
@@ -67,6 +62,28 @@ async def test_data_table_manager():
         ]
 
 
+async def test_data_table_manager_cursor_type():
+    data = [
+        [
+            {"pk": "customer#12345", "sk": "CUSTOMER"},
+            {"pk": "customer#54321", "sk": "CUSTOMER"},
+        ]
+    ]
+    app = DataTableManagerApp()
+    async with app.run_test() as pilot:
+        pilot.app.data = data
+        await pilot.pause()
+        table = app.query_one(DataTable)
+        assert table.row_count == len(data[0])
+
+        await pilot.press("ctrl+r")
+        assert table.cursor_type == "column"
+        await pilot.press("ctrl+r")
+        assert table.cursor_type == "row"
+        await pilot.press("ctrl+r")
+        assert table.cursor_type == "cell"
+
+
 async def test_data_table_manager_extra_data():
     data = [
         [
@@ -93,7 +110,7 @@ async def test_data_table_manager_empty_data():
             {"pk": "customer#12345", "sk": "CUSTOMER", "testAttr": "test"},
             {"pk": "customer#54321", "sk": "CUSTOMER", "testAttr": "test"},
         ]
-    ]   
+    ]
     app = DataTableManagerApp()
     async with app.run_test() as pilot:
         pilot.app.data = data
