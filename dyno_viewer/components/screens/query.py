@@ -166,9 +166,10 @@ class QueryScreen(Screen):
         self.scan_mode = changed.value
         if changed.value:
             key_filter = self.query_one(KeyFilter)
-            key_filter.remove()
+            key_filter.display = False
         else:
-            self.mount(KeyFilter(id="keyFilter"), after="#scanToggle")
+            key_filter = self.query_one(KeyFilter)
+            key_filter.display = True
 
     # watcher methods
 

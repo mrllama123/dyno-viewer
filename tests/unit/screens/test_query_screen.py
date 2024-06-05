@@ -278,7 +278,11 @@ async def test_run_query_scan(screen_app, ddb_table, ddb_table_with_data):
             "tab",
         )
 
-        assert not pilot.app.query(KeyFilter)
+        key_filter = pilot.app.query_one(KeyFilter)
+
+        assert key_filter
+        assert not key_filter.display
+        
         await assert_filter_one(pilot, "test", "test1")
 
         # send run query message back to root app
@@ -311,7 +315,10 @@ async def test_run_query_scan_no_filters(screen_app, ddb_table, ddb_table_with_d
             "tab",
         )
 
-        assert not pilot.app.query(KeyFilter)
+        key_filter = pilot.app.query_one(KeyFilter)
+
+        assert key_filter
+        assert not key_filter.display
 
         # send run query message back to root app
         await type_commands(["tab", "r"], pilot)
