@@ -203,6 +203,7 @@ class DynCli(App):
 
         self.dyn_query_params = params
         self.run_table_query(params)
+        self.data = []
 
     @on(QueryResult)
     async def update_table(self, update_data: QueryResult) -> None:
