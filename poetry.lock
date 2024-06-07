@@ -3843,13 +3843,13 @@ typing = ["mypy (>=1.6,<2.0)", "traitlets (>=5.11.1)"]
 
 [[package]]
 name = "textual"
-version = "0.59.0"
+version = "0.65.2"
 description = "Modern Text User Interface framework"
 optional = false
 python-versions = "<4.0,>=3.8"
 files = [
-    {file = "textual-0.59.0-py3-none-any.whl", hash = "sha256:61d6187704731a9425da0d20217a737c8738c1649c644041f868afb6963e0022"},
-    {file = "textual-0.59.0.tar.gz", hash = "sha256:0fb0001ed393a9eb2c6c8598a5436cde588658a9726b5e099ae3bfb6f3ac257d"},
+    {file = "textual-0.65.2-py3-none-any.whl", hash = "sha256:f01ce9ee3d2a613c63b9255900bf5a709b9ff7931d54d42f438e15495fa4ad3c"},
+    {file = "textual-0.65.2.tar.gz", hash = "sha256:05d4d39eedffac977b9bce9bea307dfefefdaaaa5081722549472cbb1d32e53f"},
 ]
 
 [package.dependencies]
@@ -4339,4 +4339,4 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more-it
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "6e7cfeefad72d9a92d66613422854a20bed8a725b92c135356799eb537a9c749"
+content-hash = "eb8f63bcc8686219568cfb1f179ed6b48dc8091a4c14cd7427efd260ef46c46f"
