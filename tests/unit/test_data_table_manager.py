@@ -3,6 +3,7 @@ from textual.widgets import DataTable
 from textual.reactive import reactive
 
 from dyno_viewer.components.table import DataTableManager
+from dyno_viewer.components.screens.view_row_item import ViewRowItem
 
 
 class DataTableManagerApp(App):
@@ -60,6 +61,35 @@ async def test_data_table_manager():
             ["customer#12345", "CUSTOMER", None, None, None, None],
             ["customer#54321", "CUSTOMER", None, None, None, None],
         ]
+
+
+async def test_data_table_manager_view_single_row():
+    data = [
+        [
+            {"pk": "customer#12345", "sk": "CUSTOMER"},
+            {"pk": "customer#54321", "sk": "CUSTOMER"},
+        ]
+    ]
+    app = DataTableManagerApp()
+    async with app.run_test() as pilot:
+        table = app.query_one(DataTable)
+
+        pilot.app.data = data
+        await pilot.pause()
+
+        assert table.row_count == len(data[0])
+        table_rows = [table.get_row_at(i) for i in range(0, len(data[0]))]
+        assert table_rows == [
+            ["customer#12345", "CUSTOMER", None, None, None, None],
+            ["customer#54321", "CUSTOMER", None, None, None, None],
+        ]
+
+        await pilot.press("i")
+        await pilot.pause()
+        assert isinstance(pilot.app.screen, ViewRowItem)
+        await pilot.press("escape")
+        await pilot.pause()
+        assert not isinstance(pilot.app.screen, ViewRowItem)
 
 
 async def test_data_table_manager_cursor_type():

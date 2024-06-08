@@ -9,6 +9,7 @@ from textual.widget import Widget
 from textual.widgets import DataTable
 
 from dyno_viewer.app_types import TableInfo
+from dyno_viewer.components.screens.view_row_item import ViewRowItem
 from dyno_viewer.util.util import format_output, output_to_csv_str
 
 
@@ -20,6 +21,7 @@ class DataTableManager(Widget):
     BINDINGS = {
         Binding("[", action="page_decrement", description="prev results", show=True),
         Binding("]", action="page_increment", description="next results", show=True),
+        Binding("i", action="view_row_item", description="View row", show=False),
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
         Binding("c", "copy_table_data", "Copy", show=False),
     }
@@ -66,6 +68,18 @@ class DataTableManager(Widget):
         else:
             self.post_message(self.PaginateRequest())
             self.loading = True
+
+    def action_view_row_item(self):
+        if not self.data:
+            return
+
+        table = self.query_one(DataTable)
+        current_page = self.data[self.page_index]
+        cursor_row = table.cursor_row
+
+        selected_row = current_page[cursor_row]
+
+        self.app.push_screen(ViewRowItem(item=selected_row))
 
     async def action_change_cursor_type(self) -> None:
         query_table = self.query(DataTable)
