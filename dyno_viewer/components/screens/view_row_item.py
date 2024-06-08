@@ -1,8 +1,8 @@
-from textual.screen import ModalScreen
-from textual.widgets import Static
+import pyclip
 import simplejson as json
 from rich.json import JSON
-import pyclip
+from textual.screen import ModalScreen
+from textual.widgets import Static
 
 
 class ViewRowItem(ModalScreen):
