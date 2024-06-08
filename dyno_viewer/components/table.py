@@ -21,7 +21,7 @@ class DataTableManager(Widget):
     BINDINGS = {
         Binding("[", action="page_decrement", description="prev results", show=True),
         Binding("]", action="page_increment", description="next results", show=True),
-        Binding("i", action="view_row_item", description="View item from row"),
+        Binding("i", action="view_row_item", description="View row", show=False),
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
         Binding("c", "copy_table_data", "Copy", show=False),
     }
