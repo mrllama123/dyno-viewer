@@ -3,7 +3,7 @@ from textual.widgets import DataTable
 from textual.reactive import reactive
 
 from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.components.screens.item_info import ItemInfo
+from dyno_viewer.components.screens.view_row_item import ViewRowItem
 
 
 class DataTableManagerApp(App):
@@ -86,10 +86,10 @@ async def test_data_table_manager_view_single_row():
 
         await pilot.press("i")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, ItemInfo)
+        assert isinstance(pilot.app.screen, ViewRowItem)
         await pilot.press("escape")
         await pilot.pause()
-        assert not isinstance(pilot.app.screen, ItemInfo)
+        assert not isinstance(pilot.app.screen, ViewRowItem)
 
 
 async def test_data_table_manager_cursor_type():

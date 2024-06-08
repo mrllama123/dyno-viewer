@@ -9,7 +9,7 @@ from textual.widget import Widget
 from textual.widgets import DataTable
 
 from dyno_viewer.app_types import TableInfo
-from dyno_viewer.components.screens.item_info import ItemInfo
+from dyno_viewer.components.screens.view_row_item import ViewRowItem
 from dyno_viewer.util.util import format_output, output_to_csv_str
 
 
@@ -79,7 +79,7 @@ class DataTableManager(Widget):
 
         selected_row = current_page[cursor_row]
 
-        self.app.push_screen(ItemInfo(item=selected_row))
+        self.app.push_screen(ViewRowItem(item=selected_row))
 
     async def action_change_cursor_type(self) -> None:
         query_table = self.query(DataTable)
