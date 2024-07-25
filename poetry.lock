@@ -442,17 +442,17 @@ css = ["tinycss2 (>=1.1.0,<1.3)"]
 
 [[package]]
 name = "boto3"
-version = "1.34.117"
+version = "1.34.148"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "boto3-1.34.117-py3-none-any.whl", hash = "sha256:1506589e30566bbb2f4997b60968ff7d4ef8a998836c31eedd36437ac3b7408a"},
-    {file = "boto3-1.34.117.tar.gz", hash = "sha256:c8a383b904d6faaf7eed0c06e31b423db128e4c09ce7bd2afc39d1cd07030a51"},
+    {file = "boto3-1.34.148-py3-none-any.whl", hash = "sha256:d63d36e5a34533ba69188d56f96da132730d5e9932c4e11c02d79319cd1afcec"},
+    {file = "boto3-1.34.148.tar.gz", hash = "sha256:2058397f0a92c301e3116e9e65fbbc70ea49270c250882d65043d19b7c6e2d17"},
 ]
 
 [package.dependencies]
-botocore = ">=1.34.117,<1.35.0"
+botocore = ">=1.34.148,<1.35.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.10.0,<0.11.0"
 
@@ -461,13 +461,13 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.34.117"
+version = "1.34.148"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "botocore-1.34.117-py3-none-any.whl", hash = "sha256:26a431997f882bcdd1e835f44c24b2a1752b1c4e5183c2ce62999ce95d518d6c"},
-    {file = "botocore-1.34.117.tar.gz", hash = "sha256:4637ca42e6c51aebc4d9a2d92f97bf4bdb042e3f7985ff31a659a11e4c170e73"},
+    {file = "botocore-1.34.148-py3-none-any.whl", hash = "sha256:9e09428b0bc4d0c1cf5e368dd6ab18eabf6047304060f8b5dd8391677cfe00e6"},
+    {file = "botocore-1.34.148.tar.gz", hash = "sha256:258dd95570b43db9fa21cce5426eabaea5867e3a61224157650448b5019d1bbd"},
 ]
 
 [package.dependencies]
@@ -479,7 +479,7 @@ urllib3 = [
 ]
 
 [package.extras]
-crt = ["awscrt (==0.20.9)"]
+crt = ["awscrt (==0.20.11)"]
 
 [[package]]
 name = "certifi"
@@ -4339,4 +4339,4 @@ test = ["big-O", "jaraco.functools", "jaraco.itertools", "jaraco.test", "more-it
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "6e7cfeefad72d9a92d66613422854a20bed8a725b92c135356799eb537a9c749"
+content-hash = "528fb0be072fc469b982762f84148b7d9de018fb3d120cd8feaf09981a1c7c69"
