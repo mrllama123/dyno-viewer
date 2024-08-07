@@ -2417,8 +2417,8 @@ files = [
 [package.dependencies]
 numpy = [
     {version = ">=1.22.4", markers = "python_version < \"3.11\""},
-    {version = ">=1.23.2", markers = "python_version == \"3.11\""},
     {version = ">=1.26.0", markers = "python_version >= \"3.12\""},
+    {version = ">=1.23.2", markers = "python_version == \"3.11\""},
 ]
 python-dateutil = ">=2.8.2"
 pytz = ">=2020.1"
@@ -2569,13 +2569,13 @@ testing = ["pytest", "pytest-benchmark"]
 
 [[package]]
 name = "poethepoet"
-version = "0.26.1"
+version = "0.27.0"
 description = "A task runner that works well with poetry."
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "poethepoet-0.26.1-py3-none-any.whl", hash = "sha256:aa43b443fec5d17d7e76771cccd484e5285805301721a74f059c483ad3276edd"},
-    {file = "poethepoet-0.26.1.tar.gz", hash = "sha256:aaad8541f6072617a60bcff2562d00779b58b353bd0f1847b06d8d0f2b6dc192"},
+    {file = "poethepoet-0.27.0-py3-none-any.whl", hash = "sha256:0032d980a623b96e26dc7450ae200b0998be523f27d297d799b97510fe252a24"},
+    {file = "poethepoet-0.27.0.tar.gz", hash = "sha256:907ab4dc1bc6326be5a3b10d2aa39d1acc0ca12024317d9506fbe9c0cdc912c9"},
 ]
 
 [package.dependencies]
@@ -2874,8 +2874,8 @@ astroid = ">=3.2.4,<=3.3.0-dev0"
 colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
 dill = [
     {version = ">=0.2", markers = "python_version < \"3.11\""},
-    {version = ">=0.3.6", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
     {version = ">=0.3.7", markers = "python_version >= \"3.12\""},
+    {version = ">=0.3.6", markers = "python_version >= \"3.11\" and python_version < \"3.12\""},
 ]
 isort = ">=4.2.5,<5.13.0 || >5.13.0,<6"
 mccabe = ">=0.6,<0.8"
@@ -4351,4 +4351,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d3e691b74ab9cfba36fe8d3d4f308735780846d2aed4ea911f0320213bb127b9"
+content-hash = "d1ffeb4e98916e3bb57f6bb9db5dbcf20e3b5d8c4622560c1dff4c2c32a9273e"
