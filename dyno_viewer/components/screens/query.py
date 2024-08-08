@@ -35,8 +35,8 @@ class QueryScreen(Screen):
 
         def __init__(
             self,
-            key_cond_exp: Key | None= None,
-            filter_cond_exp: Attr | None=None,
+            key_cond_exp: Key | None = None,
+            filter_cond_exp: Attr | None = None,
             index: str = "table",
         ) -> None:
             self.key_cond_exp = key_cond_exp
