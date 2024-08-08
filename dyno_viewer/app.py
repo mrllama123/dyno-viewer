@@ -202,6 +202,7 @@ class DynCli(App):
             params["IndexName"] = run_query.index
 
         self.dyn_query_params = params
+        self.log.info(f"Querying {self.table_name} with params: {params}")
         self.run_table_query(params)
         self.data = []
 

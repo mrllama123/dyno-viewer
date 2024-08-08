@@ -35,9 +35,9 @@ class QueryScreen(Screen):
 
         def __init__(
             self,
-            key_cond_exp: Key | None,
-            filter_cond_exp: Attr | None,
-            index: str | None,
+            key_cond_exp: Key | None= None,
+            filter_cond_exp: Attr | None=None,
+            index: str = "table",
         ) -> None:
             self.key_cond_exp = key_cond_exp
             self.filter_cond_exp = filter_cond_exp
@@ -135,7 +135,19 @@ class QueryScreen(Screen):
 
         filter_cond_exp = self.get_filter_queries()
 
-        if key_cond_exp or filter_cond_exp or self.scan_mode:
+        self.log.info(
+            f"run query: {key_cond_exp} {filter_cond_exp}, index {index_mode}"
+        )
+
+        if self.scan_mode:
+            self.post_message(
+                self.RunQuery(
+                    filter_cond_exp=filter_cond_exp,
+                    index=index_mode,
+                )
+            )
+            self.app.pop_screen()
+        elif key_cond_exp or filter_cond_exp:
             self.post_message(
                 self.RunQuery(
                     key_cond_exp,
