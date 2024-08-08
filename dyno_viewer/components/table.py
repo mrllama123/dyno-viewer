@@ -38,6 +38,7 @@ class DataTableManager(Widget):
     def _update_table(self, new_page):
         table = self.query_one(DataTable)
         table.clear(columns=True)
+        table.refresh()
         non_static_cols = {
             col
             for data_item in self.data[new_page]
@@ -50,6 +51,7 @@ class DataTableManager(Widget):
         rows = [[item.get(col) for col in cols] for item in self.data[new_page]]
 
         table.add_rows(rows)
+        table.refresh()
 
     def compose(self):
         yield DataTable()
