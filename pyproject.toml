@@ -31,7 +31,7 @@ textual-dev = "^1.0.1"
 
 
 isort = "^5.13.2"
-pylint = "^3.2.1"
+pylint = "^3.3.0"
 [tool.poe.tasks]
 build_local.script = 'scripts.commands:build_local'
 test = 'pytest -n auto'
