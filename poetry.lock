@@ -3855,17 +3855,18 @@ typing = ["mypy (>=1.6,<2.0)", "traitlets (>=5.11.1)"]
 
 [[package]]
 name = "textual"
-version = "0.75.1"
+version = "0.81.0"
 description = "Modern Text User Interface framework"
 optional = false
 python-versions = "<4.0.0,>=3.8.1"
 files = [
-    {file = "textual-0.75.1-py3-none-any.whl", hash = "sha256:7edb1196753feae79890daa2287bc3180ebba2cbf63f59f2a160991325b020f2"},
-    {file = "textual-0.75.1.tar.gz", hash = "sha256:3f0b53fe6119aa64853c7e60ced4d4e16fb23c83dee1e0fd19eddb3f2639c02e"},
+    {file = "textual-0.81.0-py3-none-any.whl", hash = "sha256:5f94e3bf185a1693c31f5e2bcbc413c8ed093a53abc96a956c65322d48f9543c"},
+    {file = "textual-0.81.0.tar.gz", hash = "sha256:b438f7e6bb143fdec379170ccc6709a32d273bd998e70179537109263de7c818"},
 ]
 
 [package.dependencies]
 markdown-it-py = {version = ">=2.1.0", extras = ["linkify", "plugins"]}
+platformdirs = ">=3.6.0,<5"
 rich = ">=13.3.3"
 typing-extensions = ">=4.4.0,<5.0.0"
 
@@ -4351,4 +4352,4 @@ test = ["big-O", "importlib-resources", "jaraco.functools", "jaraco.itertools", 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.9"
-content-hash = "d1ffeb4e98916e3bb57f6bb9db5dbcf20e3b5d8c4622560c1dff4c2c32a9273e"
+content-hash = "28a3e17bb170e1ec92db4d05897de526684b566487ac22adfec8cb46811491df"
