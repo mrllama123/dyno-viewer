@@ -30,7 +30,7 @@ poethepoet = ">=0.20,<0.34"
 textual-dev = "^1.6.1"
 
 
-isort = "^5.13.2"
+isort = "^6.0.1"
 pylint = "^3.2.1"
 [tool.poe.tasks]
 build_local.script = 'scripts.commands:build_local'
