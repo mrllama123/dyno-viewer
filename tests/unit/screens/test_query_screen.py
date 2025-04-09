@@ -15,7 +15,7 @@ from tests.common import type_commands
 @pytest.fixture
 def screen_app():
     class QueryScreenApp(App):
-        SCREENS = {"query": QueryScreen()}
+        SCREENS = {"query": QueryScreen}
 
         def __init__(
             self,
@@ -33,7 +33,8 @@ def screen_app():
 
 
 async def assert_primary_key(pilot, ddb_item):
-    key_query = pilot.app.query_one(KeyFilter)
+    screen = pilot.app.get_screen("query")
+    key_query = screen.query_one(KeyFilter)
     # set pk to customer#test
     await type_commands(["tab" for _ in range(0, 2)], pilot)
     await type_commands([ddb_item["pk"]], pilot)
@@ -41,7 +42,8 @@ async def assert_primary_key(pilot, ddb_item):
 
 
 async def assert_gsi_primary_key(pilot, ddb_item):
-    key_query = pilot.app.query_one(KeyFilter)
+    screen = pilot.app.get_screen("query")
+    key_query = screen.query_one(KeyFilter)
     # set pk to customer#test
     await pilot.press("tab", "down", "enter", "tab")
     await type_commands([ddb_item["gsipk1"]], pilot)
@@ -50,7 +52,8 @@ async def assert_gsi_primary_key(pilot, ddb_item):
 
 async def assert_gsi_sort_key(pilot, ddb_item):
     # TODO handle different cond and types
-    sort_key = pilot.app.query_one(KeyFilter).query_one("#sortKeyFilter")
+    screen = pilot.app.get_screen("query")
+    sort_key = screen.query_one(KeyFilter).query_one("#sortKeyFilter")
     # attr filter type is string
     assert sort_key.query_one("#attrType").value == "string"
     # cond is ==
@@ -64,7 +67,8 @@ async def assert_gsi_sort_key(pilot, ddb_item):
 
 async def assert_sort_key(pilot, ddb_item):
     # TODO handle different cond and types
-    sort_key = pilot.app.query_one(KeyFilter).query_one("#sortKeyFilter")
+    screen = pilot.app.get_screen("query")
+    sort_key = screen.query_one(KeyFilter).query_one("#sortKeyFilter")
     # attr filter type is string
     assert sort_key.query_one("#attrType").value == "string"
     # cond is ==
@@ -78,9 +82,10 @@ async def assert_sort_key(pilot, ddb_item):
 
 async def assert_filter_one(pilot, attr_name, attr_value):
     # add new filter
+    screen = pilot.app.get_screen("query")
     await type_commands(["enter"], pilot)
-    assert len(pilot.app.query(FilterQuery)) == 1
-    filter_query = pilot.app.query_one(FilterQuery)
+    assert len(screen.query(FilterQuery)) == 1
+    filter_query = screen.query_one(FilterQuery)
     # set attr filter name to test
     await type_commands(["tab", "tab", "test"], pilot)
     assert filter_query.query_one("#attr").value == attr_name
@@ -97,13 +102,14 @@ async def assert_filter_one(pilot, attr_name, attr_value):
 async def test_initial_state(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
-        assert pilot.app.query_one(KeyFilter)
-        add_filter_button: Button = pilot.app.query_one("#addFilter")
+        screen = pilot.app.get_screen("query")
+        assert screen.is_current
+        assert screen.query_one(KeyFilter)
+        add_filter_button: Button = screen.query_one("#addFilter")
         assert add_filter_button
         assert str(add_filter_button.label) == "add filter"
 
-        remove_all_filter_button: Button = pilot.app.query_one("#removeAllFilters")
+        remove_all_filter_button: Button = screen.query_one("#removeAllFilters")
         assert remove_all_filter_button
         assert str(remove_all_filter_button.label) == "remove all filters"
 
@@ -111,19 +117,21 @@ async def test_initial_state(screen_app):
 async def test_add_filter(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        screen = pilot.app.get_screen("query")
+        assert screen.is_current
         await type_commands(["tab" for _ in range(0, 6)], pilot)
         await type_commands(["enter", "enter"], pilot)
 
-        filters = pilot.app.query(FilterQuery)
+        filters = screen.query(FilterQuery)
 
         assert len(filters) == 2
 
 @pytest.mark.skip(reason="flaky look at fixing later. Tested case manually and works")
 async def test_remove_all_filters(screen_app):
     async with screen_app().run_test() as pilot:
+        screen = pilot.app.get_screen("query")
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        assert screen.is_current
         await type_commands(["tab" for _ in range(0, 6)], pilot)
         await type_commands(["enter", "enter"], pilot)
 
@@ -142,13 +150,14 @@ async def test_run_query_primary_key(screen_app, ddb_table, ddb_table_with_data)
     from dyno_viewer.aws.ddb import query_items
 
     async with screen_app().run_test() as pilot:
-        pilot.app.SCREENS["query"].table_info = {
+        screen = pilot.app.get_screen("query")
+        screen.table_info= {
             "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
             "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
         }
         ddb_item = ddb_table_with_data[0]
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        assert screen.is_current
         await assert_primary_key(pilot, ddb_item)
         # run query
         await type_commands(["tab", "r"], pilot)
@@ -171,13 +180,14 @@ async def test_run_query_primary_key_sort_key(
     from dyno_viewer.aws.ddb import query_items
 
     async with screen_app().run_test() as pilot:
-        pilot.app.SCREENS["query"].table_info = {
+        screen = pilot.app.get_screen("query")
+        screen.table_info = {
             "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
             "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
         }
         ddb_item = ddb_table_with_data[0]
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        assert screen.is_current
 
         await assert_primary_key(pilot, ddb_item)
         await assert_sort_key(pilot, ddb_item)
@@ -202,13 +212,14 @@ async def test_run_query_primary_key_sort_key_gsi(
     from dyno_viewer.aws.ddb import query_items
 
     async with screen_app().run_test() as pilot:
-        pilot.app.SCREENS["query"].table_info = {
+        screen = pilot.app.get_screen("query")
+        screen.table_info = {
             "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
             "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
         }
         ddb_item = ddb_table_with_data[0]
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        assert screen.is_current
 
         await assert_gsi_primary_key(pilot, ddb_item)
         await assert_gsi_sort_key(pilot, ddb_item)
@@ -235,14 +246,15 @@ async def test_run_query_primary_key_sort_key_filters(
     from dyno_viewer.aws.ddb import query_items
 
     async with screen_app().run_test() as pilot:
-        pilot.app.SCREENS["query"].table_info = {
+        screen = pilot.app.get_screen("query")
+        screen.table_info = {
             "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
             "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
         }
 
         ddb_item = ddb_table_with_data[0]
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        assert screen.is_current
         await assert_primary_key(pilot, ddb_item)
         await assert_sort_key(pilot, ddb_item)
         await assert_filter_one(pilot, "test", "test1")
@@ -266,19 +278,21 @@ async def test_run_query_primary_key_sort_key_filters(
 async def test_run_query_scan(screen_app, ddb_table, ddb_table_with_data):
 
     async with screen_app().run_test() as pilot:
-        pilot.app.SCREENS["query"].table_info = {
+        screen = pilot.app.get_screen("query")
+        screen.table_info = {
             "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
             "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
         }
 
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        screen = pilot.app.get_screen("query")
+        assert screen.is_current
         await pilot.press(
             "enter",
             "tab",
         )
 
-        key_filter = pilot.app.query_one(KeyFilter)
+        key_filter = screen.query_one(KeyFilter)
 
         assert key_filter
         assert not key_filter.display
@@ -303,19 +317,20 @@ async def test_run_query_scan(screen_app, ddb_table, ddb_table_with_data):
 async def test_run_query_scan_no_filters(screen_app, ddb_table, ddb_table_with_data):
 
     async with screen_app().run_test() as pilot:
-        pilot.app.SCREENS["query"].table_info = {
+        screen = pilot.app.get_screen("query")
+        screen.table_info = {
             "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
             "gsi": {"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
         }
 
         await pilot.app.push_screen("query")
-        assert pilot.app.SCREENS["query"].is_current
+        assert screen.is_current
         await pilot.press(
             "enter",
             "tab",
         )
 
-        key_filter = pilot.app.query_one(KeyFilter)
+        key_filter = screen.query_one(KeyFilter)
 
         assert key_filter
         assert not key_filter.display

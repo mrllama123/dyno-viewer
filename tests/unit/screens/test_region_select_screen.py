@@ -9,7 +9,7 @@ from dyno_viewer.components.screens.region_select import RegionSelectScreen
 @pytest.fixture()
 def screen_app():
     class ScreensApp(App[None]):
-        SCREENS = {"regionSelect": RegionSelectScreen()}
+        SCREENS = {"regionSelect": RegionSelectScreen}
 
         region = reactive("")
 
@@ -24,8 +24,9 @@ def screen_app():
 async def test_list_regions(iam, screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("regionSelect")
+        screen = pilot.app.get_screen("regionSelect")
 
-        list_view: ListView = pilot.app.query_one(ListView)
+        list_view: ListView = screen.query_one(ListView)
         regions = [item.id for item in list_view.children]
         assert regions == [
             "af-south-1",
@@ -68,19 +69,20 @@ async def test_select_region(iam, screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("regionSelect")
 
-        assert pilot.app.SCREENS["regionSelect"].is_current
+        screen = pilot.app.get_screen("regionSelect")
+        assert screen.is_current
 
         await pilot.press("tab")
 
-        assert pilot.app.query_one(ListView).index == 0
+        assert screen.query_one(ListView).index == 0
 
         await pilot.press("down")
 
-        assert pilot.app.query_one(ListView).index == 1
+        assert screen.query_one(ListView).index == 1
         await pilot.press("down")
 
-        assert pilot.app.query_one(ListView).index == 2
+        assert screen.query_one(ListView).index == 2
         await pilot.press("enter")
         assert pilot.app.region == "ap-northeast-1"
 
-        assert not pilot.app.SCREENS["regionSelect"].is_current
+        assert not screen.is_current

@@ -9,7 +9,7 @@ from dyno_viewer.components.screens.profile_select import ProfileSelectScreen
 @pytest.fixture
 def screen_app():
     class ScreensApp(App[None]):
-        SCREENS = {"profile": ProfileSelectScreen()}
+        SCREENS = {"profile": ProfileSelectScreen}
 
         profile = reactive("")
 
@@ -29,7 +29,10 @@ async def test_list_profiles(iam, screen_app, mocker):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("profile")
 
-        list_view = pilot.app.query_one(ListView)
+        screen = pilot.app.get_screen("profile")
+        assert screen.is_current
+
+        list_view = screen.query_one(ListView)
         profiles = [item.id for item in list_view.children]
         assert profiles == ["default", "dev", "test"]
 
@@ -42,9 +45,11 @@ async def test_select_profiles(iam, screen_app, mocker):
     async with screen_app().run_test() as pilot:
         await pilot.app.push_screen("profile")
 
-        list_view = pilot.app.query_one(ListView)
+        screen = pilot.app.get_screen("profile")
+        assert screen.is_current
 
-        assert pilot.app.SCREENS["profile"].is_current
+        list_view = screen.query_one(ListView)
+
 
         await pilot.press("tab")
 
@@ -61,4 +66,4 @@ async def test_select_profiles(iam, screen_app, mocker):
 
         assert pilot.app.profile == "test"
 
-        assert not pilot.app.SCREENS["profile"].is_current
+        assert not screen.is_current

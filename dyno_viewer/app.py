@@ -47,11 +47,11 @@ class DynCli(App):
         ("?", "push_screen('help')", "help"),
     ]
     SCREENS = {
-        "tableSelect": TableSelectScreen(),
-        "regionSelect": RegionSelectScreen(),
-        "profile": ProfileSelectScreen(),
-        "query": QueryScreen(),
-        "help": HelpMenu(),
+        "tableSelect": TableSelectScreen,
+        "regionSelect": RegionSelectScreen,
+        "profile": ProfileSelectScreen,
+        "query": QueryScreen,
+        "help": HelpMenu,
     }
 
     CSS_PATH = ["components/css/query.tcss", "components/css/table.tcss"]
@@ -237,12 +237,16 @@ class DynCli(App):
             self.data = []
 
     def watch_dyn_client(self, new_dyn_client):
-        with self.SCREENS["tableSelect"].prevent(TableSelectScreen.TableName):
-            self.SCREENS["tableSelect"].dyn_client = new_dyn_client
+        # Get the screen instance first, then use prevent on it
+        table_select = self.get_screen("tableSelect")
+        with table_select.prevent(TableSelectScreen.TableName):
+            table_select.dyn_client = new_dyn_client
 
     def watch_table_info(self, new_table_info: TableInfo) -> None:
-        with self.SCREENS["query"].prevent(QueryScreen.RunQuery):
-            self.SCREENS["query"].table_info = new_table_info
+        # Get the screen instance first, then use prevent on it
+        query_screen = self.get_screen("query")
+        with query_screen.prevent(QueryScreen.RunQuery):
+            query_screen.table_info = new_table_info
 
 
 def run() -> None:
