@@ -20,7 +20,7 @@ def screen_app() -> App:
     from dyno_viewer.components.screens.table_select import TableSelectScreen
 
     class ScreensApp(App):
-        SCREENS = {"tableSelect": TableSelectScreen()}
+        SCREENS = {"tableSelect": TableSelectScreen}
 
         table_name = reactive("")
 
@@ -41,16 +41,19 @@ async def test_select_table(screen_app, ddb_tables):
     import boto3
 
     async with screen_app().run_test() as pilot:
-        pilot.app.SCREENS["tableSelect"].dyn_client = boto3.client("dynamodb")
+        screen = pilot.app.get_screen("tableSelect")
+        screen.dyn_client = boto3.client("dynamodb")
         await pilot.app.push_screen("tableSelect")
+        assert screen.is_current
 
-        table_list: OptionList = pilot.app.query_one(OptionList)
-        input: Input = pilot.app.query_one(Input)
+        table_list: OptionList = screen.query_one(OptionList)
+        input: Input = screen.query_one(Input)
 
         assert input.value == ""
-
         # search dawn
         await type_commands(["dawn"], pilot)
+        await pilot.pause()
+        assert input.value == "dawn"
 
         # update list with result
         assert table_list.option_count == 1
@@ -73,8 +76,8 @@ async def test_select_no_tables(screen_app, dynamodb):
         pilot.app.SCREENS["tableSelect"].dyn_client = boto3.client("dynamodb")
         await pilot.app.push_screen("tableSelect")
 
-        list_view: ListView = pilot.app.query_one(OptionList)
-        input: Input = pilot.app.query_one(Input)
+        list_view: ListView = pilot.app.screen.query_one(OptionList)
+        input: Input = pilot.app.screen.query_one(Input)
 
         assert input.value == ""
 
