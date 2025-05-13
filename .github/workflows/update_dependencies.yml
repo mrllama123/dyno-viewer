@@ -1,0 +1,50 @@
+name: Update Python Dependencies
+
+on:
+  schedule:
+    - cron: "0 3 * * 0" # Runs every Sunday at 3 AM UTC
+  workflow_dispatch: # Allows manual triggering from the Actions tab
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write        # Required to push new branch and commit
+      pull-requests: write   # Required to create a Pull Request
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          # Fetch all history so git commands like `checkout -b` and `gh pr create` work correctly
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11' # Or your project's specific Python version
+
+      - name: Install Poetry
+        run: |
+          pipx install poetry
+          # Configure poetry to install packages into the Python environment set up by actions/setup-python
+          # This avoids creating a .venv folder within your project in the CI runner.
+          poetry config virtualenvs.create false
+
+      - name: Cache Poetry dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pypoetry # Standard cache directory for Poetry on Linux
+          key: ${{ runner.os }}-poetry-${{ hashFiles('''**/poetry.lock''') }}
+          restore-keys: |
+            ${{ runner.os }}-poetry-
+
+
+      - name: Run dependency update script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # You can change 'main' to your repository's default branch (e.g., master, develop)
+          DEFAULT_BRANCH: master
+          # For debugging gh CLI calls if needed
+          # GH_DEBUG: "api" 
+        run: python scripts/update_dependencies.py
