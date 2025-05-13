@@ -1,12 +1,12 @@
 from textual.app import ComposeResult
 from textual.message import Message
-from textual.screen import Screen
+from textual.screen import Screen, ModalScreen
 from textual.widgets import Label, ListItem, ListView
 
 from dyno_viewer.aws.session import get_all_regions
 
 
-class RegionSelectScreen(Screen):
+class RegionSelectScreen(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
 
     class RegionSelected(Message):
