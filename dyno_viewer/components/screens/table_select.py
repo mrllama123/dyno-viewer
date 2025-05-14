@@ -3,14 +3,14 @@ from textual.app import ComposeResult
 from textual.events import ScreenResume
 from textual.message import Message
 from textual.reactive import reactive
-from textual.screen import Screen
+from textual.screen import ModalScreen
 from textual.widgets import Input, OptionList
 from textual.worker import get_current_worker
 
 from dyno_viewer.aws.ddb import list_all_tables
 
 
-class TableSelectScreen(Screen):
+class TableSelectScreen(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
 
     dyn_client = reactive(None, always_update=True)
