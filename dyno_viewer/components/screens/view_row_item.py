@@ -1,9 +1,9 @@
 import pyclip
 import simplejson as json
 from rich.json import JSON
+from textual.containers import Container
 from textual.screen import ModalScreen
 from textual.widgets import Static
-from textual.containers import Container
 
 
 class ViewRowItem(ModalScreen):
