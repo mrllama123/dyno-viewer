@@ -3,6 +3,7 @@ import simplejson as json
 from rich.json import JSON
 from textual.screen import ModalScreen
 from textual.widgets import Static
+from textual.containers import Container
 
 
 class ViewRowItem(ModalScreen):
@@ -10,6 +11,11 @@ class ViewRowItem(ModalScreen):
         ("escape", "app.pop_screen", "exit"),
         ("c", "copy_row", "copy row item"),
     }
+    CSS = """
+    Container{
+        overflow-y: auto;
+    }
+    """
 
     def __init__(
         self,
@@ -23,7 +29,8 @@ class ViewRowItem(ModalScreen):
 
     def compose(self):
         json_str = json.dumps(self.item_payload)
-        yield Static(JSON(json_str))
+        with Container():
+            yield Static(JSON(json_str))
 
     def action_copy_row(self):
         pyclip.copy(json.dumps(self.item_payload, indent=2))
