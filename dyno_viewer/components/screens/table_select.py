@@ -3,7 +3,7 @@ from textual.app import ComposeResult
 from textual.events import ScreenResume
 from textual.message import Message
 from textual.reactive import reactive
-from textual.screen import ModalScreen, Screen
+from textual.screen import ModalScreen
 from textual.widgets import Input, OptionList
 from textual.worker import get_current_worker
 

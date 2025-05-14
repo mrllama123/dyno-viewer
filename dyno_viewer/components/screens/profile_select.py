@@ -1,6 +1,6 @@
 from textual.app import ComposeResult
 from textual.message import Message
-from textual.screen import ModalScreen, Screen
+from textual.screen import ModalScreen
 from textual.widgets import Label, ListItem, ListView
 
 from dyno_viewer.aws.session import get_available_profiles
