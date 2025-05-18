@@ -124,7 +124,13 @@ class DynCli(App):
             }
 
             self.post_message(
-                UpdateDynTableInfo({"keySchema": main_keys, "gsi": gsi_keys})
+                UpdateDynTableInfo(
+                    {
+                        "tableName": self.table_client.name,
+                        "keySchema": main_keys,
+                        "gsi": gsi_keys,
+                    }
+                )
             )
 
     @work(exclusive=True, group="dyn_table_query", thread=True)
