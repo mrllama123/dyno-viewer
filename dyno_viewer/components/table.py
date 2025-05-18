@@ -141,8 +141,7 @@ class DataTableManager(Widget):
         self.static_cols = [key_schema["primaryKey"], key_schema["sortKey"], *gsi_cols]
 
         log.info(f"{len(self.static_cols)} total cols")
-        if self.page_index > 0:
-            self.page_index = 0
+        self.page_index = min(self.page_index, 0)
 
     def watch_page_index(self, new_page: int):
         if self.data:
