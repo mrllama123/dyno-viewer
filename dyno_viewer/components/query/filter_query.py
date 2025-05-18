@@ -4,6 +4,16 @@ from textual.widgets import Button, Input, Label, RadioSet, Select
 
 
 class FilterQuery(Widget):
+    DEFAULT_CSS = """
+    FilterQuery  {
+        margin: 1  1;
+        background: $boost;
+        border: heavy grey;
+        height: 25;
+        overflow-y: auto;
+    }
+    """
+
     def compose(self) -> ComposeResult:
         yield Input(placeholder="attr", id="attr")
         yield Label("Type")

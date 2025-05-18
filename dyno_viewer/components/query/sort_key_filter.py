@@ -6,6 +6,11 @@ from textual.widgets import Button, Input, Label, RadioSet, Select
 
 class SortKeyFilter(Widget):
     attr_name = reactive("", layout=True)
+    DEFAULT_CSS = """
+    #attr {
+        margin: 1 1;
+    }
+    """
 
     def compose(self) -> ComposeResult:
         yield Label(self.attr_name, id="attr")

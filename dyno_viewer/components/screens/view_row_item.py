@@ -15,6 +15,10 @@ class ViewRowItem(ModalScreen):
     Container{
         overflow-y: auto;
     }
+    ViewRowItem > Static {
+        height: 100%;
+        max-height: 100%;
+    }
     """
 
     def __init__(

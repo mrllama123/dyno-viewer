@@ -23,6 +23,26 @@ class QueryScreen(Screen):
         ("escape", "app.pop_screen", "Pop screen"),
         (("r", "run_query", "Run Query")),
     ]
+    CSS = """
+    #queryScreen {
+        layout: vertical;
+        overflow-y: auto;
+    }
+
+    #queryScreen  Select{
+        margin: 1 0;
+
+    }
+
+    #queryScreen  Button {
+        margin: 1 1;
+
+    }
+    #scanToggle {
+        margin: 0 1;
+        height: 4;
+    }
+    """
 
     table_info = reactive(None)
     scan_mode = reactive(False)

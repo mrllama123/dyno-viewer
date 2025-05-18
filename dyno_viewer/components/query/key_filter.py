@@ -8,6 +8,19 @@ from dyno_viewer.components.query.sort_key_filter import SortKeyFilter
 
 
 class KeyFilter(Widget):
+    DEFAULT_CSS = """
+    KeyFilter {
+        margin: 1 1;
+        background: $boost;
+        border: heavy grey;
+        height: 34;
+    }
+    #queryIndex {
+        margin: 1 1;
+        height: 4;
+    }
+
+    """
     index_mode = reactive("table")
 
     gsi_indexes = reactive({})
