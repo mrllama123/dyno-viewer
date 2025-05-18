@@ -18,13 +18,13 @@ class DataTableManager(Widget):
     handles pagination and displaying of dynamodb query and scan results
     """
 
-    BINDINGS = {
+    BINDINGS = [
         Binding("[", action="page_decrement", description="prev results", show=True),
         Binding("]", action="page_increment", description="next results", show=True),
         Binding("i", action="view_row_item", description="View row", show=False),
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
         Binding("c", "copy_table_data", "Copy", show=False),
-    }
+    ]
 
     table_info = reactive(None)
     data = reactive([])
@@ -118,10 +118,10 @@ class DataTableManager(Widget):
             table.clear(columns=True)
             return
 
-        if not new_data:
-            return
+        # if not new_data:
+        #     return
 
-        if len(new_data) == 1:
+        if new_data:
             self._update_table(self.page_index)
 
     def watch_table_info(self, new_table: TableInfo):
@@ -141,6 +141,7 @@ class DataTableManager(Widget):
         self.static_cols = [key_schema["primaryKey"], key_schema["sortKey"], *gsi_cols]
 
         log.info(f"{len(self.static_cols)} total cols")
+        self.page_index = min(self.page_index, 0)
 
     def watch_page_index(self, new_page: int):
         if self.data:

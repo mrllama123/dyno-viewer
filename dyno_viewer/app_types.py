@@ -7,5 +7,6 @@ class KeySchema(TypedDict):
 
 
 class TableInfo(TypedDict):
+    tableName: str = ""
     keySchema: KeySchema
     gsi: dict[str, KeySchema]

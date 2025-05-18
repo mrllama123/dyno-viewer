@@ -36,6 +36,7 @@ pylint = "^3.2.1"
 build_local.script = 'scripts.commands:build_local'
 test = 'pytest -n auto'
 dev = 'textual run --dev dyno_viewer/__main__.py'
+dev-server = 'textual serve --dev dyno_viewer/__main__.py'
 dev-console = 'textual console'
 pylint = { cmd = "pylint dyno_viewer", help = "Run pylint on codebase" }
 check_black = { cmd = "black dyno_viewer --check" }
@@ -47,6 +48,7 @@ lint-fix = ["black", "isort"]
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 
 [tool.poetry.scripts]
