@@ -25,6 +25,12 @@ class DataTableManager(Widget):
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
         Binding("c", "copy_table_data", "Copy", show=False),
     ]
+    CSS = """
+    DataTable {
+        height: 100%;
+        max-height: 100%;
+    }
+    """
 
     table_info = reactive(None)
     data = reactive([])
