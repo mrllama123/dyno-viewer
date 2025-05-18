@@ -54,7 +54,6 @@ class DynCli(App):
         "help": HelpMenu,
     }
 
-
     profiles = reactive(get_available_profiles())
 
     aws_profile = reactive(None)

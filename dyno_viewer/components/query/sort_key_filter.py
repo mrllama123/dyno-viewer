@@ -11,6 +11,7 @@ class SortKeyFilter(Widget):
         margin: 1 1;
     }
     """
+
     def compose(self) -> ComposeResult:
         yield Label(self.attr_name, id="attr")
         yield Label("Type")
