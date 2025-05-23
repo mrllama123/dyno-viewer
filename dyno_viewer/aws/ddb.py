@@ -8,6 +8,8 @@ from boto3.dynamodb.conditions import Attr, Key
 from boto3.session import Session
 from dynamodb_json import json_util as dyn_json
 
+from dyno_viewer.app_types import TableInfo
+
 LOG_LEVEL = logging.INFO
 
 
@@ -60,6 +62,29 @@ def get_ddb_client(region_name="ap-southeast-2", profile_name=None):
         Session(profile_name=profile_name, region_name=region_name).client("dynamodb")
         if profile_name
         else boto3.client("dynamodb", region_name=region_name)
+    )
+
+
+def get_table_info(table_client) -> TableInfo:
+    main_keys = {
+        ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key["AttributeName"]
+        for key in table_client.key_schema
+    }
+
+    gsi_keys = {
+        gsi["IndexName"]: {
+            ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
+                "AttributeName"
+            ]
+            for key in gsi["KeySchema"]
+        }
+        for gsi in table_client.global_secondary_indexes or []
+    }
+
+    return TableInfo(
+        tableName=table_client.name,
+        keySchema=main_keys,
+        gsi=gsi_keys,
     )
 
 

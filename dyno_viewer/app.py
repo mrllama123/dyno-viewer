@@ -8,6 +8,7 @@ from textual.worker import get_current_worker
 from dyno_viewer.app_types import TableInfo
 from dyno_viewer.aws.ddb import (
     get_ddb_client,
+    get_table_info,
     query_items,
     scan_items,
     table_client_exist,
@@ -104,32 +105,11 @@ class DynCli(App):
             self.log("updating table info")
             self.log("key schema=", self.table_client.key_schema)
             self.log("gsi schema=", self.table_client.global_secondary_indexes)
-            main_keys = {
-                ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
-                    "AttributeName"
-                ]
-                for key in self.table_client.key_schema
-            }
+            table_info = get_table_info(self.table_client)
 
-            gsi_keys = {
-                gsi["IndexName"]: {
-                    ("primaryKey" if key["KeyType"] == "HASH" else "sortKey"): key[
-                        "AttributeName"
-                    ]
-                    for key in gsi["KeySchema"]
-                }
-                for gsi in self.table_client.global_secondary_indexes or []
-            }
+            self.post_message(UpdateDynTableInfo(table_info))
 
-            self.post_message(
-                UpdateDynTableInfo(
-                    {
-                        "tableName": self.table_client.name,
-                        "keySchema": main_keys,
-                        "gsi": gsi_keys,
-                    }
-                )
-            )
+
 
     @work(exclusive=True, group="dyn_table_query", thread=True)
     def run_table_query(self, dyn_query_params, update_existing=False):
