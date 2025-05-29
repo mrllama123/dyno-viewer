@@ -1,21 +1,21 @@
 import boto3
-import moto
+from moto import mock_aws
 import pytest
 
 
 @pytest.fixture
 def dynamodb(aws_credentials):
-    with moto.mock_dynamodb():
+    with mock_aws():
         yield boto3.resource("dynamodb")
 
 
 @pytest.fixture
 def iam(aws_credentials):
-    with moto.mock_iam():
+    with mock_aws():
         yield boto3.client("iam")
 
 
 @pytest.fixture
 def sts(aws_credentials):
-    with moto.mock_iam():
+    with mock_aws():
         yield boto3.client("sts")
