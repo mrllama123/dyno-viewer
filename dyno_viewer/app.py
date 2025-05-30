@@ -43,8 +43,13 @@ class DynCli(App):
     BINDINGS = [
         ("x", "exit", "Exit"),
         ("?", "switch_mode('help')", "help"),
+        ("p", "select_profile", "Profile"),
+        ("r", "select_region", "Region"),
     ]
 
+    aws_profile = reactive(None)
+    aws_region = reactive("ap-southeast-2")
+    dyn_client = reactive(get_ddb_client(region_name="ap-southeast-2", profile_name=None))
 
     MODES = {
         "table": TableViewer,
@@ -54,10 +59,42 @@ class DynCli(App):
     def on_mount(self) -> None:
         self.switch_mode("table")
 
+    async def watch_aws_profile(self, new_profile: str | None) -> None:
+        log.info(f"App: AWS Profile changed to: {new_profile}")
+        self.dyn_client = get_ddb_client(region_name=self.aws_region, profile_name=new_profile)
+        # Notify TableViewer if it's the active screen
+        if isinstance(self.screen, TableViewer):
+            self.screen.aws_profile = new_profile # Pass the new profile
+            self.screen.dyn_client = self.dyn_client # Pass the new client
+            self.screen.update_table_client() 
+
+    async def watch_aws_region(self, new_region: str) -> None:
+        log.info(f"App: AWS Region changed to: {new_region}")
+        self.dyn_client = get_ddb_client(region_name=new_region, profile_name=self.aws_profile)
+        # Notify TableViewer if it's the active screen
+        if isinstance(self.screen, TableViewer):
+            self.screen.aws_region = new_region # Pass the new region
+            self.screen.dyn_client = self.dyn_client # Pass the new client
+            self.screen.update_table_client()
+
     # action methods
     async def action_exit(self) -> None:
+        self.dyn_client.close()
         self.app.exit()
 
+    @work
+    async def action_select_profile(self) -> None:
+        """Open the profile select screen."""
+        profile = await self.push_screen_wait(ProfileSelectScreen())
+        if profile:
+            self.aws_profile = profile
+
+    @work
+    async def action_select_region(self) -> None:
+        """Open the region select screen."""
+        region = await self.push_screen_wait(RegionSelectScreen())
+        if region:
+            self.aws_region = region
 
 def run() -> None:
     app = DynCli()

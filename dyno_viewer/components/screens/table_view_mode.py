@@ -5,7 +5,7 @@ from textual.reactive import reactive
 from textual.widgets import Footer
 from textual.worker import get_current_worker
 from textual.screen import Screen
-
+from textual.binding import Binding
 from dyno_viewer.app_types import TableInfo
 from dyno_viewer.aws.ddb import (
     get_ddb_client,
@@ -39,27 +39,21 @@ class UpdateDynTableInfo(Message):
 
 class TableViewer(Screen):
     BINDINGS = [
-        ("p", "select_profile", "Profile"),
-        ("t", "select_table", "Table"),
-        ("r", "select_region", "Region"),
-        ("q", "query_table", "Query"),
+        Binding("t", "select_table", "Select table", show=False),
+        Binding("q", "query_table", "Query", show=False),
     ]
 
-
     aws_profile = reactive(None)
+    aws_region = reactive(None)
+    dyn_client = reactive(None)
+    table_info = reactive(None)
 
     table_name = reactive("")
-
-    aws_region = reactive("ap-southeast-2")
 
     dyn_query_params = reactive({})
 
     # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :(
     table_client = reactive(None, always_update=True)
-
-    dyn_client = reactive(get_ddb_client())
-
-    table_info = reactive(None)
 
     data = reactive([], always_update=True)
 
@@ -69,14 +63,33 @@ class TableViewer(Screen):
 
     def update_table_client(self):
         if self.table_name != "":
-            log.info(f"updating table client with profile {self.aws_profile}")
+            # Access app's profile and region
+            app_profile = self.app.aws_profile
+            app_region = self.app.aws_region
+            log.info(
+                f"updating table client for table {self.table_name} with profile {app_profile} in region {app_region}"
+            )
             new_table_client = table_client_exist(
-                self.table_name, self.aws_region, self.aws_profile
+                self.table_name, app_region, app_profile
             )
             if new_table_client:
                 self.table_client = new_table_client
+            else:
+                # If table doesn't exist in new profile/region, clear client and data
+                self.table_client = None
+                self.data = []
+                self.table_info = None
+                self.notify(
+                    f"Table {self.table_name} not found in profile {app_profile} and region {app_region}",
+                    severity="warning",
+                )
+                return  # exit early if table not found
 
             self.data = []
+        else:
+            self.table_client = None  # Clear client if no table name
+            self.data = []
+            self.table_info = None
 
     def set_pagination_token(self, next_token: str | None) -> None:
         if next_token:
@@ -160,31 +173,6 @@ class TableViewer(Screen):
     async def update_table_info(self, update: UpdateDynTableInfo) -> None:
         self.table_info = update.table_info
 
-    # async def on_region_select_screen_region_selected(
-    #     self, selected_region: RegionSelectScreen.RegionSelected
-    # ) -> None:
-    #     self.aws_region = selected_region.region
-    #     self.dyn_client = get_ddb_client(selected_region.region, self.aws_profile)
-    #     self.update_table_client()
-
-    # async def on_table_select_screen_table_name(
-    #     self,
-    #     new_table_name: TableSelectScreen.TableName,
-    # ) -> None:
-    #     if self.table_name != new_table_name:
-    #         self.table_name = new_table_name.table
-    #         self.update_table_client()
-
-    # async def on_profile_select_screen_profile_selected(
-    #     self, selected_profile: ProfileSelectScreen.ProfileSelected
-    # ) -> None:
-    #     self.aws_profile = selected_profile.profile
-    #     log.info(f"{self.aws_profile} profile selected")
-    #     self.dyn_client = get_ddb_client(
-    #         region_name=self.aws_region, profile_name=self.aws_profile
-    #     )
-    #     self.update_table_client()
-
     async def on_query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
         params = (
             {"KeyConditionExpression": run_query.key_cond_exp}
@@ -216,22 +204,9 @@ class TableViewer(Screen):
         if self.table_client:
             self.app.push_screen("query")
         else:
-            self.notify("No table selected")
-
-    @work
-    async def action_select_profile(self) -> None:
-        """Open the profile select screen."""
-        profile = await self.app.push_screen_wait(ProfileSelectScreen())
-        self.aws_profile = profile
-
-    @work
-    async def action_select_region(self) -> None:
-        """Open the region select screen."""
-        region = await self.app.push_screen_wait(RegionSelectScreen())
-        self.aws_region = region
-        self.dyn_client = get_ddb_client(region, self.aws_profile)
-        self.update_table_client()
-    
+            self.notify(
+                "No table selected, or table not found in current profile/region"
+            )  # Updated message
 
     @work
     async def action_select_table(self) -> None:
@@ -249,19 +224,9 @@ class TableViewer(Screen):
         if new_table_client:
             log.info("table client changed and table found, Update table data")
             self.get_dyn_table_info()
+
             self.run_table_query(self.dyn_query_params)
         else:
             log.info("table client changed and table not found, Clear table data")
             self.data = []
-
-    # def watch_dyn_client(self, new_dyn_client):
-    #     # Get the screen instance first, then use prevent on it
-    #     table_select = self.app.get_screen("tableSelect")
-    #     with table_select.prevent(TableSelectScreen.TableName):
-    #         table_select.dyn_client = new_dyn_client
-
-    # def watch_table_info(self, new_table_info: TableInfo) -> None:
-    #     # Get the screen instance first, then use prevent on it
-    #     query_screen = self.app.get_screen("query")
-    #     with query_screen.prevent(QueryScreen.RunQuery):
-    #         query_screen.table_info = new_table_info
+            self.table_info = None  # Clear table info as well
