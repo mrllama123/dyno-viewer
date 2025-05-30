@@ -72,8 +72,9 @@ class TableSelectScreen(ModalScreen):
 
     def on_input_submitted(self, submitted: Input.Submitted) -> None:
         if submitted.value in self.tables:
-            self.post_message(self.TableName(submitted.value))
-            self.app.pop_screen()
+            self.dismiss(submitted.value)
+            # self.post_message(self.TableName(submitted.value))
+            # self.app.pop_screen()
 
     @on(ScreenResume)
     async def paginate_tables_on_resume(self):
