@@ -23,6 +23,6 @@ class ProfileSelectScreen(ModalScreen):
             id="profiles",
         )
 
-    async def on_list_view_selected(self, selected) -> None:
-        self.post_message(self.ProfileSelected(selected.item.id))
-        self.app.pop_screen()
+    async def on_list_view_selected(self, selected: ListView.Selected) -> None:
+
+        self.dismiss(selected.item.id)

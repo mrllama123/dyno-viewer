@@ -21,5 +21,4 @@ class RegionSelectScreen(ModalScreen):
         )
 
     async def on_list_view_selected(self, selected) -> None:
-        self.post_message(self.RegionSelected(selected.item.id))
-        self.app.pop_screen()
+        self.dismiss(selected.item.id)

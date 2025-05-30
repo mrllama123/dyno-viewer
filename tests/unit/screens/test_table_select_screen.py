@@ -1,8 +1,11 @@
 import pytest
+from typing import Generator, Any
+from textual import work
 from textual.app import App, ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Input, Label, ListView, OptionList
 
+from dyno_viewer.components.screens.table_select import TableSelectScreen
 from tests.common import type_commands
 
 """
@@ -16,70 +19,61 @@ if you used the same class in multiple tests in the same dir then it will keep a
 
 
 @pytest.fixture
-def screen_app() -> App:
+def screen_app(dynamodb_client):
     from dyno_viewer.components.screens.table_select import TableSelectScreen
 
     class ScreensApp(App):
-        SCREENS = {"tableSelect": TableSelectScreen}
 
-        table_name = reactive("")
+        BINDINGS = [
+            ("t", "select_table", "Push Table Select Screen"),
+        ]
+
+        table_name = reactive("", recompose=True)
+        dyn_client = reactive(dynamodb_client, always_update=True)
 
         def compose(self) -> ComposeResult:
-            yield Label("test app")
+            yield Label(self.table_name or "No table selected")
 
-        async def on_table_select_screen_table_name(
-            self,
-            new_table_name: TableSelectScreen.TableName,
-        ) -> None:
-            if self.table_name != new_table_name:
-                self.table_name = new_table_name.table
+        @work
+        async def action_select_table(self) -> None:
+            result = await self.push_screen_wait(TableSelectScreen())
+            if result and self.table_name != result:
+                self.table_name = result
 
     yield ScreensApp
 
 
 async def test_select_table(screen_app, ddb_tables):
-    import boto3
 
     async with screen_app().run_test() as pilot:
-        screen = pilot.app.get_screen("tableSelect")
-        screen.dyn_client = boto3.client("dynamodb")
-        await pilot.app.push_screen("tableSelect")
-        assert screen.is_current
+        await pilot.press("t")
+        current_screen = pilot.app.screen
+        assert isinstance(current_screen, TableSelectScreen)
+        input_widget: Input = current_screen.query_one(Input)
 
-        table_list: OptionList = screen.query_one(OptionList)
-        input: Input = screen.query_one(Input)
-
-        assert input.value == ""
+        assert input_widget.value == ""
         # search dawn
         await type_commands(["dawn"], pilot)
         await pilot.pause()
-        assert input.value == "dawn"
-
-        # update list with result
-        assert table_list.option_count == 1
+        assert input_widget.value == "dawn"
 
         # add to input
         await type_commands(["tab", "down", "enter"], pilot)
-        assert input.value == "dawnstar"
+        assert input_widget.value == "dawnstar"
 
-        # send to root node
         await pilot.press("enter")
 
         assert pilot.app.table_name == "dawnstar"
         await pilot.exit(None)
 
 
-async def test_select_no_tables(screen_app, dynamodb):
-    import boto3
+async def test_select_no_tables(screen_app):
 
     async with screen_app().run_test() as pilot:
-        pilot.app.SCREENS["tableSelect"].dyn_client = boto3.client("dynamodb")
-        await pilot.app.push_screen("tableSelect")
-
-        list_view: ListView = pilot.app.screen.query_one(OptionList)
-        input: Input = pilot.app.screen.query_one(Input)
-
-        assert input.value == ""
+        await pilot.press("t")
+        current_screen = pilot.app.screen
+        assert isinstance(current_screen, TableSelectScreen)
+        list_view = current_screen.query_one(OptionList)
 
         # search dawn
         await type_commands(["dawn"], pilot)

@@ -1,6 +1,7 @@
 import logging
 import re
 from decimal import Decimal
+from typing import Any
 
 import boto3
 import simplejson as json
@@ -207,7 +208,7 @@ def covert_comparator_exp(cond, attr_name, value, is_key=True) -> Key | Attr | N
     return None
 
 
-def convert_filter_exp_key_cond(cond, attr_name, value) -> Key:
+def convert_filter_exp_key_cond(cond: str, attr_name: str, value: Any) -> Key:
     comparator = covert_comparator_exp(cond, attr_name, value)
 
     if comparator:
@@ -221,7 +222,7 @@ def convert_filter_exp_key_cond(cond, attr_name, value) -> Key:
     raise ValueError("passed incorrect condition for key filter expression")
 
 
-def convert_filter_exp_attr_cond(cond, attr_name, value=None) -> Attr:
+def convert_filter_exp_attr_cond(cond: str, attr_name: str, value: Any = None) -> Attr:
     comparator = covert_comparator_exp(cond, attr_name, value, is_key=False)
 
     if comparator:
@@ -247,7 +248,9 @@ def convert_filter_exp_attr_cond(cond, attr_name, value=None) -> Attr:
     raise ValueError("passed incorrect condition for key filter expression")
 
 
-def convert_filter_exp_value(value: str, type: str):
+def convert_filter_exp_value(
+    value: str, type: str
+) -> str | Decimal | list | dict | bool | set:
     if type == "number":
         return Decimal(value)
     if type == "list":

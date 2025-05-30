@@ -6,7 +6,7 @@ from textual.widgets import Markdown
 
 
 class HelpMenu(Screen):
-    BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
+    BINDINGS = [("escape", "app.switch_mode('table')", "Pop screen")]
 
     def compose(self) -> ComposeResult:
         parent_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
