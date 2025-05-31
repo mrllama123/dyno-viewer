@@ -43,9 +43,7 @@ class TableViewer(Screen):
         Binding("q", "query_table", "Query", show=False),
     ]
 
-    aws_profile = reactive(None)
-    aws_region = reactive(None)
-    dyn_client = reactive(None)
+
     table_info = reactive(None)
 
     table_name = reactive("")
@@ -62,7 +60,7 @@ class TableViewer(Screen):
         yield Footer()
 
     def update_table_client(self):
-        if self.table_name != "":
+        if self.table_name:
             # Access app's profile and region
             app_profile = self.app.aws_profile
             app_region = self.app.aws_region
@@ -103,7 +101,6 @@ class TableViewer(Screen):
     def get_dyn_table_info(self) -> None:
         worker = get_current_worker()
         if not worker.is_cancelled:
-            # temp disable logging doesn't work
             self.log("updating table info")
             self.log("key schema=", self.table_client.key_schema)
             self.log("gsi schema=", self.table_client.global_secondary_indexes)
@@ -159,6 +156,7 @@ class TableViewer(Screen):
     # on methods
 
     def on_mount(self) -> None:
+        # need to do so that queries are persistent across screen changes
         self.app.install_screen(QueryScreen, "query")
 
     @on(DataTableManager.PaginateRequest)
@@ -172,6 +170,8 @@ class TableViewer(Screen):
     @on(UpdateDynTableInfo)
     async def update_table_info(self, update: UpdateDynTableInfo) -> None:
         self.table_info = update.table_info
+        query_screen = self.app.get_screen("query")
+        query_screen.table_info = update.table_info
 
     async def on_query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
         params = (
@@ -200,13 +200,13 @@ class TableViewer(Screen):
 
     # action methods
 
-    async def action_push_screen_query(self) -> None:
+    async def action_query_table(self) -> None:
         if self.table_client:
             self.app.push_screen("query")
         else:
             self.notify(
-                "No table selected, or table not found in current profile/region"
-            )  # Updated message
+                "No table selected"
+            ) 
 
     @work
     async def action_select_table(self) -> None:

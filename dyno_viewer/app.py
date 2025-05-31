@@ -1,28 +1,18 @@
-from textual import log, on, work
-from textual.app import App, ComposeResult
+from textual import log, work
+from textual.app import App
 from textual.message import Message
 from textual.reactive import reactive
-from textual.widgets import Footer
-from textual.screen import Screen
-from textual.worker import get_current_worker
 
 from dyno_viewer.app_types import TableInfo
 from dyno_viewer.aws.ddb import (
     get_ddb_client,
-    query_items,
-    scan_items,
-    table_client_exist,
 )
-from dyno_viewer.aws.session import get_available_profiles
 from dyno_viewer.components.screens import (
     HelpMenu,
     ProfileSelectScreen,
-    QueryScreen,
     RegionSelectScreen,
-    TableSelectScreen,
 )
 from dyno_viewer.components.screens.table_view_mode import TableViewer
-from dyno_viewer.components.table import DataTableManager
 
 
 class QueryResult(Message):
@@ -42,6 +32,7 @@ class UpdateDynTableInfo(Message):
 class DynCli(App):
     BINDINGS = [
         ("x", "exit", "Exit"),
+        ("z", "switch_mode('table')", 'Table Viewer'),
         ("?", "switch_mode('help')", "help"),
         ("p", "select_profile", "Profile"),
         ("r", "select_region", "Region"),
@@ -79,7 +70,7 @@ class DynCli(App):
 
     # action methods
     async def action_exit(self) -> None:
-        self.dyn_client.close()
+        self.app.dyn_client.close()
         self.app.exit()
 
     @work
