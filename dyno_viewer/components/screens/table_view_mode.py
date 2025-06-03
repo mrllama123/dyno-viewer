@@ -172,7 +172,7 @@ class TableViewer(Screen):
         query_screen = self.app.get_screen("query")
         query_screen.table_info = update.table_info
 
-    @on(QueryScreen.RunQuery, "#queryScreen")
+    @on(QueryScreen.RunQuery)
     async def query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
         self.log.info(f"Running query on {self.table_name} with params: {run_query}")
         params = (
