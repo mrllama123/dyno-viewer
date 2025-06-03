@@ -43,7 +43,6 @@ class TableViewer(Screen):
         Binding("q", "query_table", "Query", show=False),
     ]
 
-
     table_info = reactive(None)
 
     table_name = reactive("")
@@ -157,7 +156,7 @@ class TableViewer(Screen):
 
     def on_mount(self) -> None:
         # need to do so that queries are persistent across screen changes
-        self.app.install_screen(QueryScreen, "query")
+        self.app.install_screen(QueryScreen(), "query")
 
     @on(DataTableManager.PaginateRequest)
     async def paginate_table(self, _) -> None:
@@ -173,7 +172,9 @@ class TableViewer(Screen):
         query_screen = self.app.get_screen("query")
         query_screen.table_info = update.table_info
 
-    async def on_query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
+    @on(QueryScreen.RunQuery, "#queryScreen")
+    async def query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
+        self.log.info(f"Running query on {self.table_name} with params: {run_query}")
         params = (
             {"KeyConditionExpression": run_query.key_cond_exp}
             if run_query.key_cond_exp
@@ -204,9 +205,7 @@ class TableViewer(Screen):
         if self.table_client:
             self.app.push_screen("query")
         else:
-            self.notify(
-                "No table selected"
-            ) 
+            self.notify("No table selected")
 
     @work
     async def action_select_table(self) -> None:
