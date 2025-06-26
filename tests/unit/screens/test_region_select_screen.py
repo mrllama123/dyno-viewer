@@ -31,6 +31,7 @@ async def test_list_regions(iam, screen_app):
         assert regions == [
             "af-south-1",
             "ap-east-1",
+            "ap-east-2",
             "ap-northeast-1",
             "ap-northeast-2",
             "ap-northeast-3",
@@ -83,6 +84,6 @@ async def test_select_region(iam, screen_app):
 
         assert screen.query_one(ListView).index == 2
         await pilot.press("enter")
-        assert pilot.app.region == "ap-northeast-1"
+        assert pilot.app.region == "ap-east-2"
 
         assert not screen.is_current
