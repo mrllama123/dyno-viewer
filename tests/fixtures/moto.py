@@ -7,6 +7,10 @@ import pytest
 def dynamodb(aws_credentials):
     with mock_aws():
         yield boto3.resource("dynamodb")
+@pytest.fixture
+def dynamodb_client(aws_credentials):
+    with mock_aws():
+        yield boto3.client("dynamodb")
 
 
 @pytest.fixture

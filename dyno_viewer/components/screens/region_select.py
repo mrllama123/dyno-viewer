@@ -21,4 +21,4 @@ class RegionSelectScreen(ModalScreen):
         )
 
     async def on_list_view_selected(self, selected) -> None:
-        self.dismiss(selected.item.name)
+        self.dismiss(selected.item.id)

@@ -1,30 +1,38 @@
 import pytest
+from textual import work
 from textual.app import App
 from textual.reactive import reactive
-from textual.widgets import ListView
+from textual.widgets import ListView, Label
 
 from dyno_viewer.components.screens.region_select import RegionSelectScreen
 
 
 @pytest.fixture()
 def screen_app():
-    class ScreensApp(App[None]):
-        SCREENS = {"regionSelect": RegionSelectScreen}
+    class ScreensApp(App):
+        BINDINGS = [
+            ("r", "select_region", "Push Region Select Screen"),
+        ]
 
-        region = reactive("")
+        region = reactive("", recompose=True)
 
-        async def on_region_select_screen_region_selected(
-            self, selected_region: RegionSelectScreen.RegionSelected
-        ) -> None:
-            self.region = selected_region.region
+        def compose(self):
+            yield Label(self.region or "No region selected")
+
+        @work
+        async def action_select_region(self) -> None:
+            result = await self.push_screen_wait(RegionSelectScreen())
+            if result:
+                self.region = result
 
     return ScreensApp
 
 
 async def test_list_regions(iam, screen_app):
     async with screen_app().run_test() as pilot:
-        await pilot.app.push_screen("regionSelect")
-        screen = pilot.app.get_screen("regionSelect")
+        await pilot.press("r")
+        screen = pilot.app.screen
+        assert isinstance(screen, RegionSelectScreen)
 
         list_view: ListView = screen.query_one(ListView)
         regions = [item.id for item in list_view.children]
@@ -68,10 +76,9 @@ async def test_list_regions(iam, screen_app):
 # @pytest.mark.asyncio
 async def test_select_region(iam, screen_app):
     async with screen_app().run_test() as pilot:
-        await pilot.app.push_screen("regionSelect")
-
-        screen = pilot.app.get_screen("regionSelect")
-        assert screen.is_current
+        await pilot.press("r")
+        screen = pilot.app.screen
+        assert isinstance(screen, RegionSelectScreen)
 
         await pilot.press("tab")
 
