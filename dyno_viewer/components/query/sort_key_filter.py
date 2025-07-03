@@ -3,6 +3,8 @@ from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import Button, Input, Label, RadioSet, Select
 
+from dyno_viewer.constants import ATTRIBUTE_TYPES, SORT_KEY_CONDITIONS
+
 
 class SortKeyFilter(Widget):
     attr_name = reactive("", layout=True)
@@ -16,36 +18,14 @@ class SortKeyFilter(Widget):
         yield Label(self.attr_name, id="attr")
         yield Label("Type")
         yield Select(
-            [
-                (line, line)
-                for line in [
-                    "string",
-                    "number",
-                    "binary",
-                    "boolean",
-                    "map",
-                    "list",
-                    "set",
-                ]
-            ],
+            [(line, line) for line in ATTRIBUTE_TYPES],
             prompt="type",
             value="string",
             id="attrType",
         )
         yield Label("Condition")
         yield Select(
-            [
-                (line, line)
-                for line in [
-                    "==",
-                    ">",
-                    "<",
-                    "<=",
-                    ">=",
-                    "between",
-                    "begins_with",
-                ]
-            ],
+            [(line, line) for line in SORT_KEY_CONDITIONS],
             prompt="Condition",
             value="==",
             id="condition",
