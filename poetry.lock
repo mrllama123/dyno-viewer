@@ -508,18 +508,18 @@ css = ["tinycss2 (>=1.1.0,<1.5)"]
 
 [[package]]
 name = "boto3"
-version = "1.38.36"
+version = "1.39.2"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "boto3-1.38.36-py3-none-any.whl", hash = "sha256:34c27d7317cadb62c0e9856e5d5aa0271ef47202d340584831048bc7ac904136"},
-    {file = "boto3-1.38.36.tar.gz", hash = "sha256:efe0aaa060f8fedd76e5c942055f051aee0432fc722d79d8830a9fd9db83593e"},
+    {file = "boto3-1.39.2-py3-none-any.whl", hash = "sha256:a37f202978f11f384e3fd1f0ff8938367b527845493f9509357e1732debc390f"},
+    {file = "boto3-1.39.2.tar.gz", hash = "sha256:edad811edacb8c99f2fe59b117d9b9d8ee3972beb6c090c8aa164ddbc506d67d"},
 ]
 
 [package.dependencies]
-botocore = ">=1.38.36,<1.39.0"
+botocore = ">=1.39.2,<1.40.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.13.0,<0.14.0"
 
@@ -528,14 +528,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.38.36"
+version = "1.39.2"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "botocore-1.38.36-py3-none-any.whl", hash = "sha256:b6a50b853f6d23af9edfed89a59800c6bc1687a947cdd3492879f7d64e002d30"},
-    {file = "botocore-1.38.36.tar.gz", hash = "sha256:4a1ced1a4218bdff0ed5b46abb54570d473154ddefafa5d121a8d96e4b76ebc1"},
+    {file = "botocore-1.39.2-py3-none-any.whl", hash = "sha256:921cab9aa6e1e4ceddcece5b55b57daae7722168e74409f1aafcc2c5589df676"},
+    {file = "botocore-1.39.2.tar.gz", hash = "sha256:474445fa8b281dd5db8fc62184f0f6e494d4f1efb96fe10312490583e67a9dd0"},
 ]
 
 [package.dependencies]
@@ -4285,14 +4285,14 @@ typing = ["mypy (>=1.6,<2.0)", "traitlets (>=5.11.1)"]
 
 [[package]]
 name = "textual"
-version = "3.4.0"
+version = "3.5.0"
 description = "Modern Text User Interface framework"
 optional = false
 python-versions = "<4.0.0,>=3.8.1"
 groups = ["main", "dev"]
 files = [
-    {file = "textual-3.4.0-py3-none-any.whl", hash = "sha256:5b3fd07772d3897d30b257825de3df011b83742863aa9d9abcb10e76e61e6ee4"},
-    {file = "textual-3.4.0.tar.gz", hash = "sha256:f697c3b9371bbc30c11453a094d700e95cf7c2115f68bad35f0249de67996c99"},
+    {file = "textual-3.5.0-py3-none-any.whl", hash = "sha256:7c960efb70391b754e66201776793de2b26d699d51fb91f5f78401d13cec79a1"},
+    {file = "textual-3.5.0.tar.gz", hash = "sha256:c4a440338694672acf271c74904f1cf1e4a64c6761c056b02a561774b81a04f4"},
 ]
 
 [package.dependencies]
@@ -4302,7 +4302,7 @@ rich = ">=13.3.3"
 typing-extensions = ">=4.4.0,<5.0.0"
 
 [package.extras]
-syntax = ["tree-sitter (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-bash (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-css (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-go (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-html (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-java (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-javascript (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-json (>=0.24.0) ; python_version >= \"3.9\"", "tree-sitter-markdown (>=0.3.0) ; python_version >= \"3.9\"", "tree-sitter-python (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-regex (>=0.24.0) ; python_version >= \"3.9\"", "tree-sitter-rust (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-sql (>=0.3.0,<0.3.8) ; python_version >= \"3.9\"", "tree-sitter-toml (>=0.6.0) ; python_version >= \"3.9\"", "tree-sitter-xml (>=0.7.0) ; python_version >= \"3.9\"", "tree-sitter-yaml (>=0.6.0) ; python_version >= \"3.9\""]
+syntax = ["tree-sitter (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-bash (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-css (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-go (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-html (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-java (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-javascript (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-json (>=0.24.0) ; python_version >= \"3.9\"", "tree-sitter-markdown (>=0.3.0) ; python_version >= \"3.9\"", "tree-sitter-python (>=0.23.0) ; python_version >= \"3.9\"", "tree-sitter-regex (>=0.24.0) ; python_version >= \"3.9\"", "tree-sitter-rust (>=0.23.0,<=0.23.2) ; python_version >= \"3.9\"", "tree-sitter-sql (>=0.3.0,<0.3.8) ; python_version >= \"3.9\"", "tree-sitter-toml (>=0.6.0) ; python_version >= \"3.9\"", "tree-sitter-xml (>=0.7.0) ; python_version >= \"3.9\"", "tree-sitter-yaml (>=0.6.0) ; python_version >= \"3.9\""]
 
 [[package]]
 name = "textual-dev"
@@ -4900,4 +4900,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "c1868415cd3a8a50eb70834a617e7e7951231c9bc3d315d96ea7f5ed1652fe6a"
+content-hash = "c18111cb5eaab0fe2dd6d50854e6fcf4ccb1506e5b0cedafae1e4008969ffa75"
