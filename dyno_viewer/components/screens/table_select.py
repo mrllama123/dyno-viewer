@@ -1,6 +1,5 @@
 from textual import on, work
 from textual.app import ComposeResult
-from textual.events import ScreenResume
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import ModalScreen
@@ -12,8 +11,6 @@ from dyno_viewer.aws.ddb import list_all_tables
 
 class TableSelectScreen(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
-
-    dyn_client = reactive(None, always_update=True)
 
     next_token = reactive(None)
 
@@ -52,33 +49,28 @@ class TableSelectScreen(ModalScreen):
         if not worker.is_cancelled:
             if next_token:
                 list_tables_result, next_token = list_all_tables(
-                    self.dyn_client,
+                    self.app.dyn_client,
                     Limit=10,
                     ExclusiveStartTableName=next_token,
                     paginate=False,
                 )
             else:
                 list_tables_result, next_token = list_all_tables(
-                    self.dyn_client, Limit=10, paginate=False
+                    self.app.dyn_client, Limit=10, paginate=False
                 )
 
             self.post_message(self.TableListResult(list_tables_result, next_token))
 
     # on methods
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
         table_input = self.query_one(Input)
         table_input.focus()
+        self.worker_list_tables()
 
     def on_input_submitted(self, submitted: Input.Submitted) -> None:
         if submitted.value in self.tables:
-            self.post_message(self.TableName(submitted.value))
-            self.app.pop_screen()
-
-    @on(ScreenResume)
-    async def paginate_tables_on_resume(self):
-        if self.next_token:
-            self.worker_list_tables(self.next_token)
+            self.dismiss(submitted.value)
 
     @on(TableListResult)
     async def on_table_list_result(self, result: TableListResult):
@@ -114,12 +106,6 @@ class TableSelectScreen(ModalScreen):
         table_input.focus()
 
     # watch methods
-
-    async def watch_dyn_client(self, new_dyn_client) -> None:
-        if new_dyn_client:
-            option_list = self.query_one(OptionList)
-            option_list.clear_options()
-            self.worker_list_tables()
 
     async def watch_next_token(self):
         if self.is_current and self.next_token:
