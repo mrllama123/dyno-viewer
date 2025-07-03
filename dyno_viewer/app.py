@@ -3,7 +3,7 @@ from textual.app import App
 from textual.message import Message
 from textual.reactive import reactive
 
-from dyno_viewer.app_types import TableInfo
+from dyno_viewer.models import TableInfo
 from dyno_viewer.aws.ddb import (
     get_ddb_client,
 )

@@ -7,7 +7,7 @@ from textual.screen import Screen
 from textual.widgets import Footer
 from textual.worker import get_current_worker
 
-from dyno_viewer.app_types import TableInfo
+from dyno_viewer.models import TableInfo
 from dyno_viewer.aws.ddb import (
     query_items,
     scan_items,
