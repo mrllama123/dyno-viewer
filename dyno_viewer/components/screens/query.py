@@ -1,21 +1,16 @@
 from boto3.dynamodb.conditions import Attr, Key
-from textual import log, on
+from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
 from textual.css.query import NoMatches
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import Screen
-from textual.widgets import Button, Footer, Label, Switch
+from textual.widgets import Button, Footer, Label, OptionList, Switch
 
-from dyno_viewer.app_types import TableInfo
-from dyno_viewer.aws.ddb import (
-    convert_filter_exp_attr_cond,
-    convert_filter_exp_key_cond,
-    convert_filter_exp_value,
-)
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
+from dyno_viewer.models import QueryParameters, TableInfo
 
 
 class QueryScreen(Screen):
@@ -33,6 +28,10 @@ class QueryScreen(Screen):
         margin: 1 0;
 
     }
+    #queryIndex {
+        margin: 1 1;
+        height: 4;
+    }
 
     #queryScreen  Button {
         margin: 1 1;
@@ -46,6 +45,7 @@ class QueryScreen(Screen):
 
     table_info = reactive(None)
     scan_mode = reactive(False)
+    index = reactive("table")
 
     class RunQuery(Message):
         """
@@ -64,6 +64,11 @@ class QueryScreen(Screen):
             self.index = index
             super().__init__()
 
+    class QueryParametersChanged(Message):
+        def __init__(self, params: QueryParameters) -> None:
+            self.params = params
+            super().__init__()
+
     def compose(self) -> ComposeResult:
         with Container(id="queryScreen"):
             yield Horizontal(
@@ -71,111 +76,51 @@ class QueryScreen(Screen):
                 Switch(name="scan", id="scanToggleSwitch"),
                 id="scanToggle",
             )
+            yield OptionList(id="queryIndex")
             yield KeyFilter(id="keyFilter")
             yield Button("add filter", id="addFilter")
             yield Button("remove all filters", id="removeAllFilters")
             yield Footer()
 
-    def get_primary_key(self):
-        key_input = self.query_one(KeyFilter)
-        primary_key_name = (
-            key_input.partition_key_attr_name
-            if key_input.index_mode == "table"
-            else key_input.gsi_indexes[key_input.index_mode]["primaryKey"]
-        )
-        primary_key_value = key_input.query_one("#partitionKey").value
-        log("attr primary key name=", primary_key_name)
-        log("attr primary key value=", primary_key_value)
-        return primary_key_name, primary_key_value
-
-    def get_sort_key_(self):
-        key_input = self.query_one(KeyFilter)
-        sort_key = key_input.query_one("#sortKeyFilter")
-        sort_key_name = (
-            key_input.sort_key_attr_name
-            if key_input.index_mode == "table"
-            else key_input.gsi_indexes[key_input.index_mode]["sortKey"]
-        )
-        sort_key_value = sort_key.query_one("#attrValue").value
-        log("attr sort key value=", sort_key_value)
-        cond = sort_key.query_one("#condition").value
-        return sort_key_name, sort_key_value, cond
-
-    def get_key_query(self) -> Key | None:
-        log("generating key expression from input data")
-        primary_key_name, primary_key_value = self.get_primary_key()
-
-        if not primary_key_value:
-            return None
-
-        sort_key_name, sort_key_value, cond = self.get_sort_key_()
-
-        if sort_key_value:
-            return Key(primary_key_name).eq(
-                primary_key_value
-            ) & convert_filter_exp_key_cond(cond, sort_key_name, sort_key_value)
-        return Key(primary_key_name).eq(primary_key_value)
-
-    def get_filter_queries(self) -> Attr | None:
-        exp = None
-
-        for filter in self.query(FilterQuery):
-            attr_name = filter.query_one("#attr").value
-            attr_type = getattr(filter.query_one("#attrType"), "value", "")
-
-            attr_value = str(getattr(filter.query_one("#attrValue"), "value", ""))
-            cond = getattr(filter.query_one("#condition"), "value", "")
-
-            if exp:
-                exp = exp & convert_filter_exp_attr_cond(
-                    cond, attr_name, convert_filter_exp_value(attr_value, attr_type)
-                )
-            else:
-                exp = convert_filter_exp_attr_cond(
-                    cond, attr_name, convert_filter_exp_value(attr_value, attr_type)
-                )
-        return exp
-
-    def update_key_schema(self, key_query):
+    def update_key_schema(self):
+        key_query = self.query_exactly_one(KeyFilter)
         key_query.partition_key_attr_name = self.table_info["keySchema"]["primaryKey"]
         key_query.sort_key_attr_name = self.table_info["keySchema"]["sortKey"]
-        key_query.gsi_indexes = self.table_info["gsi"]
+
+    def update_index_options(self):
+        option_list: OptionList = self.query_one("#queryIndex")
+        option_list.clear_options()
+        for option in ["table", *list(sorted(self.table_info["gsi"].keys()))]:
+            option_list.add_option(option)
 
     # action methods
 
     def action_run_query(self) -> None:
-        key_filter = self.query("#keyFilter")
-
-        if key_filter:
-            key_cond_exp = self.get_key_query()
-            index_mode = self.query_one(KeyFilter).index_mode
-        else:
-            key_cond_exp = None
-            index_mode = "table"
-
-        filter_cond_exp = self.get_filter_queries()
-
-        self.log.info(
-            f"run query: {key_cond_exp} {filter_cond_exp}, index {index_mode}"
+        key_filter = self.query_exactly_one(KeyFilter)
+        key_condition = key_filter.get_key_condition()
+        primary_key_name = (
+            self.table_info["keySchema"]["primaryKey"]
+            if self.index == "table"
+            else self.table_info["gsi"][self.index]["primaryKey"]
         )
-
-        if self.scan_mode:
-            self.post_message(
-                self.RunQuery(
-                    filter_cond_exp=filter_cond_exp,
-                    index=index_mode,
-                )
-            )
-            self.app.pop_screen()
-        elif key_cond_exp or filter_cond_exp:
-            self.post_message(
-                self.RunQuery(
-                    key_cond_exp,
-                    filter_cond_exp,
-                    index_mode,
-                )
-            )
-            self.app.pop_screen()
+        sort_key_name = (
+            self.table_info["keySchema"]["sortKey"]
+            if self.index == "table"
+            else self.table_info["gsi"][self.index]["sortKey"]
+        )
+        new_query_params = QueryParameters(
+            scan_mode=self.scan_mode,
+            table_name=self.table_info["tableName"],
+            primary_key_name=primary_key_name,
+            sort_key_name=sort_key_name,
+            key_condition=key_condition,
+            index=self.index,
+            filter_conditions=[
+                filter.get_filter_condition() for filter in self.query(FilterQuery)
+            ],
+        )
+        self.post_message(self.QueryParametersChanged(new_query_params))
+        self.app.pop_screen()
 
     # on methods:
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -190,8 +135,8 @@ class QueryScreen(Screen):
 
     def on_mount(self):
         if self.table_info:
-            key_query = self.query_one(KeyFilter)
-            self.update_key_schema(key_query)
+            self.update_key_schema()
+            self.update_index_options()
 
     @on(Switch.Changed, "#scanToggleSwitch")
     def toggle_scan_mode(self, changed: Switch.Changed) -> None:
@@ -202,14 +147,30 @@ class QueryScreen(Screen):
         else:
             key_filter.display = True
 
+    @on(OptionList.OptionSelected, "#queryIndex")
+    def gsi_index_update(self, selected: OptionList.OptionSelected):
+        self.index_mode = selected.option.prompt
+        if selected.option.prompt != "table":
+            new_primary_key = self.table_info["gsi"][selected.option.prompt][
+                "primaryKey"
+            ]
+            new_sort_key = self.table_info["gsi"][selected.option.prompt]["sortKey"]
+            key_query = self.query_one(KeyFilter)
+            key_query.partition_key_attr_name = new_primary_key
+            key_query.sort_key_attr_name = new_sort_key
+            self.index = selected.option.prompt
+
     # watcher methods
 
     def watch_table_info(self, new_table_info: TableInfo) -> None:
         if new_table_info:
             try:
-                key_query = self.query_one(KeyFilter)
-                self.update_key_schema(key_query)
-            except NoMatches:
+                self.log.info("Updating table info in query screen")
+                self.update_index_options()
+
+                self.update_key_schema()
+            except NoMatches as e:
+                self.log.error(f"Error updating table info: {e}")
                 return
             except Exception:
                 raise
