@@ -1,5 +1,6 @@
 from textual import log, on, work
 from textual.app import App
+from textual.binding import Binding
 from textual.message import Message
 from textual.reactive import reactive
 
@@ -7,7 +8,6 @@ from dyno_viewer.aws.ddb import (
     get_ddb_client,
 )
 from dyno_viewer.components.screens import (
-    HelpMenu,
     ProfileSelectScreen,
     RegionSelectScreen,
 )
@@ -32,11 +32,11 @@ class UpdateDynTableInfo(Message):
 
 class DynCli(App):
     BINDINGS = [
-        ("x", "exit", "Exit"),
-        ("z", "switch_mode('table')", "Table Viewer"),
-        ("?", "switch_mode('help')", "help"),
-        ("p", "select_profile", "Profile"),
-        ("r", "select_region", "Region"),
+        Binding("x", "exit", "Exit", tooltip="Exit the application"),
+        Binding("z", "switch_mode('table')", "Table Viewer", show=False),
+        Binding("p", "select_profile", "Profile", tooltip="Select AWS Profile"),
+        Binding("r", "select_region", "Region", tooltip="Select AWS Region"),
+        Binding("?", "show_help", "Help", tooltip="Show help"),
     ]
     SCREENS = {
         "query": QueryScreen,
@@ -47,10 +47,10 @@ class DynCli(App):
     dyn_client = reactive(
         get_ddb_client(region_name="ap-southeast-2", profile_name=None)
     )
+    is_help_visible = reactive(False)
 
     MODES = {
         "table": TableViewer,
-        "help": HelpMenu,
     }
 
     def on_mount(self) -> None:
@@ -97,6 +97,13 @@ class DynCli(App):
     async def action_exit(self) -> None:
         self.app.dyn_client.close()
         self.app.exit()
+
+    def action_show_help(self):
+        if self.is_help_visible:
+            self.action_hide_help_panel()
+        else:
+            self.action_show_help_panel()
+        self.is_help_visible = not self.is_help_visible
 
     @work
     async def action_select_profile(self) -> None:
