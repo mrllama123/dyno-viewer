@@ -3,7 +3,6 @@ from textual.app import App
 from textual.message import Message
 from textual.reactive import reactive
 
-from dyno_viewer.app_types import TableInfo
 from dyno_viewer.aws.ddb import (
     get_ddb_client,
 )
@@ -14,6 +13,7 @@ from dyno_viewer.components.screens import (
 )
 from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.table_view_mode import TableViewer
+from dyno_viewer.models import TableInfo
 
 
 class QueryResult(Message):
@@ -55,6 +55,13 @@ class DynCli(App):
 
     def on_mount(self) -> None:
         self.switch_mode("table")
+
+    @on(QueryScreen.QueryParametersChanged)
+    def query_screen_parameters_changed(
+        self, query_params: QueryScreen.QueryParametersChanged
+    ) -> None:
+        if isinstance(self.screen, TableViewer):
+            self.screen.query_params = query_params.params
 
     # HACK: this is a work around as the query screen can't send the event to the TableViewer screen
     # and we want to persist this screen across an session

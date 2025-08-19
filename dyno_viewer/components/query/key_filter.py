@@ -1,10 +1,10 @@
-from textual import on
 from textual.app import ComposeResult
 from textual.reactive import reactive
 from textual.widget import Widget
-from textual.widgets import Input, OptionList
+from textual.widgets import Button, Input, Label, RadioSet, Select
 
-from dyno_viewer.components.query.sort_key_filter import SortKeyFilter
+from dyno_viewer.constants import ATTRIBUTE_TYPES, SORT_KEY_CONDITIONS
+from dyno_viewer.models import KeyCondition, SortKeyCondition
 
 
 class KeyFilter(Widget):
@@ -13,66 +13,69 @@ class KeyFilter(Widget):
         margin: 1 1;
         background: $boost;
         border: heavy grey;
-        height: 34;
+        height: 25;
     }
-    #queryIndex {
+    #attr {
         margin: 1 1;
-        height: 4;
     }
-
     """
     index_mode = reactive("table")
 
-    gsi_indexes = reactive({})
-
     partition_key_attr_name = reactive("")
-    sort_key_attr_name = reactive("")
+    sort_key_attr_name = reactive("", layout=True)
+
+    def get_key_condition(self) -> KeyCondition:
+        return KeyCondition(
+            # index=self.index_mode,
+            partitionKeyValue=self.query_one("#partitionKey").value,
+            sortKey=(
+                SortKeyCondition(
+                    attrType=self.query_one("#attrType").value,
+                    attrCondition=self.query_one("#condition").value,
+                    attrValue=self.query_one("#attrValue").value,
+                )
+                if self.sort_key_attr_name and self.query_one("#attrValue").value
+                else None
+            ),
+        )
 
     def compose(self) -> ComposeResult:
-        yield OptionList("table", id="queryIndex")
+        # yield OptionList("table", id="queryIndex")
         yield Input(placeholder="pk", id="partitionKey")
-        yield SortKeyFilter(id="sortKeyFilter")
+        yield Label(self.sort_key_attr_name, id="attr")
+        yield Label("Type")
+        yield Select(
+            [(line, line) for line in ATTRIBUTE_TYPES],
+            prompt="type",
+            value="string",
+            id="attrType",
+        )
+        yield Label("Condition")
+        yield Select(
+            [(line, line) for line in SORT_KEY_CONDITIONS],
+            prompt="Condition",
+            value="==",
+            id="condition",
+        )
+        yield Input(placeholder="value", id="attrValue")
 
     #  on methods
     def on_mount(self):
-        # select the first value for queryIndex
-        option_list = self.query_one("#queryIndex")
-        option_list.action_first()
-        option_list.action_select()
+        for radio_set in self.query(RadioSet):
+            radio_set.display = False
 
-    @on(OptionList.OptionSelected)
-    def gsi_index_update(self, selected: OptionList.OptionSelected):
-        self.index_mode = selected.option.prompt
-        if selected.option.prompt != "table":
-            new_primary_key = self.gsi_indexes[selected.option.prompt]["primaryKey"]
-            new_sort_key = self.gsi_indexes[selected.option.prompt]["sortKey"]
-
-            self.log("new_primary_key=", new_primary_key)
-            self.log("new_sort_key=", new_sort_key)
-
-            self.query_one("#partitionKey").placeholder = new_primary_key
-            self.query_one("#sortKeyFilter").attr_name = new_sort_key
-
-        else:
-            self.query_one("#partitionKey").placeholder = self.partition_key_attr_name
-            self.query_one("#sortKeyFilter").attr_name = self.sort_key_attr_name
+    def on_button_pressed(self, event: Button.Pressed) -> None:
+        if str(event.button.label) == "type":
+            radio_set = self.query_one("#attrType")
+            radio_set.display = not radio_set.display
+            self.scroll_visible()
+        if str(event.button.label) == "condition":
+            radio_set = self.query_one("#condition")
+            radio_set.display = not radio_set.display
+            self.scroll_visible()
 
     # watch methods
-
-    def watch_gsi_indexes(self, new_gsi_indexes) -> None:
-        if new_gsi_indexes:
-            option_list: OptionList = self.query_one("#queryIndex")
-            option_list.clear_options()
-            for option in ["table", *list(new_gsi_indexes.keys())]:
-                option_list.add_option(option)
-
-            option_list.action_first()
-            option_list.action_select()
 
     def watch_partition_key_attr_name(self, new_partition_key_attr_name) -> None:
         if new_partition_key_attr_name:
             self.query_one("#partitionKey").placeholder = new_partition_key_attr_name
-
-    def watch_sort_key_attr_name(self, sort_key_attr_name) -> None:
-        if sort_key_attr_name:
-            self.query_one("#sortKeyFilter").attr_name = sort_key_attr_name

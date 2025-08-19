@@ -7,17 +7,16 @@ from textual.screen import Screen
 from textual.widgets import Footer
 from textual.worker import get_current_worker
 
-from dyno_viewer.app_types import TableInfo
 from dyno_viewer.aws.ddb import (
     query_items,
     scan_items,
     table_client_exist,
 )
 from dyno_viewer.components.screens import (
-    QueryScreen,
     TableSelectScreen,
 )
 from dyno_viewer.components.table import DataTableManager
+from dyno_viewer.models import QueryParameters, TableInfo
 
 
 class QueryResult(Message):
@@ -47,6 +46,8 @@ class TableViewer(Screen):
     dyn_query_params = reactive({})
 
     query_screen_parameters = reactive(None)
+
+    query_params: QueryParameters | None = reactive(None)
 
     # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :(
     table_client = reactive(None, always_update=True)
@@ -130,38 +131,49 @@ class TableViewer(Screen):
             )
 
     @work(exclusive=True, group="dyn_table_query", thread=True)
-    def run_table_query(self, dyn_query_params, update_existing=False):
+    def run_table_query(self, query_params: QueryParameters, update_existing=False):
         worker = get_current_worker()
         if not worker.is_cancelled:
-            self.log("dyn_params=", dyn_query_params)
-            result, next_token = (
-                query_items(
+            # self.log("dyn_params=", dyn_query_params)
+            if not query_params:
+                result, next_token = scan_items(
                     self.table_client,
                     paginate=False,
                     Limit=50,
-                    **dyn_query_params,
                 )
-                if "KeyConditionExpression" in dyn_query_params
-                else scan_items(
+                self.post_message(QueryResult(result, next_token, update_existing))
+                return
+            self.log.info(f"scan_mode={query_params.scan_mode}")
+            result, next_token = (
+                scan_items(
                     self.table_client,
                     paginate=False,
                     Limit=50,
-                    **dyn_query_params,
+                    **query_params.boto_params,
+                )
+                if query_params.scan_mode
+                else query_items(
+                    self.table_client,
+                    paginate=False,
+                    Limit=50,
+                    **query_params.boto_params,
                 )
             )
+            self.log.info(f"query result: {result}")
             self.post_message(QueryResult(result, next_token, update_existing))
 
     # on methods
 
-    # def on_mount(self) -> None:
-    #     # need to do so that queries are persistent across screen changes
-    #     self.app.install_screen(QueryScreen(), "query")
-
     @on(DataTableManager.PaginateRequest)
     async def paginate_table(self, _) -> None:
         table = self.query_one(DataTableManager)
-        if "ExclusiveStartKey" in self.dyn_query_params:
-            self.run_table_query(self.dyn_query_params, update_existing=True)
+        if not self.query_params:
+            self.notify("No query parameters set, cannot paginate.")
+            table.loading = False
+            return
+
+        if self.query_params.next_token:
+            self.run_table_query(self.query_params, update_existing=True)
         else:
             table.loading = False
 
@@ -171,30 +183,31 @@ class TableViewer(Screen):
         query_screen = self.app.get_screen("query")
         query_screen.table_info = update.table_info
 
-    async def run_query(self, run_query: QueryScreen.RunQuery) -> None:
-        self.log.info(f"Running query on {self.table_name} with params: {run_query}")
-        params = (
-            {"KeyConditionExpression": run_query.key_cond_exp}
-            if run_query.key_cond_exp
-            else {}
-        )
-
-        if run_query.filter_cond_exp:
-            params["FilterExpression"] = run_query.filter_cond_exp
-
-        if run_query.index != "table":
-            params["IndexName"] = run_query.index
-
-        self.dyn_query_params = params
-        self.log.info(f"Querying {self.table_name} with params: {params}")
-        self.run_table_query(params)
-        self.data = []
-
     @on(QueryResult)
     async def update_table(self, update_data: QueryResult) -> None:
+        self.log.info(
+            f"Received query result with {len(update_data.data)} items and next token: {update_data.next_token}"
+        )
         table = self.query_one(DataTableManager)
-        self.data = self.data + [update_data.data]
-        self.set_pagination_token(update_data.next_token)
+        if update_data.update_existing_data:
+            # If we are updating existing data, we should not clear the current data
+            self.log.info("Updating existing data in the table")
+            self.data = self.data + [update_data.data]
+        else:
+            # If not updating existing data, clear the current data
+            self.data = [update_data.data]
+
+        # when scan
+        if not self.query_params:
+            self.query_params = QueryParameters(
+                table_name=self.table_info["tableName"],
+                primary_key_name=self.table_info["keySchema"]["primaryKey"],
+                sort_key_name=self.table_info["keySchema"]["sortKey"],
+                next_token=update_data.next_token,
+                scan_mode=True,
+            )
+        else:
+            self.query_params.next_token = update_data.next_token
         table.loading = False
 
     # action methods
@@ -222,8 +235,16 @@ class TableViewer(Screen):
             log.info("table client changed and table found, Update table data")
             self.get_dyn_table_info()
 
-            self.run_table_query(self.dyn_query_params)
+            self.run_table_query(self.query_params)
         else:
             log.info("table client changed and table not found, Clear table data")
             self.data = []
             self.table_info = None  # Clear table info as well
+
+    async def watch_query_params(self, new_query_params: QueryParameters) -> None:
+        """Update the query parameters and run the query."""
+        if self.table_client:
+            log.info(f"Running query with params: {new_query_params}")
+            self.run_table_query(new_query_params)
+        else:
+            log.warning("No table client available, cannot run query.")

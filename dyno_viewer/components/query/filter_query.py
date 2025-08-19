@@ -2,6 +2,9 @@ from textual.app import ComposeResult
 from textual.widget import Widget
 from textual.widgets import Button, Input, Label, RadioSet, Select
 
+from dyno_viewer.constants import ATTRIBUTE_TYPES, FILTER_CONDITIONS
+from dyno_viewer.models import FilterCondition
+
 
 class FilterQuery(Widget):
     DEFAULT_CSS = """
@@ -14,22 +17,19 @@ class FilterQuery(Widget):
     }
     """
 
+    def get_filter_condition(self) -> FilterCondition:
+        return FilterCondition(
+            attrName=self.query_one("#attr").value,
+            attrType=self.query_one("#attrType").value,
+            attrCondition=self.query_one("#condition").value,
+            attrValue=self.query_one("#attrValue").value,
+        )
+
     def compose(self) -> ComposeResult:
         yield Input(placeholder="attr", id="attr")
         yield Label("Type")
         yield Select(
-            [
-                (line, line)
-                for line in [
-                    "string",
-                    "number",
-                    "binary",
-                    "boolean",
-                    "map",
-                    "list",
-                    "set",
-                ]
-            ],
+            [(line, line) for line in ATTRIBUTE_TYPES],
             prompt="type",
             value="string",
             id="attrType",
@@ -37,25 +37,7 @@ class FilterQuery(Widget):
 
         yield Label("Condition")
         yield Select(
-            [
-                (line, line)
-                for line in [
-                    "==",
-                    ">",
-                    "<",
-                    "<=",
-                    ">=",
-                    "!=",
-                    "between",
-                    "in",
-                    "attribute_exists",
-                    "attribute_not_exists",
-                    "attribute_type",
-                    "begins_with",
-                    "contains",
-                    "size",
-                ]
-            ],
+            [(line, line) for line in FILTER_CONDITIONS],
             prompt="Condition",
             value="==",
             id="condition",

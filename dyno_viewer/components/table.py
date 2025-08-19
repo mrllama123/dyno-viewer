@@ -8,8 +8,8 @@ from textual.reactive import reactive
 from textual.widget import Widget
 from textual.widgets import DataTable
 
-from dyno_viewer.app_types import TableInfo
 from dyno_viewer.components.screens.view_row_item import ViewRowItem
+from dyno_viewer.models import TableInfo
 from dyno_viewer.util.util import format_output, output_to_csv_str
 
 
