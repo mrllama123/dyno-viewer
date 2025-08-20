@@ -15,7 +15,7 @@ from dyno_viewer.models import QueryParameters, TableInfo
 
 class QueryScreen(Screen):
     BINDINGS = [
-        ("escape", "app.pop_screen", "Pop screen"),
+        ("escape", "app.pop_screen", "Close screen"),
         (("r", "run_query", "Run Query")),
     ]
     CSS = """

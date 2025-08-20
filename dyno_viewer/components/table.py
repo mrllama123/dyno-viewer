@@ -19,11 +19,23 @@ class DataTableManager(Widget):
     """
 
     BINDINGS = [
-        Binding("[", action="page_decrement", description="prev results", show=False),
-        Binding("]", action="page_increment", description="next results", show=False),
-        Binding("i", action="view_row_item", description="View row", show=False),
+        Binding(
+            "[",
+            action="page_decrement",
+            description="prev table results",
+            show=False,
+            tooltip="Go to previous page of table results",
+        ),
+        Binding(
+            "]",
+            action="page_increment",
+            description="next table results",
+            show=False,
+            tooltip="Go to next page of table results",
+        ),
+        Binding("i", action="view_row_item", description="View table row", show=False),
         Binding("ctrl+r", "change_cursor_type", "Change Cursor type", show=False),
-        Binding("c", "copy_table_data", "Copy", show=False),
+        Binding("c", "copy_table_data", "Copy cell", show=False),
     ]
     DEFAULT_CSS = """
     DataTable {

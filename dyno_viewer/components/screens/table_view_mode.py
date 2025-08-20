@@ -36,7 +36,7 @@ class UpdateDynTableInfo(Message):
 class TableViewer(Screen):
     BINDINGS = [
         Binding("t", "select_table", "Select table", show=False),
-        Binding("q", "query_table", "Query", show=False),
+        Binding("q", "query_table", "Query table", show=False),
     ]
 
     table_info = reactive(None)
