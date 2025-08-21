@@ -14,6 +14,13 @@ class TableSelectScreen(ModalScreen):
 
     next_token = reactive(None)
 
+    DEFAULT_CSS = """
+    #optionDdbTableList  {
+        min-height: 20;
+        margin-top: 1;
+    }
+    """
+
     def __init__(
         self, name: str | None = None, id: str | None = None, classes: str | None = None
     ) -> None:
@@ -65,8 +72,10 @@ class TableSelectScreen(ModalScreen):
 
     async def on_mount(self) -> None:
         table_input = self.query_one(Input)
+        option_list = self.query_one(OptionList)
         table_input.focus()
         self.worker_list_tables()
+        option_list.loading = True
 
     def on_input_submitted(self, submitted: Input.Submitted) -> None:
         if submitted.value in self.tables:
@@ -83,6 +92,7 @@ class TableSelectScreen(ModalScreen):
         self.next_token = result.next_token
         option_list = self.query_one(OptionList)
         option_list.add_options(self.tables)
+        option_list.loading = False
 
     @on(Input.Changed, "#tableSelectInput")
     async def on_table_search_changed(self, changed: Input.Changed) -> None:
