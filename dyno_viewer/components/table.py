@@ -136,9 +136,6 @@ class DataTableManager(Widget):
             table.clear(columns=True)
             return
 
-        # if not new_data:
-        #     return
-
         if new_data:
             self._update_table(self.page_index)
 
