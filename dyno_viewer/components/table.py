@@ -39,8 +39,7 @@ class DataTableManager(Widget):
     ]
     DEFAULT_CSS = """
     DataTable {
-        height: 100%;
-        max-height: 100%;
+        min-height: 100%;
     }
     """
 
