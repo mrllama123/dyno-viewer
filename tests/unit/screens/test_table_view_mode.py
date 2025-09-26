@@ -7,6 +7,7 @@ from textual.reactive import reactive
 from dyno_viewer.aws.ddb import get_ddb_client
 from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.table_view_mode import TableViewer
+from dyno_viewer.models import KeyCondition, QueryParameters
 
 
 class TableViewModeApp(App):
@@ -56,11 +57,11 @@ async def test_table_view_mode_initialization():
         assert len(data_table.rows) == 0
 
 
-async def test_table_view_mode_set_table_name(ddb_tables):
+async def test_table_view_mode_set_table_name(ddb_table):
     async with TableViewModeApp().run_test() as pilot:
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
-        table_name = ddb_tables[0].name
+        table_name = ddb_table.name
 
         # set dyn_client
         pilot.app.dyn_client = get_ddb_client(
@@ -82,5 +83,73 @@ async def test_table_view_mode_set_table_name(ddb_tables):
         data_table = table_viewer.query(DataTable)
         assert data_table
         # check data table is loading
-        assert data_table[0].loading is False  # loading should be false after data is loaded
-        assert len(data_table[0].columns) > 0  # columns should be set after data is loaded
+        assert (
+            data_table[0].loading is False
+        )  # loading should be false after data is loaded
+        assert (
+            len(data_table[0].columns) > 0
+        )  # columns should be set after data is loaded
+
+
+async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table):
+    async with TableViewModeApp().run_test() as pilot:
+        table_viewer: TableViewer = pilot.app.screen
+        assert isinstance(table_viewer, TableViewer)
+        table_name = ddb_table.name
+
+        # set dyn_client
+        pilot.app.dyn_client = get_ddb_client(
+            region_name=pilot.app.aws_region, profile_name=pilot.app.aws_profile
+        )
+
+        # set table name
+        table_viewer.table_name = table_name
+        table_viewer.update_table_client()
+        await pilot.pause()
+
+        assert table_viewer.table_name == table_name
+        assert table_viewer.table_client is not None
+
+        # # check table info is set
+        assert table_viewer.table_info is not None
+        assert table_viewer.table_info["tableName"] == table_name
+
+        query_data_table = table_viewer.query(DataTable)
+        assert query_data_table
+        data_table = query_data_table[0]
+        # check data table is loading
+        assert (
+            data_table.loading is False
+        )  # loading should be false after data is loaded
+        assert len(data_table.columns) > 0  # columns should be set after data is loaded
+
+        # run a query to get customer with pk customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d
+        pilot.app.post_message(
+            QueryScreen.QueryParametersChanged(
+                QueryParameters(
+                    scan_mode=False,
+                    table_name=table_name,
+                    primary_key_name="pk",
+                    sort_key_name="sk",
+                    key_condition=KeyCondition(
+                        partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+                    ),
+                )
+            )
+        )
+        await pilot.pause()
+
+        # check data table is updated
+        assert data_table.row_count == 1
+        rows = [data_table.get_row_at(i) for i in range(0, data_table.row_count)]
+        assert rows == [
+            [
+                "customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+                "CUSOMER",
+                "CUSTOMER",
+                "customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+                None,
+                None,
+                "test1",
+            ]
+        ]
