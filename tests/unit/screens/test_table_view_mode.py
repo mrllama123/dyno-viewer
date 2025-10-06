@@ -7,6 +7,8 @@ from textual.reactive import reactive
 from dyno_viewer.aws.ddb import get_ddb_client
 from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.table_view_mode import TableViewer
+from dyno_viewer.components.table import DataTableManager
+from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.models import KeyCondition, QueryParameters
 
 
@@ -153,3 +155,55 @@ async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table):
                 "test1",
             ]
         ]
+
+async def test_table_view_mode_pagination(ddb_table_with_data, ddb_table):
+    async with TableViewModeApp().run_test() as pilot:
+        table_viewer: TableViewer = pilot.app.screen
+        assert isinstance(table_viewer, TableViewer)
+        table_name = ddb_table.name
+
+        # set dyn_client
+        pilot.app.dyn_client = get_ddb_client(
+            region_name=pilot.app.aws_region, profile_name=pilot.app.aws_profile
+        )
+
+        # set table name
+        table_viewer.table_name = table_name
+        table_viewer.update_table_client()
+        await pilot.pause()
+
+        assert table_viewer.table_name == table_name
+        assert table_viewer.table_client is not None
+
+        # # check table info is set
+        assert table_viewer.table_info is not None
+        assert table_viewer.table_info["tableName"] == table_name
+
+        query_data_table = table_viewer.query(DataTable)
+        data_table_manager = table_viewer.query_one(DataTableManager)       
+        assert query_data_table
+        data_table = query_data_table[0]
+        # check data table is loading
+        assert (
+            data_table.loading is False
+        )  # loading should be false after data is loaded
+        assert len(data_table.columns) > 0  # columns should be set after data is loaded
+
+        page_zero = [data_table.get_row_at(i) for i in range(0, data_table.row_count)]
+        assert len(table_viewer.data) == 1
+        assert len(page_zero) == 50
+
+        # go to next page
+        await pilot.press("]")
+        await pilot.pause()
+        assert data_table_manager.page_index == 1
+        assert len(table_viewer.data) == 2  # should have 2 pages of data now
+        page_one = [data_table.get_row_at(i) for i in range(0, data_table.row_count)]
+        assert len(page_one) == 50
+        assert page_one != page_zero
+
+        # go to previous page
+        await pilot.press("[")
+        await pilot.pause()
+        page_back = [data_table.get_row_at(i) for i in range(0, data_table.row_count)]
+        assert page_back == page_zero

@@ -134,29 +134,20 @@ class TableViewer(Screen):
     def run_table_query(self, query_params: QueryParameters, update_existing=False):
         worker = get_current_worker()
         if not worker.is_cancelled:
-            # self.log("dyn_params=", dyn_query_params)
-            if not query_params:
-                result, next_token = scan_items(
-                    self.table_client,
-                    paginate=False,
-                    Limit=50,
-                )
-                self.post_message(QueryResult(result, next_token, update_existing))
-                return
-            self.log.info(f"scan_mode={query_params.scan_mode}")
+            extra_params = query_params.boto_params if query_params else {}
             result, next_token = (
                 scan_items(
                     self.table_client,
                     paginate=False,
                     Limit=50,
-                    **query_params.boto_params,
+                    **extra_params,
                 )
-                if query_params.scan_mode
+                if getattr(query_params, "scan_mode", True)
                 else query_items(
                     self.table_client,
                     paginate=False,
                     Limit=50,
-                    **query_params.boto_params,
+                    **extra_params,
                 )
             )
             self.log.info(f"query result: {result}")
@@ -193,6 +184,7 @@ class TableViewer(Screen):
             # If we are updating existing data, we should not clear the current data
             self.log.info("Updating existing data in the table")
             self.data = self.data + [update_data.data]
+            table.page_index += 1
         else:
             # If not updating existing data, clear the current data
             self.data = [update_data.data]
