@@ -43,10 +43,6 @@ class TableViewer(Screen):
 
     table_name = reactive("")
 
-    dyn_query_params = reactive({})
-
-    query_screen_parameters = reactive(None)
-
     query_params: QueryParameters | None = reactive(None)
 
     # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :(
@@ -87,12 +83,6 @@ class TableViewer(Screen):
             self.table_client = None  # Clear client if no table name
             self.data = []
             self.table_info = None
-
-    def set_pagination_token(self, next_token: str | None) -> None:
-        if next_token:
-            self.dyn_query_params["ExclusiveStartKey"] = next_token
-        else:
-            self.dyn_query_params.pop("ExclusiveStartKey", None)
 
     # worker methods
 
@@ -184,7 +174,7 @@ class TableViewer(Screen):
             # If we are updating existing data, we should not clear the current data
             self.log.info("Updating existing data in the table")
             self.data = self.data + [update_data.data]
-            table.page_index += 1
+            table.increment_page_index()
         else:
             # If not updating existing data, clear the current data
             self.data = [update_data.data]

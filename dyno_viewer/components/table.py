@@ -70,6 +70,17 @@ class DataTableManager(Widget):
         table.add_rows(rows)
         table.refresh()
 
+    def increment_page_index(self):
+        if self.page_index < len(self.data) - 1:
+            self.page_index += 1
+        else:
+            self.post_message(self.PaginateRequest())
+            self.loading = True
+
+    def decrement_page_index(self):
+        if self.page_index > 0:
+            self.page_index -= 1
+
     def compose(self):
         yield DataTable()
 
@@ -78,15 +89,10 @@ class DataTableManager(Widget):
         table.focus()
 
     def action_page_decrement(self):
-        if self.page_index >= 0:
-            self.page_index -= 1
+        self.decrement_page_index()
 
     def action_page_increment(self):
-        if self.page_index < len(self.data) - 1:
-            self.page_index += 1
-        else:
-            self.post_message(self.PaginateRequest())
-            self.loading = True
+        self.increment_page_index()
 
     def action_view_row_item(self):
         if not self.data:

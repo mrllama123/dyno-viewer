@@ -49,8 +49,6 @@ async def test_table_view_mode_initialization():
         assert table_viewer.data == []
         assert table_viewer.query_params is None
         assert table_viewer.table_info is None
-        assert table_viewer.dyn_query_params == {}
-        assert table_viewer.query_screen_parameters is None
         assert table_viewer.table_client is None
 
         data_table = table_viewer.query_one(DataTable)
