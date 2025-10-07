@@ -205,3 +205,23 @@ async def test_table_view_mode_pagination(ddb_table_with_data, ddb_table):
         await pilot.pause()
         page_back = [data_table.get_row_at(i) for i in range(0, data_table.row_count)]
         assert page_back == page_zero
+
+        # go to next page again
+        await pilot.press("]")
+        await pilot.pause()
+        assert data_table_manager.page_index == 1
+        page_one_again = [data_table.get_row_at(i) for i in range(0, data_table.row_count)]
+        assert page_one_again == page_one
+
+        # go to next page 
+        await pilot.press("]")
+        await pilot.pause()
+        assert data_table_manager.page_index == 2
+        assert len(table_viewer.data) == 3  # should have 3 pages of data now
+        page_two = [data_table.get_row_at(i) for i in range(0, data_table.row_count)]
+        assert len(page_two) == 50  # last page should have 50 items
+        assert page_two != page_one
+        assert page_two != page_zero
+
+
+
