@@ -5,36 +5,28 @@ from textual.reactive import reactive
 
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.components.screens.view_row_item import ViewRowItem
+from dyno_viewer.models import TableInfo
 
 
 class DataTableManagerApp(App):
     data = reactive([])
 
-    paginated_data = reactive(
-        [
-            [
-                {"pk": "customer#33333", "sk": "CUSTOMER", "testAttr": "testy"},
-                {"pk": "customer#33334", "sk": "CUSTOMER", "testAttr": "testy"},
-                {"pk": "customer#33335", "sk": "CUSTOMER", "testAttr": "testy"},
-                {"pk": "customer#33336", "sk": "CUSTOMER", "testAttr": "testy"},
-            ]
-        ]
-    )
+    paginated_data = reactive([])
     table_info = reactive(
-        {
-            "tableName": "test_table_1",
-            "keySchema": {"primaryKey": "pk", "sortKey": "sk"},
-            "gsi": {
+        TableInfo(
+            tableName="test_table_1",
+            keySchema={"primaryKey": "pk", "sortKey": "sk"},
+            gsi={
                 "gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"},
                 "gsi2Index": {"primaryKey": "gsipk2", "sortKey": "gsisk2"},
             },
-        }
+        )
     )
 
     def run_query(self):
         if not self.paginated_data:
             return None
-        return self.paginated_data.pop()
+        return self.paginated_data.pop(0)
 
     def compose(self):
         yield DataTableManager().data_bind(
@@ -178,9 +170,30 @@ async def test_data_table_manager_pagination():
             {"pk": "customer#12345", "sk": "CUSTOMER"},
         ]
     ]
+    paginated_data = [
+        [
+            {"pk": "customer#33333", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#33334", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#33335", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#33336", "sk": "CUSTOMER", "testAttr": "testy"},
+        ],
+        [
+            {"pk": "customer#44444", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#44445", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#44446", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#44447", "sk": "CUSTOMER", "testAttr": "testy"},
+        ],
+        [
+            {"pk": "customer#55555", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#55556", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#55557", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#55558", "sk": "CUSTOMER", "testAttr": "testy"},
+        ],
+    ]
     app = DataTableManagerApp()
     async with app.run_test() as pilot:
-        pilot.app.data = data
+        pilot.app.data = data.copy()
+        pilot.app.paginated_data = paginated_data.copy()
         await pilot.pause()
         table = pilot.app.query_one(DataTable)
         assert table.row_count == len(data[0])
@@ -196,6 +209,101 @@ async def test_data_table_manager_pagination():
 
         await pilot.press("]")
         await pilot.pause(0.7)
+        assert pilot.app.query_one(DataTableManager).page_index == 1
+        assert table.row_count == len(paginated_data[0])
+        table_rows_after_pagination = [
+            table.get_row_at(i) for i in range(0, len(paginated_data[0]))
+        ]
+        assert table_rows_after_pagination == [
+            ["customer#33333", "CUSTOMER", None, None, None, None, "testy"],
+            ["customer#33334", "CUSTOMER", None, None, None, None, "testy"],
+            ["customer#33335", "CUSTOMER", None, None, None, None, "testy"],
+            ["customer#33336", "CUSTOMER", None, None, None, None, "testy"],
+        ]
+
+        await pilot.press("]")
+        await pilot.pause(0.7)
+        assert pilot.app.query_one(DataTableManager).page_index == 2
+        assert table.row_count == len(paginated_data[1])
+        table_rows_after_second_pagination = [
+            table.get_row_at(i) for i in range(0, len(paginated_data[1]))
+        ]
+        assert table_rows_after_second_pagination == [
+            ["customer#44444", "CUSTOMER", None, None, None, None, "testy"],
+            ["customer#44445", "CUSTOMER", None, None, None, None, "testy"],
+            ["customer#44446", "CUSTOMER", None, None, None, None, "testy"],
+            ["customer#44447", "CUSTOMER", None, None, None, None, "testy"],
+        ]
+
+
+async def test_data_table_manager_pagination_page_forward_backward():
+    data = [
+        [
+            {"pk": "customer#12345", "sk": "CUSTOMER"},
+            {"pk": "customer#54321", "sk": "CUSTOMER"},
+            {"pk": "customer#98765", "sk": "CUSTOMER"},
+            {"pk": "customer#12345", "sk": "CUSTOMER"},
+            {"pk": "customer#12345", "sk": "CUSTOMER"},
+            {"pk": "customer#12345", "sk": "CUSTOMER"},
+        ]
+    ]
+    paginated_data = [
+        [
+            {"pk": "customer#33333", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#33334", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#33335", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#33336", "sk": "CUSTOMER", "testAttr": "testy"},
+        ],
+        [
+            {"pk": "customer#44444", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#44445", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#44446", "sk": "CUSTOMER", "testAttr": "testy"},
+            {"pk": "customer#44447", "sk": "CUSTOMER", "testAttr": "testy"},
+        ],
+    ]
+    app = DataTableManagerApp()
+    async with app.run_test() as pilot:
+        pilot.app.data = data.copy()
+        pilot.app.paginated_data = paginated_data.copy()
+        await pilot.pause()
+        table = pilot.app.query_one(DataTable)
+        assert table.row_count == len(data[0])
+        table_rows = [table.get_row_at(i) for i in range(0, len(data[0]))]
+        assert table_rows == [
+            ["customer#12345", "CUSTOMER", None, None, None, None],
+            ["customer#54321", "CUSTOMER", None, None, None, None],
+            ["customer#98765", "CUSTOMER", None, None, None, None],
+            ["customer#12345", "CUSTOMER", None, None, None, None],
+            ["customer#12345", "CUSTOMER", None, None, None, None],
+            ["customer#12345", "CUSTOMER", None, None, None, None],
+        ]
+
+        await pilot.press("]")
+        await pilot.pause(0.7)
+        assert pilot.app.query_one(DataTableManager).page_index == 1
+        assert table.row_count == len(paginated_data[0])
+        table_rows_after_pagination = [
+            table.get_row_at(i) for i in range(0, len(paginated_data[0]))
+        ]
+        assert table_rows_after_pagination == [
+            ["customer#33333", "CUSTOMER", None, None, None, None, "testy"],
+            ["customer#33334", "CUSTOMER", None, None, None, None, "testy"],
+            ["customer#33335", "CUSTOMER", None, None, None, None, "testy"],
+            ["customer#33336", "CUSTOMER", None, None, None, None, "testy"],
+        ]
+        await pilot.press("[")
+        await pilot.pause(0.7)
+        assert pilot.app.query_one(DataTableManager).page_index == 0
+        assert table.row_count == len(data[0])
+        table_rows_after_back = [table.get_row_at(i) for i in range(0, len(data[0]))]
+        assert table_rows_after_back == [
+            ["customer#12345", "CUSTOMER", None, None, None, None],
+            ["customer#54321", "CUSTOMER", None, None, None, None],
+            ["customer#98765", "CUSTOMER", None, None, None, None],
+            ["customer#12345", "CUSTOMER", None, None, None, None],
+            ["customer#12345", "CUSTOMER", None, None, None, None],
+            ["customer#12345", "CUSTOMER", None, None, None, None],
+        ]
 
 
 @pytest.mark.skip(

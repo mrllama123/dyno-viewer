@@ -43,10 +43,6 @@ class TableViewer(Screen):
 
     table_name = reactive("")
 
-    dyn_query_params = reactive({})
-
-    query_screen_parameters = reactive(None)
-
     query_params: QueryParameters | None = reactive(None)
 
     # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :(
@@ -88,12 +84,6 @@ class TableViewer(Screen):
             self.data = []
             self.table_info = None
 
-    def set_pagination_token(self, next_token: str | None) -> None:
-        if next_token:
-            self.dyn_query_params["ExclusiveStartKey"] = next_token
-        else:
-            self.dyn_query_params.pop("ExclusiveStartKey", None)
-
     # worker methods
 
     @work(exclusive=True, group="update_dyn_table_info", thread=True)
@@ -134,29 +124,20 @@ class TableViewer(Screen):
     def run_table_query(self, query_params: QueryParameters, update_existing=False):
         worker = get_current_worker()
         if not worker.is_cancelled:
-            # self.log("dyn_params=", dyn_query_params)
-            if not query_params:
-                result, next_token = scan_items(
-                    self.table_client,
-                    paginate=False,
-                    Limit=50,
-                )
-                self.post_message(QueryResult(result, next_token, update_existing))
-                return
-            self.log.info(f"scan_mode={query_params.scan_mode}")
+            extra_params = query_params.boto_params if query_params else {}
             result, next_token = (
                 scan_items(
                     self.table_client,
                     paginate=False,
                     Limit=50,
-                    **query_params.boto_params,
+                    **extra_params,
                 )
-                if query_params.scan_mode
+                if getattr(query_params, "scan_mode", True)
                 else query_items(
                     self.table_client,
                     paginate=False,
                     Limit=50,
-                    **query_params.boto_params,
+                    **extra_params,
                 )
             )
             self.log.info(f"query result: {result}")
@@ -193,6 +174,7 @@ class TableViewer(Screen):
             # If we are updating existing data, we should not clear the current data
             self.log.info("Updating existing data in the table")
             self.data = self.data + [update_data.data]
+            table.increment_page_index()
         else:
             # If not updating existing data, clear the current data
             self.data = [update_data.data]
