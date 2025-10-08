@@ -1,5 +1,7 @@
+from enum import Enum
 from functools import reduce
 from operator import and_
+from pathlib import Path
 from typing import Any, TypedDict
 
 from boto3.dynamodb.conditions import Attr, ConditionBase, Key
@@ -15,6 +17,16 @@ from dyno_viewer.constants import (
     FILTER_CONDITIONS,
     SORT_KEY_CONDITIONS,
 )
+
+
+class OutputFormat(Enum):
+    CSV = "csv"
+    JSON = "json"
+
+
+class FileToSave(BaseModel):
+    path: str | Path
+    file_format: OutputFormat
 
 
 class KeySchema(TypedDict):

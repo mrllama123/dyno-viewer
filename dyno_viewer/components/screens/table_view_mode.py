@@ -15,8 +15,10 @@ from dyno_viewer.aws.ddb import (
 from dyno_viewer.components.screens import (
     TableSelectScreen,
 )
+from dyno_viewer.components.screens.file_chooser import SaveFileChooser
 from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.models import QueryParameters, TableInfo
+from dyno_viewer.models import OutputFormat, QueryParameters, TableInfo
+from dyno_viewer.util import save_query_results_to_csv, save_query_results_to_json
 
 
 class QueryResult(Message):
@@ -37,6 +39,7 @@ class TableViewer(Screen):
     BINDINGS = [
         Binding("t", "select_table", "Select table", show=False),
         Binding("q", "query_table", "Query table", show=False),
+        Binding("s", "save_query", "Save query result to file", show=False),
     ]
 
     table_info = reactive(None)
@@ -210,6 +213,31 @@ class TableViewer(Screen):
         else:
             self.table_name = ""
             self.data = []
+
+    @work
+    async def action_save_query(self) -> None:
+        """Open the save query screen."""
+        if self.data:
+            file_to_save = await self.app.push_screen_wait(SaveFileChooser())
+            if file_to_save:
+                try:
+                    if file_to_save.file_format == OutputFormat.CSV:
+                        save_query_results_to_csv(
+                            file_to_save.path,
+                            [item for page in self.data if page for item in page],
+                        )
+                    else:
+                        save_query_results_to_json(
+                            file_to_save.path,
+                            [item for page in self.data if page for item in page],
+                        )
+
+                    self.notify(f"Query results saved to {file_to_save.path}")
+                except Exception as e:  # pylint: disable=broad-except
+                    self.log.error(f"Error saving query results: {e}")
+                    self.notify(f"Error saving query results: {e}", severity="error")
+        else:
+            self.notify("Empty data, cannot save.")
 
     async def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
