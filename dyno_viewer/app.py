@@ -13,7 +13,13 @@ from dyno_viewer.components.screens import (
 )
 from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.table_view_mode import TableViewer
-from dyno_viewer.models import TableInfo
+from dyno_viewer.db.utils import (
+    add_query_history_async,
+    start_async_session,
+    start_session,
+    add_query_history,
+)
+from dyno_viewer.models import QueryParameters, TableInfo
 
 
 class QueryResult(Message):
@@ -47,21 +53,24 @@ class DynCli(App):
     dyn_client = reactive(
         get_ddb_client(region_name="ap-southeast-2", profile_name=None)
     )
+    db_session = reactive(None)
     is_help_visible = reactive(False)
 
     MODES = {
         "table": TableViewer,
     }
 
-    def on_mount(self) -> None:
+    async def on_mount(self) -> None:
+        self.db_session = start_async_session()
         self.switch_mode("table")
 
     @on(QueryScreen.QueryParametersChanged)
-    def query_screen_parameters_changed(
+    async def query_screen_parameters_changed(
         self, query_params: QueryScreen.QueryParametersChanged
     ) -> None:
         if isinstance(self.screen, TableViewer):
             self.screen.query_params = query_params.params
+            self.add_query_to_history(query_params.params)
 
     # HACK: this is a work around as the query screen can't send the event to the TableViewer screen
     # and we want to persist this screen across an session
@@ -118,6 +127,17 @@ class DynCli(App):
         region = await self.push_screen_wait(RegionSelectScreen())
         if region:
             self.aws_region = region
+
+    # @work(exclusive=True)
+    # async def setup_db(self) -> None:
+    #     """Setup the database session."""
+    #     if not self.db_session:
+    #         self.db_session = await start_async_session()
+
+    @work(exclusive=True)
+    async def add_query_to_history(self, params: QueryParameters) -> None:
+        """Add the query to the history."""
+        await add_query_history_async(self.db_session, params)
 
 
 def run() -> None:
