@@ -14,10 +14,8 @@ from dyno_viewer.components.screens import (
 from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.table_view_mode import TableViewer
 from dyno_viewer.db.utils import (
-    add_query_history_async,
-    start_async_session,
-    start_session,
     add_query_history,
+    start_async_session,
 )
 from dyno_viewer.models import QueryParameters, TableInfo
 
@@ -61,7 +59,8 @@ class DynCli(App):
     }
 
     async def on_mount(self) -> None:
-        self.db_session = start_async_session()
+        # Initialize the async DB session (SQLAlchemy)
+        self.db_session = await start_async_session()
         self.switch_mode("table")
 
     @on(QueryScreen.QueryParametersChanged)
@@ -70,7 +69,7 @@ class DynCli(App):
     ) -> None:
         if isinstance(self.screen, TableViewer):
             self.screen.query_params = query_params.params
-            self.add_query_to_history(query_params.params)
+            self.append_query_to_history(query_params.params)
 
     # HACK: this is a work around as the query screen can't send the event to the TableViewer screen
     # and we want to persist this screen across an session
@@ -135,9 +134,11 @@ class DynCli(App):
     #         self.db_session = await start_async_session()
 
     @work(exclusive=True)
-    async def add_query_to_history(self, params: QueryParameters) -> None:
+    async def append_query_to_history(self, params: QueryParameters) -> None:
         """Add the query to the history."""
-        await add_query_history_async(self.db_session, params)
+        if not params.filter_conditions and not params.key_condition:
+            return
+        await add_query_history(self.db_session, params)
 
 
 def run() -> None:

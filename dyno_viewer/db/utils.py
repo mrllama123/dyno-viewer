@@ -1,40 +1,14 @@
-from typing import AsyncGenerator, Iterator
-
-from sqlalchemy.ext.asyncio import create_async_engine
-from sqlmodel import Session, SQLModel, create_engine, select
-from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
-from contextlib import asynccontextmanager
 
-
-from dyno_viewer.db.models import *  # pylint: disable=unused-wildcard-import, wildcard-import
+from dyno_viewer.db.models import Base, ListQueryHistoryResult, QueryHistory
+from dyno_viewer.models import QueryParameters
 from dyno_viewer.util.path import ensure_config_dir
 
 
-def start_session() -> Iterator[Session]:
-    app_path = ensure_config_dir("dyno-viewer")
-    engine = create_engine(
-        f"sqlite:///{app_path}/db.db",
-        connect_args={"check_same_thread": False},
-        pool_pre_ping=True,
-    )
-
-    with engine.connect() as conn:
-        current = conn.exec_driver_sql("PRAGMA journal_mode;").scalar()
-        if not current or current.lower() != "wal":
-            conn.exec_driver_sql("PRAGMA journal_mode=WAL;")
-            conn.exec_driver_sql("PRAGMA synchronous=NORMAL;")
-            conn.exec_driver_sql("PRAGMA foreign_keys=ON;")
-    SQLModel.metadata.create_all(engine)
-    with Session(engine) as session:
-        yield session
-
-
-# @asynccontextmanager
-async def start_async_session() -> AsyncGenerator[AsyncSession, None]:
-    """
-    Create and yield an AsyncSession.
-    """
+async def start_async_session() -> AsyncSession:
+    """Create and return an AsyncSession instance."""
     app_path = ensure_config_dir("dyno-viewer")
     engine = create_async_engine(
         f"sqlite+aiosqlite:///{app_path}/db.db",
@@ -43,50 +17,66 @@ async def start_async_session() -> AsyncGenerator[AsyncSession, None]:
     )
     async with engine.begin() as conn:
         current = (await conn.exec_driver_sql("PRAGMA journal_mode;")).scalar()
-        if not current or current.lower() != "wal":
+        if not current or str(current).lower() != "wal":
             await conn.exec_driver_sql("PRAGMA journal_mode=WAL;")
             await conn.exec_driver_sql("PRAGMA synchronous=NORMAL;")
             await conn.exec_driver_sql("PRAGMA foreign_keys=ON;")
-        await conn.run_sync(SQLModel.metadata.create_all)
-    # async_session = sessionmaker(
-    #     bind=engine, class_=AsyncSession, expire_on_commit=False
-    # )
-    async_session = AsyncSession(engine)
-    try:
-        yield async_session
-    finally:
-        await async_session.close()
+        await conn.run_sync(Base.metadata.create_all)
+    async_session_local = sessionmaker(
+        bind=engine, class_=AsyncSession, expire_on_commit=False, autoflush=False
+    )
+    return async_session_local()
 
 
-def add_query_history(session: Session, params: QueryParameters) -> None:
+async def add_query_history(session: AsyncSession, params: QueryParameters) -> None:
     query_history = QueryHistory.from_query_params(params)
-    last_query = session.exec(
+    stmt = (
         select(QueryHistory)
         .where(QueryHistory.filter_conditions == query_history.filter_conditions)
         .where(QueryHistory.key_condition == query_history.key_condition)
         .order_by(QueryHistory.created_at)
-    ).first()
-    if last_query:
-        return
-
-    session.add(query_history)
-    session.commit()
-    session.refresh(query_history)
-
-
-async def add_query_history_async(
-    session: AsyncSession, params: QueryParameters
-) -> None:
-    query_history = QueryHistory.from_query_params(params)
-    last_query = await session.exec(
-        select(QueryHistory)
-        .where(QueryHistory.filter_conditions == query_history.filter_conditions)
-        .where(QueryHistory.key_condition == query_history.key_condition)
-        .order_by(QueryHistory.created_at)
-    ).first()
+        .limit(1)
+    )
+    result = await session.execute(stmt)
+    last_query = result.scalars().first()
     if last_query:
         return
 
     session.add(query_history)
     await session.commit()
     await session.refresh(query_history)
+
+
+async def get_total_pages(session: AsyncSession, page_size: int) -> int:
+    total = await session.scalar(
+        select(func.count()).select_from(QueryHistory)  # pylint: disable=not-callable
+    )
+    return (total + page_size - 1) // page_size
+
+
+async def get_query_history(
+    session: AsyncSession, history_id: int
+) -> QueryHistory | None:
+    stmt = select(QueryHistory).where(QueryHistory.id == history_id)
+    result = await session.execute(stmt)
+    return result.scalars().first()
+
+
+async def list_query_history(
+    session: AsyncSession, page: int = 1, page_size: int = 20
+) -> ListQueryHistoryResult:
+    offset = (page - 1) * page_size
+    stmt = (
+        select(QueryHistory)
+        .order_by(QueryHistory.created_at.desc())
+        .offset(offset)
+        .limit(page_size)
+    )
+    result = await session.execute(stmt)
+    items = result.scalars().all()
+
+    total = await session.scalar(
+        select(func.count()).select_from(QueryHistory)  # pylint: disable=not-callable
+    )
+    total_pages = (total + page_size - 1) // page_size
+    return ListQueryHistoryResult(total=total, total_pages=total_pages, items=items)

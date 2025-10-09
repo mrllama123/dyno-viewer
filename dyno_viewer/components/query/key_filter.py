@@ -39,6 +39,13 @@ class KeyFilter(Widget):
             ),
         )
 
+    def load_key_condition(self, key_condition: KeyCondition) -> None:
+        self.query_one("#partitionKey").value = key_condition.partitionKeyValue
+        if key_condition.sortKey:
+            self.query_one("#attrType").value = key_condition.sortKey.attrType
+            self.query_one("#condition").value = key_condition.sortKey.attrCondition
+            self.query_one("#attrValue").value = key_condition.sortKey.attrValue
+
     def compose(self) -> ComposeResult:
         # yield OptionList("table", id="queryIndex")
         yield Input(placeholder="pk", id="partitionKey")
