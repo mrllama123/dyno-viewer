@@ -515,18 +515,18 @@ css = ["tinycss2 (>=1.1.0,<1.5)"]
 
 [[package]]
 name = "boto3"
-version = "1.40.48"
+version = "1.40.50"
 description = "The AWS SDK for Python"
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "boto3-1.40.48-py3-none-any.whl", hash = "sha256:8a5fb8b5509cd5ddaf3d1d1f0385c974038b47492ca25f3414042676d188f635"},
-    {file = "boto3-1.40.48.tar.gz", hash = "sha256:b993bbef91f3796f0ae69b2a310a6cef41a06348ed80961f0ebc804680d8e9a4"},
+    {file = "boto3-1.40.50-py3-none-any.whl", hash = "sha256:62901bc616c64236700001f530fc66b659ecd1acb4f541ddac6fcae3a1d37ea6"},
+    {file = "boto3-1.40.50.tar.gz", hash = "sha256:ae34363e8f34a49ab130d10c507a611926c1101d5d14d70be5598ca308e13266"},
 ]
 
 [package.dependencies]
-botocore = ">=1.40.48,<1.41.0"
+botocore = ">=1.40.50,<1.41.0"
 jmespath = ">=0.7.1,<2.0.0"
 s3transfer = ">=0.14.0,<0.15.0"
 
@@ -535,14 +535,14 @@ crt = ["botocore[crt] (>=1.21.0,<2.0a0)"]
 
 [[package]]
 name = "botocore"
-version = "1.40.48"
+version = "1.40.50"
 description = "Low-level, data-driven core of boto 3."
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "botocore-1.40.48-py3-none-any.whl", hash = "sha256:34795305bb5aa670befcbdc936fd144a0af5db5323d78e7245dbd6aa246bf3db"},
-    {file = "botocore-1.40.48.tar.gz", hash = "sha256:18bed348ce707aa896065b424f36a0b8d542fa6810e9165618e105b1abf34e7e"},
+    {file = "botocore-1.40.50-py3-none-any.whl", hash = "sha256:53126c153fae0670dc54f03d01c89b1af144acedb1020199b133dedb309e434d"},
+    {file = "botocore-1.40.50.tar.gz", hash = "sha256:1d3d5b5759c9cb30202cd5ad231ec8afb1abe5be0c088a1707195c2cbae0e742"},
 ]
 
 [package.dependencies]
@@ -3908,20 +3908,19 @@ files = [
 
 [[package]]
 name = "rich"
-version = "14.0.0"
+version = "14.2.0"
 description = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 optional = false
 python-versions = ">=3.8.0"
 groups = ["main", "dev"]
 files = [
-    {file = "rich-14.0.0-py3-none-any.whl", hash = "sha256:1c9491e1951aac09caffd42f448ee3d04e58923ffe14993f6e83068dc395d7e0"},
-    {file = "rich-14.0.0.tar.gz", hash = "sha256:82f1bc23a6a21ebca4ae0c45af9bdbc492ed20231dcb63f297d6d1021a9d5725"},
+    {file = "rich-14.2.0-py3-none-any.whl", hash = "sha256:76bc51fe2e57d2b1be1f96c524b890b816e334ab4c1e45888799bfaab0021edd"},
+    {file = "rich-14.2.0.tar.gz", hash = "sha256:73ff50c7c0c1c77c8243079283f4edb376f0f6442433aecb8ce7e6d0b92d1fe4"},
 ]
 
 [package.dependencies]
 markdown-it-py = ">=2.2.0"
 pygments = ">=2.13.0,<3.0.0"
-typing-extensions = {version = ">=4.0.0,<5.0", markers = "python_version < \"3.11\""}
 
 [package.extras]
 jupyter = ["ipywidgets (>=7.5.1,<9)"]
@@ -4324,21 +4323,21 @@ typing = ["mypy (>=1.6,<2.0)", "traitlets (>=5.11.1)"]
 
 [[package]]
 name = "textual"
-version = "6.2.1"
+version = "6.3.0"
 description = "Modern Text User Interface framework"
 optional = false
-python-versions = "<4.0.0,>=3.8.1"
+python-versions = "<4.0,>=3.9"
 groups = ["main", "dev"]
 files = [
-    {file = "textual-6.2.1-py3-none-any.whl", hash = "sha256:3c7190633cd4d8bfe6049ae66808b98da91ded2edb85cef54e82bf77b03d2a54"},
-    {file = "textual-6.2.1.tar.gz", hash = "sha256:4699d8dfae43503b9c417bd2a6fb0da1c89e323fe91c4baa012f9298acaa83e1"},
+    {file = "textual-6.3.0-py3-none-any.whl", hash = "sha256:ec908b4b008662e7670af4a3e7c773847066b0950b1c50126c72fa939b514c97"},
+    {file = "textual-6.3.0.tar.gz", hash = "sha256:a89c557fa740611551dcf4f93643f33853eca488183ef5882200dde8e94315e8"},
 ]
 
 [package.dependencies]
 markdown-it-py = {version = ">=2.1.0", extras = ["linkify", "plugins"]}
 platformdirs = ">=3.6.0,<5"
 pygments = ">=2.19.2,<3.0.0"
-rich = ">=13.3.3"
+rich = ">=14.2.0"
 typing-extensions = ">=4.4.0,<5.0.0"
 
 [package.extras]
@@ -4940,4 +4939,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "7b492b2df9f754e5e44bd49c7fc6228fac0f97026d78c4f838ed7e0da0928c21"
+content-hash = "27bc6ca24444b729386c0a94eb0de31d18ba022e668d982521f14913fbfff729"
