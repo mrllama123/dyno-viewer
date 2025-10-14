@@ -2,40 +2,19 @@ import asyncio
 from datetime import datetime
 
 import pytest
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
 
 from textual.app import App
 from textual.widgets import DataTable
 
 from dyno_viewer.components.screens.query_history import QueryHistoryScreen
-from dyno_viewer.db.models import Base, QueryHistory
+from dyno_viewer.db.models import QueryHistory
 from dyno_viewer.constants import FILTER_CONDITIONS, ATTRIBUTE_TYPES
 from dyno_viewer.models import KeyCondition, QueryParameters, FilterCondition
-import pytest_asyncio
 import simplejson as json
 
 from dyno_viewer.models import QueryParameters
 
 
-@pytest_asyncio.fixture
-async def db_session():
-    """Pytest fixture: yield an in-memory SQLite AsyncSession with schema initialized."""
-    engine = create_async_engine(
-        "sqlite+aiosqlite:///:memory:", connect_args={"check_same_thread": False}
-    )
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    AsyncSessionLocal = sessionmaker(
-        bind=engine, class_=AsyncSession, expire_on_commit=False, autoflush=False
-    )
-    session = AsyncSessionLocal()
-    try:
-        yield session
-    finally:
-        await session.close()
-        await engine.dispose()
 
 
 async def test_query_history_screen_populates_from_db(db_session):

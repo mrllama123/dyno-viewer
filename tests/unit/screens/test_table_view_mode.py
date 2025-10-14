@@ -32,13 +32,7 @@ class TableViewModeApp(App):
         if isinstance(self.screen, TableViewer):
             self.screen.query_params = query_params.params
 
-    # HACK: this is a work around as the query screen can't send the event to the TableViewer screen
-    # and we want to persist this screen across an session
-    @on(QueryScreen.RunQuery)
-    async def query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
-        table_viewer = self.screen
-        if isinstance(table_viewer, TableViewer):
-            await table_viewer.run_query(run_query)
+
 
 
 async def test_table_view_mode_initialization():
