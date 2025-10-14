@@ -49,6 +49,7 @@ class QueryHistoryScreen(ModalScreen):
 
         table = self.query_one(DataTable)
         for item in result.items:
+            # this might eventually be slow with large data but for now it's ok
             query_params = item.to_query_params()
             boto_params = query_params.boto_params
             key_condition = (
