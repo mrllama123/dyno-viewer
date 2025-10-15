@@ -127,12 +127,6 @@ class DynCli(App):
         if region:
             self.aws_region = region
 
-    # @work(exclusive=True)
-    # async def setup_db(self) -> None:
-    #     """Setup the database session."""
-    #     if not self.db_session:
-    #         self.db_session = await start_async_session()
-
     @work(exclusive=True)
     async def append_query_to_history(self, params: QueryParameters) -> None:
         """Add the query to the history."""

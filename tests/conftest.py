@@ -1,3 +1,4 @@
+from typing import AsyncGenerator
 import pytest_asyncio
 from tests.fixtures.ddb_tables import *
 from tests.fixtures.moto import *
@@ -12,7 +13,7 @@ import pytest_asyncio
 
 
 @pytest_asyncio.fixture
-async def db_session():
+async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """Pytest fixture: yield an in-memory SQLite AsyncSession with schema initialized."""
     engine = create_async_engine(
         "sqlite+aiosqlite:///:memory:", connect_args={"check_same_thread": False}
