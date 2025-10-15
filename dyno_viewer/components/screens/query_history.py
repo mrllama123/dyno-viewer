@@ -3,7 +3,7 @@ from textual.app import ComposeResult
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import ModalScreen
-from textual.widgets import DataTable, Label
+from textual.widgets import DataTable, Label, Markdown
 
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.db.utils import get_query_history, list_query_history
@@ -24,7 +24,7 @@ class QueryHistoryScreen(ModalScreen):
             super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield Label("Query History:")
+        yield Markdown("# Query History:", id="title")
         yield DataTable(id="query_history_table")
 
     async def on_mount(self):
