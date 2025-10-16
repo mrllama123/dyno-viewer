@@ -12,10 +12,6 @@ from dyno_viewer.constants import FILTER_CONDITIONS, ATTRIBUTE_TYPES
 from dyno_viewer.models import KeyCondition, QueryParameters, FilterCondition
 import simplejson as json
 
-from dyno_viewer.models import QueryParameters
-
-
-
 
 async def test_query_history_screen_populates_from_db(db_session):
     """Ensure the screen reads query history rows from the DB and displays them."""
@@ -27,7 +23,6 @@ async def test_query_history_screen_populates_from_db(db_session):
         db_session.add_all(
             [
                 QueryHistory(
-                    table_name="tbl",
                     scan_mode=False,
                     primary_key_name="pk",
                     sort_key_name="sk",
@@ -37,7 +32,6 @@ async def test_query_history_screen_populates_from_db(db_session):
                     created_at=datetime(2024, 1, 1, 12, 0, 0),
                 ),
                 QueryHistory(
-                    table_name="tbl",
                     scan_mode=True,
                     primary_key_name="pk",
                     sort_key_name="sk",
@@ -47,7 +41,6 @@ async def test_query_history_screen_populates_from_db(db_session):
                     created_at=datetime(2024, 1, 1, 12, 0, 1),
                 ),
                 QueryHistory(
-                    table_name="tbl",
                     scan_mode=False,
                     primary_key_name="pk",
                     sort_key_name="sk",
@@ -92,7 +85,6 @@ async def test_query_history_screen_with_filters(db_session):
     async with db_session.begin():
         db_session.add(
             QueryHistory(
-                table_name="tbl",
                 scan_mode=False,
                 primary_key_name="pk",
                 sort_key_name="sk",
@@ -148,7 +140,6 @@ async def test_query_history_screen_pagination(db_session):
         for i in range(40):
             db_session.add(
                 QueryHistory(
-                    table_name="tbl",
                     scan_mode=False,
                     primary_key_name="pk",
                     sort_key_name="sk",
@@ -193,7 +184,6 @@ async def test_query_history_screen_row_selection(db_session):
     async with db_session.begin():
         db_session.add(
             QueryHistory(
-                table_name="tbl",
                 scan_mode=False,
                 primary_key_name="pk",
                 sort_key_name="sk",
@@ -231,7 +221,6 @@ async def test_query_history_screen_row_selection(db_session):
 
         assert pilot.app.params is not None
         assert isinstance(pilot.app.params, QueryParameters)
-        assert pilot.app.params.table_name == "tbl"
         assert pilot.app.params.scan_mode is False
         assert pilot.app.params.primary_key_name == "pk"
         assert pilot.app.params.sort_key_name == "sk"
@@ -275,7 +264,6 @@ async def test_query_history_screen_invalid_json(db_session):
     async with db_session.begin():
         db_session.add(
             QueryHistory(
-                table_name="tbl",
                 scan_mode=False,
                 primary_key_name="pk",
                 sort_key_name="sk",

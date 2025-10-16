@@ -16,7 +16,6 @@ class QueryHistory(Base):
     __tablename__ = "query_history"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    table_name: Mapped[str] = mapped_column(String, nullable=False)
     scan_mode: Mapped[bool] = mapped_column(Boolean, nullable=False)
     primary_key_name: Mapped[str] = mapped_column(String, nullable=False)
     sort_key_name: Mapped[str] = mapped_column(String, nullable=False)
@@ -33,7 +32,6 @@ class QueryHistory(Base):
     @classmethod
     def from_query_params(cls, params: QueryParameters) -> "QueryHistory":
         return cls(
-            table_name=params.table_name,
             scan_mode=params.scan_mode,
             primary_key_name=params.primary_key_name,
             sort_key_name=params.sort_key_name,
@@ -49,7 +47,6 @@ class QueryHistory(Base):
     def to_query_params(self) -> QueryParameters:
         return QueryParameters.model_validate(
             {
-                "table_name": self.table_name,
                 "scan_mode": self.scan_mode,
                 "primary_key_name": self.primary_key_name,
                 "sort_key_name": self.sort_key_name,
