@@ -15,6 +15,12 @@ class QueryHistoryScreen(ModalScreen):
         ("n", "next_page", "Next Page"),
     ]
 
+    DEFAULT_CSS = """
+    DataTable {
+        min-height: 50%;
+    }
+    """
+
     next_page = reactive(1)
     total_pages = reactive(-1)
 
