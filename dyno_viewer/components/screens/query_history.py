@@ -3,7 +3,7 @@ from textual.app import ComposeResult
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import ModalScreen
-from textual.widgets import DataTable, Label, Markdown
+from textual.widgets import DataTable, Markdown
 
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.db.utils import get_query_history, list_query_history
