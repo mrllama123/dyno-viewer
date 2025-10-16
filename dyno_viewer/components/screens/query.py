@@ -47,6 +47,8 @@ class QueryScreen(Screen):
     scan_mode = reactive(False)
     index = reactive("table")
 
+    input_query_params = reactive(None)
+
     class RunQuery(Message):
         """
         custom message to send back to root screen that has all query
@@ -93,6 +95,29 @@ class QueryScreen(Screen):
         for option in ["table", *list(sorted(self.table_info["gsi"].keys()))]:
             option_list.add_option(option)
 
+    def load_query_parameters(self, params: QueryParameters) -> None:
+        """Load existing query parameters into the screen"""
+        scan_switch: Switch = self.query_one("#scanToggleSwitch")
+        scan_switch.value = params.scan_mode
+        if params.index and params.index in ["table", *self.table_info["gsi"].keys()]:
+            self.index = params.index
+            option_list: OptionList = self.query_one("#queryIndex")
+            index = [
+                i
+                for i, option in enumerate(option_list.options)
+                if option.prompt == params.index
+            ]
+            if index:
+                option_list.index = index[0]
+        key_filter = self.query_one(KeyFilter)
+        if params.key_condition:
+            key_filter.load_key_condition(params.key_condition)
+        for filter_param in params.filter_conditions:
+            filter_query = FilterQuery()
+            filter_query.load_filter_condition(filter_param)
+            self.mount(filter_query)
+        self.scroll_visible()
+
     # action methods
 
     def action_run_query(self) -> None:
@@ -137,6 +162,8 @@ class QueryScreen(Screen):
         if self.table_info:
             self.update_key_schema()
             self.update_index_options()
+        if self.input_query_params:
+            self.load_query_parameters(self.input_query_params)
 
     @on(Switch.Changed, "#scanToggleSwitch")
     def toggle_scan_mode(self, changed: Switch.Changed) -> None:
@@ -174,3 +201,7 @@ class QueryScreen(Screen):
                 return
             except Exception:
                 raise
+
+    def watch_query_params(self, new_query_params: QueryParameters) -> None:
+        if new_query_params and self.is_mounted:
+            self.load_query_parameters(new_query_params)

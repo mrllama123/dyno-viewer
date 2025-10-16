@@ -82,7 +82,7 @@ class DataTableManager(Widget):
             self.page_index -= 1
 
     def compose(self):
-        yield DataTable()
+        yield DataTable(id="data_table")
 
     def on_mount(self):
         table = self.query_one(DataTable)

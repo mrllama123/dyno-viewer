@@ -5,7 +5,12 @@ from typing import Any
 
 import boto3
 import simplejson as json
-from boto3.dynamodb.conditions import Attr, Key
+from boto3.dynamodb.conditions import (
+    Attr,
+    ConditionBase,
+    ConditionExpressionBuilder,
+    Key,
+)
 from boto3.session import Session
 from dynamodb_json import json_util as dyn_json
 
@@ -272,3 +277,18 @@ def float_to_decimal(payload):
 
 def serialise_dynamodb_json(json_obj):
     return json.loads(dyn_json.dumps(json_obj))
+
+
+def pretty_condition(cond: ConditionBase, is_key=False) -> str:
+    builder = ConditionExpressionBuilder()
+    built = builder.build_expression(cond, is_key_condition=is_key)
+    expr = built.condition_expression
+    names = built.attribute_name_placeholders
+    vals = built.attribute_value_placeholders
+
+    for ph, nm in names.items():
+        expr = expr.replace(ph, nm)
+    for pv, v in vals.items():
+        expr = expr.replace(pv, repr(v))
+
+    return expr

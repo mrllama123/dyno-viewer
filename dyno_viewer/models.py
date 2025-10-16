@@ -67,7 +67,6 @@ class SortKeyCondition(BaseCondition):
 
 
 class KeyCondition(BaseModel):
-    # index: str = "table"
     partitionKeyValue: str
     sortKey: SortKeyCondition | None = None
 

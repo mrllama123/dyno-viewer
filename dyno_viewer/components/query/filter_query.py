@@ -25,6 +25,12 @@ class FilterQuery(Widget):
             attrValue=self.query_one("#attrValue").value,
         )
 
+    def load_filter_condition(self, filter_condition: FilterCondition) -> None:
+        self.query_one("#attr").value = filter_condition.attrName
+        self.query_one("#attrType").value = filter_condition.attrType
+        self.query_one("#condition").value = filter_condition.attrCondition
+        self.query_one("#attrValue").value = filter_condition.attrValue
+
     def compose(self) -> ComposeResult:
         yield Input(placeholder="attr", id="attr")
         yield Label("Type")
