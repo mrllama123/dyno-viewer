@@ -17,6 +17,7 @@ class QueryScreen(Screen):
     BINDINGS = [
         ("escape", "app.pop_screen", "Close screen"),
         (("r", "run_query", "Run Query")),
+        ("s", "save_query", "Save Query"),
     ]
     CSS = """
     #queryScreen {
