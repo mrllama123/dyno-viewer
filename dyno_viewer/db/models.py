@@ -12,9 +12,8 @@ from dyno_viewer.models import FilterCondition, KeyCondition, QueryParameters
 Base = declarative_base()
 
 
-class QueryHistory(Base):
-    __tablename__ = "query_history"
-
+class QueryBase(Base):
+    __abstract__ = True
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     scan_mode: Mapped[bool] = mapped_column(Boolean, nullable=False)
     primary_key_name: Mapped[str] = mapped_column(String, nullable=False)
@@ -28,21 +27,6 @@ class QueryHistory(Base):
         default=lambda: datetime.now(ZoneInfo("UTC")),
         index=True,
     )
-
-    @classmethod
-    def from_query_params(cls, params: QueryParameters) -> "QueryHistory":
-        return cls(
-            scan_mode=params.scan_mode,
-            primary_key_name=params.primary_key_name,
-            sort_key_name=params.sort_key_name,
-            index=params.index,
-            key_condition=(
-                params.key_condition.model_dump_json() if params.key_condition else None
-            ),
-            filter_conditions=json.dumps(
-                [f.model_dump() for f in params.filter_conditions]
-            ),
-        )
 
     def to_query_params(self) -> QueryParameters:
         return QueryParameters.model_validate(
@@ -69,8 +53,60 @@ class QueryHistory(Base):
         )
 
 
+class QueryHistory(QueryBase):
+    __tablename__ = "query_history"
+
+    @classmethod
+    def from_query_params(cls, params: QueryParameters) -> "QueryHistory":
+        return cls(
+            scan_mode=params.scan_mode,
+            primary_key_name=params.primary_key_name,
+            sort_key_name=params.sort_key_name,
+            index=params.index,
+            key_condition=(
+                params.key_condition.model_dump_json() if params.key_condition else None
+            ),
+            filter_conditions=json.dumps(
+                [f.model_dump() for f in params.filter_conditions]
+            ),
+        )
+
+
+class SavedQuery(QueryBase):
+    __tablename__ = "saved_queries"
+
+    name: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
+
+    @classmethod
+    def from_query_params(
+        cls, params: QueryParameters, name: str, description: str = ""
+    ) -> "QueryHistory":
+        return cls(
+            name=name,
+            description=description,
+            scan_mode=params.scan_mode,
+            primary_key_name=params.primary_key_name,
+            sort_key_name=params.sort_key_name,
+            index=params.index,
+            key_condition=(
+                params.key_condition.model_dump_json() if params.key_condition else None
+            ),
+            filter_conditions=json.dumps(
+                [f.model_dump() for f in params.filter_conditions]
+            ),
+        )
+
+
 class ListQueryHistoryResult(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     total: int
     total_pages: int
     items: list[QueryHistory]
+
+
+class ListSavedQueriesResult(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    total: int
+    total_pages: int
+    items: list[SavedQuery]

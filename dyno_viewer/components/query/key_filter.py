@@ -39,6 +39,10 @@ class KeyFilter(Widget):
             ),
         )
 
+    def is_valid(self) -> bool:
+        """Check if the key condition is valid."""
+        return bool(self.query_one("#partitionKey").value)
+
     def load_key_condition(self, key_condition: KeyCondition) -> None:
         self.query_one("#partitionKey").value = key_condition.partitionKeyValue
         if key_condition.sortKey:

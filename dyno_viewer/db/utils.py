@@ -2,7 +2,13 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from dyno_viewer.db.models import Base, ListQueryHistoryResult, QueryHistory
+from dyno_viewer.db.models import (
+    Base,
+    ListQueryHistoryResult,
+    ListSavedQueriesResult,
+    QueryHistory,
+    SavedQuery,
+)
 from dyno_viewer.models import QueryParameters
 from dyno_viewer.util.path import ensure_config_dir
 
@@ -54,6 +60,29 @@ async def get_total_pages(session: AsyncSession, page_size: int) -> int:
     return (total + page_size - 1) // page_size
 
 
+# async def get_saved_query_by_name(
+#     session: AsyncSession, name: str
+# ) -> SavedQuery | None:
+#     stmt = select(SavedQuery).where(SavedQuery.name == name)
+#     result = await session.execute(stmt)
+#     return result.scalars().first()
+
+
+async def add_saved_query(
+    session: AsyncSession, params: QueryParameters, name: str, description: str = ""
+) -> None:
+    saved_query = SavedQuery.from_query_params(params, name, description)
+    session.add(saved_query)
+    await session.commit()
+    await session.refresh(saved_query)
+
+
+async def get_saved_query(session: AsyncSession, query_id: int) -> SavedQuery | None:
+    stmt = select(SavedQuery).where(SavedQuery.id == query_id)
+    result = await session.execute(stmt)
+    return result.scalars().first()
+
+
 async def get_query_history(
     session: AsyncSession, history_id: int
 ) -> QueryHistory | None:
@@ -80,3 +109,23 @@ async def list_query_history(
     )
     total_pages = (total + page_size - 1) // page_size
     return ListQueryHistoryResult(total=total, total_pages=total_pages, items=items)
+
+
+async def list_saved_queries(
+    session: AsyncSession, page: int = 1, page_size: int = 20
+) -> ListSavedQueriesResult:
+    offset = (page - 1) * page_size
+    stmt = (
+        select(SavedQuery)
+        .order_by(SavedQuery.created_at.desc())
+        .offset(offset)
+        .limit(page_size)
+    )
+    result = await session.execute(stmt)
+    items = result.scalars().all()
+
+    total = await session.scalar(
+        select(func.count()).select_from(SavedQuery)  # pylint: disable=not-callable
+    )
+    total_pages = (total + page_size - 1) // page_size
+    return ListSavedQueriesResult(total=total, total_pages=total_pages, items=items)
