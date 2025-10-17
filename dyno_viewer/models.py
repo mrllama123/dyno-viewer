@@ -85,7 +85,6 @@ class FilterCondition(BaseCondition):
 
 
 class QueryParameters(BaseModel):
-    table_name: str
     scan_mode: bool = False
     primary_key_name: str
     sort_key_name: str

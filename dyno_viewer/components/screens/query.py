@@ -135,7 +135,6 @@ class QueryScreen(Screen):
         )
         new_query_params = QueryParameters(
             scan_mode=self.scan_mode,
-            table_name=self.table_info["tableName"],
             primary_key_name=primary_key_name,
             sort_key_name=sort_key_name,
             key_condition=key_condition,

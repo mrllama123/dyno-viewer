@@ -187,7 +187,6 @@ class TableViewer(Screen):
         # when scan
         if not self.query_params:
             self.query_params = QueryParameters(
-                table_name=self.table_info["tableName"],
                 primary_key_name=self.table_info["keySchema"]["primaryKey"],
                 sort_key_name=self.table_info["keySchema"]["sortKey"],
                 next_token=update_data.next_token,
