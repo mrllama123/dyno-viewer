@@ -29,7 +29,7 @@ jupyterlab = ">=3.6.3,<5.0.0"
 pytest-xdist = "^3.8.0"
 toml = "^0.10.2"
 poethepoet = ">=0.20,<0.38"
-textual-dev = "^1.6.1"
+textual-dev = "^1.8.0"
 
 
 isort = "^6.1.0"
