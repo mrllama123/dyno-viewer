@@ -21,7 +21,7 @@ sqlalchemy = {extras = ["asyncio"], version = "^2.0.43"}
 black = ">=23.3,<26.0"
 ipykernel = "^6.30.1"
 pytest = ">=7.3.1,<9.0.0"
-moto = {extras = ["all"], version = "^5.1.14"}
+moto = {extras = ["all"], version = "^5.1.15"}
 pytest-aiohttp = "^1.0.4"
 pandas = ">=1.5.3,<3.0.0"
 pytest-mock = "^3.15.1"
@@ -29,7 +29,7 @@ jupyterlab = ">=3.6.3,<5.0.0"
 pytest-xdist = "^3.8.0"
 toml = "^0.10.2"
 poethepoet = ">=0.20,<0.38"
-textual-dev = "^1.6.1"
+textual-dev = "^1.8.0"
 
 
 isort = "^6.1.0"
