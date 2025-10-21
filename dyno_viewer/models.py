@@ -149,3 +149,8 @@ class QueryParameters(BaseModel):
                 "Key conditions are required for query operations."
             )
         return v
+
+
+class SavedQuery(BaseModel):
+    name: str
+    description: str

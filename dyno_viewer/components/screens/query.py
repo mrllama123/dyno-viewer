@@ -1,5 +1,5 @@
 from boto3.dynamodb.conditions import Attr, Key
-from textual import on
+from textual import on, work
 from textual.app import ComposeResult
 from textual.containers import Container, Horizontal
 from textual.css.query import NoMatches
@@ -10,6 +10,8 @@ from textual.widgets import Button, Footer, Label, OptionList, Switch
 
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
+from dyno_viewer.components.screens.create_saved_query import CreateSavedQueryScreen
+from dyno_viewer.db.utils import add_saved_query
 from dyno_viewer.models import QueryParameters, TableInfo
 
 
@@ -17,6 +19,7 @@ class QueryScreen(Screen):
     BINDINGS = [
         ("escape", "app.pop_screen", "Close screen"),
         (("r", "run_query", "Run Query")),
+        ("s", "save_query", "Save Query"),
     ]
     CSS = """
     #queryScreen {
@@ -121,6 +124,11 @@ class QueryScreen(Screen):
     # action methods
 
     def action_run_query(self) -> None:
+        new_query_params = self.generate_query_parameters()
+        self.post_message(self.QueryParametersChanged(new_query_params))
+        self.app.pop_screen()
+
+    def generate_query_parameters(self):
         key_filter = self.query_exactly_one(KeyFilter)
         key_condition = key_filter.get_key_condition()
         primary_key_name = (
@@ -133,7 +141,7 @@ class QueryScreen(Screen):
             if self.index == "table"
             else self.table_info["gsi"][self.index]["sortKey"]
         )
-        new_query_params = QueryParameters(
+        return QueryParameters(
             scan_mode=self.scan_mode,
             primary_key_name=primary_key_name,
             sort_key_name=sort_key_name,
@@ -143,8 +151,27 @@ class QueryScreen(Screen):
                 filter.get_filter_condition() for filter in self.query(FilterQuery)
             ],
         )
-        self.post_message(self.QueryParametersChanged(new_query_params))
-        self.app.pop_screen()
+
+    @work
+    async def action_save_query(self) -> None:
+        key_filter = self.query_exactly_one(KeyFilter)
+        if not self.scan_mode and not key_filter.is_valid():
+            self.notify("Cannot save query: Invalid key condition.", severity="warning")
+            return
+
+        if self.scan_mode and not self.query(FilterQuery):
+            self.notify("Cannot save query: No filter conditions.", severity="warning")
+            return
+        saved_query = await self.app.push_screen_wait(CreateSavedQueryScreen())
+        if saved_query:
+            query_params = self.generate_query_parameters()
+            await add_saved_query(
+                self.app.db_session,
+                query_params,
+                saved_query.name,
+                saved_query.description,
+            )
+            self.notify("Saved query created successfully.", severity="success")
 
     # on methods:
     def on_button_pressed(self, event: Button.Pressed) -> None:

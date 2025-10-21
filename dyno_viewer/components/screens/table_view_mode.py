@@ -17,6 +17,7 @@ from dyno_viewer.components.screens import (
 )
 from dyno_viewer.components.screens.file_chooser import SaveFileChooser
 from dyno_viewer.components.screens.query_history import QueryHistoryScreen
+from dyno_viewer.components.screens.saved_querys import SavedQueriesScreen
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.models import OutputFormat, QueryParameters, TableInfo
 from dyno_viewer.util import save_query_results_to_csv, save_query_results_to_json
@@ -42,6 +43,7 @@ class TableViewer(Screen):
         Binding("q", "query_table", "Query table", show=False),
         Binding("s", "save_query", "Save query result to file", show=False),
         Binding("h", "show_query_history", "Show query history", show=False),
+        Binding("p", "show_saved_queries", "Show saved queries", show=False),
     ]
 
     table_info = reactive(None)
@@ -245,6 +247,19 @@ class TableViewer(Screen):
         """Open the query history screen."""
         if self.table_client:
             new_query_param = await self.app.push_screen_wait(QueryHistoryScreen())
+            if new_query_param:
+                query_screen = self.app.get_screen("query")
+                self.query_params = new_query_param
+                query_screen.input_query_params = new_query_param
+
+        else:
+            self.notify("No table selected", severity="warning")
+
+    @work
+    async def action_show_saved_queries(self) -> None:
+        """Open the saved queries screen."""
+        if self.table_client:
+            new_query_param = await self.app.push_screen_wait(SavedQueriesScreen())
             if new_query_param:
                 query_screen = self.app.get_screen("query")
                 self.query_params = new_query_param
