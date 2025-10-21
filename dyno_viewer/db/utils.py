@@ -112,7 +112,7 @@ async def list_query_history(
 
 
 async def list_saved_queries(
-    session: AsyncSession, page: int = 1, page_size: int = 20
+    session: AsyncSession, page: int = 1, page_size: int = 20, search: str = ""
 ) -> ListSavedQueriesResult:
     offset = (page - 1) * page_size
     stmt = (
@@ -121,6 +121,8 @@ async def list_saved_queries(
         .offset(offset)
         .limit(page_size)
     )
+    if search:
+        stmt = stmt.where(SavedQuery.name.ilike(f"%{search}%"))
     result = await session.execute(stmt)
     items = result.scalars().all()
 
@@ -129,3 +131,12 @@ async def list_saved_queries(
     )
     total_pages = (total + page_size - 1) // page_size
     return ListSavedQueriesResult(total=total, total_pages=total_pages, items=items)
+
+
+async def delete_saved_query(session: AsyncSession, query_id: int) -> None:
+    stmt = select(SavedQuery).where(SavedQuery.id == query_id)
+    result = await session.execute(stmt)
+    saved_query = result.scalars().first()
+    if saved_query:
+        await session.delete(saved_query)
+        await session.commit()
