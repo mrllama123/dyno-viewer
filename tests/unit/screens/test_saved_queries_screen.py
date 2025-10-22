@@ -4,7 +4,7 @@ from textual.app import App
 from textual.widgets import DataTable, Input
 from textual.reactive import reactive
 from textual.pilot import Pilot
-from dyno_viewer.components.screens.confirm_dialouge import ConfirmDialogue
+from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.components.screens.saved_querys import SavedQueriesScreen
 from unittest.mock import AsyncMock
 from dyno_viewer.constants import FILTER_CONDITIONS

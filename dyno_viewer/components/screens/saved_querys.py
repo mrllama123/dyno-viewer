@@ -8,7 +8,7 @@ from textual.containers import Container
 from textual.binding import Binding
 
 from dyno_viewer.aws.ddb import pretty_condition
-from dyno_viewer.components.screens.confirm_dialouge import ConfirmDialogue
+from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.db.utils import (
     get_saved_query,
     list_saved_queries,
