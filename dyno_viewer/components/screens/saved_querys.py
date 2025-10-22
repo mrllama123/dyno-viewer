@@ -1,18 +1,18 @@
 from textual import on, work
 from textual.app import ComposeResult
+from textual.binding import Binding
+from textual.containers import Container
 from textual.message import Message
 from textual.reactive import reactive
 from textual.screen import ModalScreen
-from textual.widgets import DataTable, Markdown, Input
-from textual.containers import Container
-from textual.binding import Binding
+from textual.widgets import DataTable, Input, Markdown
 
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.db.utils import (
+    delete_saved_query,
     get_saved_query,
     list_saved_queries,
-    delete_saved_query,
 )
 
 
@@ -109,7 +109,6 @@ class SavedQueriesScreen(ModalScreen):
         table.clear()
         self.get_saved_query(search=message.value)
 
-
     @work
     async def action_delete_saved_query(self) -> None:
         confirm = await self.app.push_screen_wait(
@@ -121,11 +120,11 @@ class SavedQueriesScreen(ModalScreen):
                 row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
                 await delete_saved_query(self.app.db_session, row_key.value)
                 table.remove_row(row_key)
-    
+
     def action_next_page(self) -> None:
         if self.next_page == 1 and self.total_pages == 1:
             return
         if self.next_page <= self.total_pages:
             self.get_saved_query(
-                    search=self.query_one("#search_saved_queries", Input).value
-                )
+                search=self.query_one("#search_saved_queries", Input).value
+            )
