@@ -9,20 +9,17 @@ from textual.app import App
 from textual.reactive import reactive
 
 
-class TestCreateSavedQueryScreen(App):
-    BINDINGS = [("s", "create_saved_query", "Create Saved Query")]
-
-    saved_query = reactive(None)
-
-    @work
-    async def action_create_saved_query(self):
-        self.saved_query = await self.push_screen_wait(CreateSavedQueryScreen())
-
-
 async def test_create_saved_query_screen_submit_saved_query():
-    app = TestCreateSavedQueryScreen()
+    class TestCreateSavedQueryScreen(App):
+        BINDINGS = [("s", "create_saved_query", "Create Saved Query")]
 
-    async with app.run_test() as pilot:
+        saved_query = reactive(None)
+
+        @work
+        async def action_create_saved_query(self):
+            self.saved_query = await self.push_screen_wait(CreateSavedQueryScreen())
+
+    async with TestCreateSavedQueryScreen().run_test() as pilot:
         await pilot.press("s")
         await pilot.pause()
 
@@ -42,16 +39,23 @@ async def test_create_saved_query_screen_submit_saved_query():
 
         await pilot.pause()
 
-        assert isinstance(app.saved_query, SavedQuery)
+        assert isinstance(pilot.app.saved_query, SavedQuery)
 
-        assert app.saved_query.name == "Test Query"
-        assert app.saved_query.description == "This is a test saved query."
+        assert pilot.app.saved_query.name == "Test Query"
+        assert pilot.app.saved_query.description == "This is a test saved query."
 
 
 async def test_create_saved_query_screen_validation_click():
-    app = TestCreateSavedQueryScreen()
+    class TestCreateSavedQueryScreen(App):
+        BINDINGS = [("s", "create_saved_query", "Create Saved Query")]
 
-    async with app.run_test() as pilot:
+        saved_query = reactive(None)
+
+        @work
+        async def action_create_saved_query(self):
+            self.saved_query = await self.push_screen_wait(CreateSavedQueryScreen())
+
+    async with TestCreateSavedQueryScreen().run_test() as pilot:
         await pilot.press("s")
         await pilot.pause()
         assert isinstance(pilot.app.screen, CreateSavedQueryScreen)
@@ -65,9 +69,16 @@ async def test_create_saved_query_screen_validation_click():
 
 
 async def test_create_saved_query_screen_validation_blur():
-    app = TestCreateSavedQueryScreen()
+    class TestCreateSavedQueryScreen(App):
+        BINDINGS = [("s", "create_saved_query", "Create Saved Query")]
 
-    async with app.run_test() as pilot:
+        saved_query = reactive(None)
+
+        @work
+        async def action_create_saved_query(self):
+            self.saved_query = await self.push_screen_wait(CreateSavedQueryScreen())
+
+    async with TestCreateSavedQueryScreen().run_test() as pilot:
         await pilot.press("s")
         await pilot.pause()
         assert isinstance(pilot.app.screen, CreateSavedQueryScreen)
