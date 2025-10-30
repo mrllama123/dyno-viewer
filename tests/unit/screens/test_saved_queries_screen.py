@@ -5,10 +5,12 @@ from textual.widgets import DataTable, Input
 from textual.reactive import reactive
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.components.screens.saved_querys import SavedQueriesScreen
-from dyno_viewer.db.models import SavedQuery
+from dyno_viewer.db.models import QueryHistory, SavedQuery
 from dyno_viewer.models import QueryParameters, KeyCondition, FilterCondition
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from sqlalchemy import select, func
+
 
 async def test_mount_saved_queries_screen(db_session):
     class TestSavedQueriesScreenApp(App):
@@ -370,3 +372,66 @@ async def test_delete_saved_query(db_session):
         await pilot.press("enter")
         await pilot.pause()
         assert table.row_count == 0
+
+        # Verify all rows are deleted from the DB
+        total = await db_session.scalar(
+            select(func.count()).select_from(  # pylint: disable=not-callable
+                QueryHistory
+            )
+        )
+
+        assert total == 0
+
+
+async def test_delete_all_saved_queries(db_session):
+    class TestSavedQueriesScreenApp(App):
+        BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
+        db_session = reactive(None)
+        params = reactive(None)
+
+        @work
+        async def action_push_saved_queries_screen(self):
+            self.params = await self.push_screen_wait(SavedQueriesScreen())
+
+    async with TestSavedQueriesScreenApp().run_test() as pilot:
+        async with db_session.begin():
+            for i in range(5):
+                db_session.add(
+                    SavedQuery.from_query_params(
+                        QueryParameters(
+                            scan_mode=False,
+                            primary_key_name="pk",
+                            sort_key_name="sk",
+                            key_condition=KeyCondition(
+                                partitionKeyValue=f"item#{i}", sortKeyCondition=None
+                            ),
+                        ),
+                        name=f"Item {i} Query",
+                        description=f"Query for item {i}",
+                    )
+                )
+        await db_session.commit()
+
+        pilot.app.db_session = db_session
+        await pilot.press("p")
+        await pilot.pause()
+        assert isinstance(pilot.app.screen, SavedQueriesScreen)
+        screen = pilot.app.screen
+        table = screen.query_one(DataTable)
+        assert table.row_count == 5
+
+        await pilot.press("tab", "c")  # trigger delete all action
+        await pilot.pause()
+        pilot.app.save_screenshot()
+        # Confirm deletion
+        assert isinstance(pilot.app.screen, ConfirmDialogue)
+        await pilot.press("y")
+        await pilot.pause()
+        assert table.row_count == 0
+
+        # Verify all rows are deleted from the DB
+        total = await db_session.scalar(
+            select(func.count()).select_from(SavedQuery)  # pylint: disable=not-callable
+        )
+
+        assert total == 0
