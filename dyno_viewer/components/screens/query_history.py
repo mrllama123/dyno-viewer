@@ -6,12 +6,20 @@ from textual.screen import ModalScreen
 from textual.widgets import DataTable, Markdown
 
 from dyno_viewer.aws.ddb import pretty_condition
-from dyno_viewer.db.utils import get_query_history, list_query_history
+from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
+from dyno_viewer.db.utils import (
+    delete_all_query_history,
+    delete_query_history,
+    get_query_history,
+    list_query_history,
+)
 
 
 class QueryHistoryScreen(ModalScreen):
     BINDINGS = [
         ("escape", "app.pop_screen", "Pop screen"),
+        ("d", "delete_query", "Delete Query"),
+        ("c", "delete_all_query_history", "Delete All Query History"),
         ("n", "next_page", "Next Page"),
     ]
 
@@ -41,10 +49,10 @@ class QueryHistoryScreen(ModalScreen):
         table.add_column("Filter Conditions", key="filter_conditions")
         table.cursor_type = "row"
         table.focus()
-        self.get_query_history()
+        self.retrieve_query_history()
 
     @work(exclusive=True)
-    async def get_query_history(self):
+    async def retrieve_query_history(self):
 
         result = await list_query_history(
             self.app.db_session, page=self.next_page, page_size=20
@@ -76,6 +84,20 @@ class QueryHistoryScreen(ModalScreen):
                 key=item.id,
             )
 
+    @work(exclusive=True)
+    async def remove_query_history_row(self) -> None:
+        table = self.query_one(DataTable)
+        if table.cursor_row is not None:
+            row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
+            await delete_query_history(self.app.db_session, row_key.value)
+            table.remove_row(row_key)
+
+    @work(exclusive=True)
+    async def remove_all_query_history_rows(self) -> None:
+        await delete_all_query_history(self.app.db_session)
+        table = self.query_one(DataTable)
+        table.clear()
+
     @on(DataTable.RowSelected)
     async def on_row_selected(self, message: DataTable.RowSelected) -> None:
         query_history = await get_query_history(
@@ -85,4 +107,15 @@ class QueryHistoryScreen(ModalScreen):
 
     async def action_next_page(self) -> None:
         if self.next_page <= self.total_pages:
-            self.get_query_history()
+            self.retrieve_query_history()
+
+    async def action_delete_query(self) -> None:
+        self.remove_query_history_row()
+
+    @work
+    async def action_delete_all_query_history(self) -> None:
+        confirm = await self.app.push_screen_wait(
+            ConfirmDialogue("Are you sure you want to delete all query history?")
+        )
+        if confirm:
+            self.remove_all_query_history_rows()

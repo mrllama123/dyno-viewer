@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -51,6 +51,21 @@ async def add_query_history(session: AsyncSession, params: QueryParameters) -> N
     session.add(query_history)
     await session.commit()
     await session.refresh(query_history)
+
+
+async def delete_query_history(session: AsyncSession, history_id: int) -> None:
+    stmt = select(QueryHistory).where(QueryHistory.id == history_id)
+    result = await session.execute(stmt)
+    query_history = result.scalars().first()
+    if query_history:
+        await session.delete(query_history)
+        await session.commit()
+
+
+async def delete_all_query_history(session: AsyncSession) -> None:
+    stmt = delete(QueryHistory)
+    await session.execute(stmt)
+    await session.commit()
 
 
 async def get_total_pages(session: AsyncSession, page_size: int) -> int:
@@ -140,3 +155,9 @@ async def delete_saved_query(session: AsyncSession, query_id: int) -> None:
     if saved_query:
         await session.delete(saved_query)
         await session.commit()
+
+
+async def delete_all_saved_queries(session: AsyncSession) -> None:
+    stmt = delete(SavedQuery)
+    await session.execute(stmt)
+    await session.commit()

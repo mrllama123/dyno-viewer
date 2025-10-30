@@ -1,11 +1,13 @@
 import asyncio
 from datetime import datetime
+from sqlalchemy import select, func
 
 import pytest
 
 from textual.app import App
 from textual.widgets import DataTable
 
+from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.components.screens.query_history import QueryHistoryScreen
 from dyno_viewer.db.models import QueryHistory
 from dyno_viewer.constants import FILTER_CONDITIONS, ATTRIBUTE_TYPES
@@ -226,6 +228,123 @@ async def test_query_history_screen_row_selection(db_session):
         assert pilot.app.params.sort_key_name == "sk"
         assert pilot.app.params.key_condition == KeyCondition(partitionKeyValue="A")
         assert pilot.app.params.filter_conditions == []
+
+
+async def test_query_history_screen_delete_row(db_session):
+    """Verify deleting a row removes it from the screen and DB."""
+
+    # Insert a sample QueryHistory row
+    async with db_session.begin():
+        db_session.add(
+            QueryHistory(
+                scan_mode=False,
+                primary_key_name="pk",
+                sort_key_name="sk",
+                index="table",
+                key_condition=KeyCondition(partitionKeyValue="A").model_dump_json(),
+                filter_conditions="[]",
+                created_at=datetime(2024, 1, 1, 12, 0, 0),
+            )
+        )
+        db_session.add(
+            QueryHistory(
+                scan_mode=False,
+                primary_key_name="pk2",
+                sort_key_name="sk2",
+                index="table2",
+                key_condition=KeyCondition(partitionKeyValue="B").model_dump_json(),
+                filter_conditions="[]",
+                created_at=datetime(2024, 1, 1, 12, 0, 1),
+            )
+        )
+    await db_session.commit()
+
+    class TestApp(App):
+        def __init__(self, db_session):
+            super().__init__()
+            self.db_session = db_session
+
+        async def on_mount(self):  # type: ignore[override]
+            self.push_screen(QueryHistoryScreen())
+
+    async with TestApp(db_session).run_test() as pilot:
+        await pilot.pause(0.05)
+        screen: QueryHistoryScreen = pilot.app.screen  # type: ignore
+        table = screen.query_one(DataTable)
+        assert table.row_count == 2
+
+        # Delete the selected row
+        await pilot.press("d")
+        await pilot.pause()
+
+        # The row should be removed from the table
+        assert table.row_count == 1
+
+        # Verify the row is deleted from the DB
+        total = await db_session.scalar(
+            select(func.count()).select_from(  # pylint: disable=not-callable
+                QueryHistory
+            )
+        )
+
+        assert total == 1
+
+
+async def test_query_history_screen_delete_all_rows(db_session):
+    """Verify deleting all rows removes them from the screen and DB."""
+
+    # Insert sample QueryHistory rows
+    async with db_session.begin():
+        for i in range(5):
+            db_session.add(
+                QueryHistory(
+                    scan_mode=False,
+                    primary_key_name=f"pk{i}",
+                    sort_key_name=f"sk{i}",
+                    index="table",
+                    key_condition=KeyCondition(
+                        partitionKeyValue=str(i)
+                    ).model_dump_json(),
+                    filter_conditions="[]",
+                    created_at=datetime(2024, 1, 1, 12, 0, i),
+                )
+            )
+    await db_session.commit()
+
+    class TestApp(App):
+        def __init__(self, db_session):
+            super().__init__()
+            self.db_session = db_session
+
+        async def on_mount(self):  # type: ignore[override]
+            self.push_screen(QueryHistoryScreen())
+
+    async with TestApp(db_session).run_test() as pilot:
+        await pilot.pause(0.05)
+        screen: QueryHistoryScreen = pilot.app.screen  # type: ignore
+        table = screen.query_one(DataTable)
+        assert table.row_count == 5
+
+        # Delete all rows
+        await pilot.press("c")
+        await pilot.pause()
+
+        assert isinstance(pilot.app.screen, ConfirmDialogue)
+        # Confirm the deletion
+        await pilot.press("y")
+        await pilot.pause()
+
+        # The table should be empty
+        assert table.row_count == 0
+
+        # Verify all rows are deleted from the DB
+        total = await db_session.scalar(
+            select(func.count()).select_from(  # pylint: disable=not-callable
+                QueryHistory
+            )
+        )
+
+        assert total == 0
 
 
 async def test_query_history_screen_no_data(db_session):

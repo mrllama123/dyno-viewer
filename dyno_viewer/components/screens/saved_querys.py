@@ -10,6 +10,7 @@ from textual.widgets import DataTable, Input, Markdown
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.db.utils import (
+    delete_all_saved_queries,
     delete_saved_query,
     get_saved_query,
     list_saved_queries,
@@ -21,6 +22,7 @@ class SavedQueriesScreen(ModalScreen):
         Binding("escape", "app.pop_screen", "Pop screen"),
         Binding("n", "next_page", "Next Page"),
         Binding("d", "delete_saved_query", "Delete Saved Query"),
+        Binding("c", "delete_all_saved_queries", "Delete All Saved Queries"),
     ]
 
     DEFAULT_CSS = """
@@ -120,6 +122,16 @@ class SavedQueriesScreen(ModalScreen):
                 row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
                 await delete_saved_query(self.app.db_session, row_key.value)
                 table.remove_row(row_key)
+
+    @work
+    async def action_delete_all_saved_queries(self) -> None:
+        confirm = await self.app.push_screen_wait(
+            ConfirmDialogue("Are you sure you want to delete all saved queries?")
+        )
+        if confirm:
+            table = self.query_one(DataTable)
+            await delete_all_saved_queries(self.app.db_session)
+            table.clear()
 
     def action_next_page(self) -> None:
         if self.next_page == 1 and self.total_pages == 1:
