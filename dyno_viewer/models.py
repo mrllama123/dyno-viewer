@@ -92,6 +92,7 @@ class QueryParameters(BaseModel):
     key_condition: KeyCondition | None = None
     filter_conditions: list[FilterCondition] = []
     next_token: str | dict | None = None
+    draft: bool = False
 
     @computed_field
     @property

@@ -23,30 +23,13 @@ class TableViewModeApp(App):
     aws_profile = reactive(None)
     aws_region = reactive("ap-southeast-2")
     db_session = reactive(None)
-    SCREENS = {
-        "query": QueryScreen,
-    }
+
     MODES = {
         "table": TableViewer,
     }
 
     def on_mount(self) -> None:
         self.switch_mode("table")
-
-    @on(QueryScreen.QueryParametersChanged)
-    async def query_screen_parameters_changed(
-        self, query_params: QueryScreen.QueryParametersChanged
-    ) -> None:
-        if isinstance(self.screen, TableViewer):
-            self.screen.query_params = query_params.params
-            self.append_query_to_history(query_params.params)
-
-    @work(exclusive=True)
-    async def append_query_to_history(self, params: QueryParameters) -> None:
-        """Add the query to the history."""
-        if not params.filter_conditions and not params.key_condition:
-            return
-        await add_query_history(self.db_session, params)
 
 
 async def test_table_view_mode_initialization(db_session):
@@ -154,19 +137,18 @@ async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_sess
         assert len(data_table.columns) > 0  # columns should be set after data is loaded
 
         # run a query to get customer with pk customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d
-        pilot.app.post_message(
-            QueryScreen.QueryParametersChanged(
-                QueryParameters(
-                    scan_mode=False,
-                    table_name=table_name,
-                    primary_key_name="pk",
-                    sort_key_name="sk",
-                    key_condition=KeyCondition(
-                        partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
-                    ),
-                )
-            )
+        pilot.app.screen.query_params = QueryParameters(
+            scan_mode=False,
+            table_name=table_name,
+            primary_key_name="pk",
+            sort_key_name="sk",
+            key_condition=KeyCondition(
+                partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+            ),
         )
+        await pilot.press("q")
+        assert isinstance(pilot.app.screen, QueryScreen)
+        await pilot.press("r")
         await pilot.pause()
 
         # check data table is updated
@@ -366,4 +348,3 @@ async def test_run_query_from_history(ddb_table_with_data, ddb_table, db_session
 
         filter_queries = query_screen.query(FilterQuery)
         assert len(filter_queries) == 0
-        
