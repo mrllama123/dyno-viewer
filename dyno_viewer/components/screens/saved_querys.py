@@ -25,6 +25,10 @@ class SavedQueriesScreen(ModalScreen):
         Binding("c", "delete_all_saved_queries", "Delete All Saved Queries"),
     ]
 
+    HELP = """
+    ## Saved Queries
+    """
+
     DEFAULT_CSS = """
     #saved_queries_screen {
         background: $boost;

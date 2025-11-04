@@ -23,6 +23,10 @@ class QueryHistoryScreen(ModalScreen):
         ("n", "next_page", "Next Page"),
     ]
 
+    HELP = """
+    ## Query History
+    """
+
     DEFAULT_CSS = """
     DataTable {
         min-height: 50%;

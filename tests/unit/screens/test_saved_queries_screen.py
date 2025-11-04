@@ -422,7 +422,6 @@ async def test_delete_all_saved_queries(db_session):
 
         await pilot.press("tab", "c")  # trigger delete all action
         await pilot.pause()
-        pilot.app.save_screenshot()
         # Confirm deletion
         assert isinstance(pilot.app.screen, ConfirmDialogue)
         await pilot.press("y")
