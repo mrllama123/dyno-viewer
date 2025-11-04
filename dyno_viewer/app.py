@@ -39,7 +39,6 @@ class DynCli(App):
 
     BINDINGS = [
         Binding("x", "exit", "Exit", tooltip="Exit the application"),
-        Binding("z", "switch_mode('table')", "Table Viewer", show=False),
         Binding(
             "p",
             "select_profile",

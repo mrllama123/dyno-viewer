@@ -41,12 +41,7 @@ class HelpScreen(ModalScreen):
         return {
             "app": (
                 [
-                    *[
-                        binding
-                        for binding in Binding.make_bindings(self.app.BINDINGS)
-                        # filter out mode switcher binding due to it being the only mode
-                        if binding.action != "switch_mode('table')"
-                    ],
+                    *list(Binding.make_bindings(self.app.BINDINGS)),
                     Binding(
                         "escape", action="app.pop_screen", description="Exit popup"
                     ),  # add here as its used in all popup screens
