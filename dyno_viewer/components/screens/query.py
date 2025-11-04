@@ -21,6 +21,9 @@ class QueryScreen(Screen):
         (("r", "run_query", "Run Query")),
         ("s", "save_query", "Save Query"),
     ]
+    HELP = """
+    ## Query Table
+    """
     CSS = """
     #queryScreen {
         layout: vertical;

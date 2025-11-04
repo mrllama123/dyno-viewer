@@ -10,7 +10,11 @@ from dyno_viewer.aws.ddb import list_all_tables
 
 
 class TableSelectScreen(ModalScreen):
-    BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
+    BINDINGS = [("escape", "app.pop_screen", "Exit popup")]
+
+    HELP = """
+    ## Table select
+    """
 
     next_token = reactive(None)
 

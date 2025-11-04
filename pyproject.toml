@@ -35,6 +35,7 @@ textual-dev = "^1.8.0"
 isort = "^6.1.0"
 pylint = "^3.3.9"
 time-machine = "^2.19.0"
+pytest-textual-snapshot = "^1.1.0"
 [tool.poe.tasks]
 build_local.script = 'scripts.commands:build_local'
 test = 'pytest -n auto'

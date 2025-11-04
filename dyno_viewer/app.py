@@ -11,6 +11,7 @@ from dyno_viewer.components.screens import (
     ProfileSelectScreen,
     RegionSelectScreen,
 )
+from dyno_viewer.components.screens.help import HelpScreen
 from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.table_view_mode import TableViewer
 from dyno_viewer.db.utils import (
@@ -35,13 +36,20 @@ class UpdateDynTableInfo(Message):
 
 
 class DynCli(App):
+
     BINDINGS = [
         Binding("x", "exit", "Exit", tooltip="Exit the application"),
         Binding("z", "switch_mode('table')", "Table Viewer", show=False),
-        Binding("p", "select_profile", "Profile", tooltip="Select AWS Profile"),
+        Binding(
+            "p",
+            "select_profile",
+            "Profile",
+            tooltip="Select AWS Profile",
+        ),
         Binding("r", "select_region", "Region", tooltip="Select AWS Region"),
-        Binding("?", "show_help", "Help", tooltip="Show help"),
+        Binding("?", "show_help", "Help", tooltip="Show help", priority=True),
     ]
+
     SCREENS = {
         "query": QueryScreen,
     }
@@ -107,11 +115,7 @@ class DynCli(App):
         self.app.exit()
 
     def action_show_help(self):
-        if self.is_help_visible:
-            self.action_hide_help_panel()
-        else:
-            self.action_show_help_panel()
-        self.is_help_visible = not self.is_help_visible
+        self.push_screen(HelpScreen())
 
     @work
     async def action_select_profile(self) -> None:

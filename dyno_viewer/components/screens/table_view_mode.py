@@ -41,10 +41,13 @@ class TableViewer(Screen):
     BINDINGS = [
         Binding("t", "select_table", "Select table", show=False),
         Binding("q", "query_table", "Query table", show=False),
-        Binding("s", "save_query", "Save query result to file", show=False),
+        Binding("o", "save_query", "Output query result to file", show=False),
         Binding("h", "show_query_history", "Show query history", show=False),
-        Binding("p", "show_saved_queries", "Show saved queries", show=False),
+        Binding("y", "show_saved_queries", "Show saved queries", show=False),
     ]
+    HELP = """
+    ## Table viewer 
+    """
 
     table_info = reactive(None)
 
