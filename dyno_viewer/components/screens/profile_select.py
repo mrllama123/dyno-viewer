@@ -16,13 +16,10 @@ class ProfileSelectScreen(ModalScreen):
 
     def compose(self) -> ComposeResult:
         yield ListView(
-            *[
-                ListItem(Label(profile), id=profile)
-                for profile in get_available_profiles()
-            ],
+            *[ListItem(Label(profile)) for profile in get_available_profiles()],
             id="profiles",
         )
 
     async def on_list_view_selected(self, selected: ListView.Selected) -> None:
 
-        self.dismiss(selected.item.id)
+        self.dismiss(str(selected.item.children[0].content))
