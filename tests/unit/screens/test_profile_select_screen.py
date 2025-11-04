@@ -10,7 +10,6 @@ from dyno_viewer.components.screens.profile_select import ProfileSelectScreen
 @pytest.fixture
 def screen_app():
     class ScreensApp(App):
-        # SCREENS = {"profile": ProfileSelectScreen}
         BINDINGS = [
             ("p", "select_profile", "Push Profile Select Screen"),
         ]
