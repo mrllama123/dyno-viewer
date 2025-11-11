@@ -25,11 +25,10 @@ class TableSelectScreen(ModalScreen):
     }
     """
 
-    def __init__(
-        self, name: str | None = None, id: str | None = None, classes: str | None = None
-    ) -> None:
+    def __init__(self, dyn_client) -> None:
+        super().__init__()
         self.tables = []
-        super().__init__(name, id, classes)
+        self.dyn_client = dyn_client
 
     # message classes
 
@@ -60,14 +59,14 @@ class TableSelectScreen(ModalScreen):
         if not worker.is_cancelled:
             if next_token:
                 list_tables_result, next_token = list_all_tables(
-                    self.app.dyn_client,
+                    self.dyn_client,
                     Limit=10,
                     ExclusiveStartTableName=next_token,
                     paginate=False,
                 )
             else:
                 list_tables_result, next_token = list_all_tables(
-                    self.app.dyn_client, Limit=10, paginate=False
+                    self.dyn_client, Limit=10, paginate=False
                 )
 
             self.post_message(self.TableListResult(list_tables_result, next_token))
