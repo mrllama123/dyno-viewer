@@ -17,6 +17,10 @@ class FilterQuery(Widget):
     }
     """
 
+    def __init__(self, filter_condition: FilterCondition | None = None) -> None:
+        super().__init__()
+        self.input_filter_condition = filter_condition
+
     def get_filter_condition(self) -> FilterCondition:
         return FilterCondition(
             attrName=self.query_one("#attr").value,
@@ -57,6 +61,8 @@ class FilterQuery(Widget):
     def on_mount(self) -> None:
         for radio_set in self.query(RadioSet):
             radio_set.display = False
+        if self.input_filter_condition:
+            self.load_filter_condition(self.input_filter_condition)
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if str(event.button.label) == "type":

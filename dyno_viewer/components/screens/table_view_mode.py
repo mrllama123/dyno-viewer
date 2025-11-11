@@ -16,9 +16,11 @@ from dyno_viewer.components.screens import (
     TableSelectScreen,
 )
 from dyno_viewer.components.screens.file_chooser import SaveFileChooser
+from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.query_history import QueryHistoryScreen
 from dyno_viewer.components.screens.saved_querys import SavedQueriesScreen
 from dyno_viewer.components.table import DataTableManager
+from dyno_viewer.db.utils import add_query_history
 from dyno_viewer.models import OutputFormat, QueryParameters, TableInfo
 from dyno_viewer.util import save_query_results_to_csv, save_query_results_to_json
 
@@ -54,6 +56,8 @@ class TableViewer(Screen):
     table_name = reactive("")
 
     query_params: QueryParameters | None = reactive(None)
+
+    draft_query_params: QueryParameters | None = reactive(None)
 
     # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :(
     table_client = reactive(None, always_update=True)
@@ -171,8 +175,6 @@ class TableViewer(Screen):
     @on(UpdateDynTableInfo)
     async def update_table_info(self, update: UpdateDynTableInfo) -> None:
         self.table_info = update.table_info
-        query_screen = self.app.get_screen("query")
-        query_screen.table_info = update.table_info
 
     @on(QueryResult)
     async def update_table(self, update_data: QueryResult) -> None:
@@ -204,10 +206,19 @@ class TableViewer(Screen):
     # action methods
     @work
     async def action_query_table(self) -> None:
-        if self.table_client:
-            self.app.push_screen("query")
-        else:
-            self.notify("No table selected")
+        if not self.table_client:
+            self.notify("No table selected", severity="warning")
+            return
+        new_query_param = await self.app.push_screen_wait(
+            QueryScreen(self.table_info, self.draft_query_params or self.query_params)
+        )
+        if new_query_param.draft:
+            self.draft_query_params = new_query_param
+            return
+
+        self.query_params = new_query_param
+        self.draft_query_params = None
+        await add_query_history(self.app.db_session, new_query_param)
 
     @work
     async def action_select_table(self) -> None:
@@ -251,9 +262,8 @@ class TableViewer(Screen):
         if self.table_client:
             new_query_param = await self.app.push_screen_wait(QueryHistoryScreen())
             if new_query_param:
-                query_screen = self.app.get_screen("query")
+
                 self.query_params = new_query_param
-                query_screen.input_query_params = new_query_param
 
         else:
             self.notify("No table selected", severity="warning")

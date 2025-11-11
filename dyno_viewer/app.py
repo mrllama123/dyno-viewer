@@ -1,4 +1,4 @@
-from textual import log, on, work
+from textual import log, work
 from textual.app import App
 from textual.binding import Binding
 from textual.message import Message
@@ -12,7 +12,6 @@ from dyno_viewer.components.screens import (
     RegionSelectScreen,
 )
 from dyno_viewer.components.screens.help import HelpScreen
-from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.table_view_mode import TableViewer
 from dyno_viewer.db.utils import (
     add_query_history,
@@ -49,10 +48,6 @@ class DynCli(App):
         Binding("?", "show_help", "Help", tooltip="Show help", priority=True),
     ]
 
-    SCREENS = {
-        "query": QueryScreen,
-    }
-
     aws_profile = reactive(None)
     aws_region = reactive("ap-southeast-2")
     dyn_client = reactive(
@@ -69,22 +64,6 @@ class DynCli(App):
         # Initialize the async DB session (SQLAlchemy)
         self.db_session = await start_async_session()
         self.switch_mode("table")
-
-    @on(QueryScreen.QueryParametersChanged)
-    async def query_screen_parameters_changed(
-        self, query_params: QueryScreen.QueryParametersChanged
-    ) -> None:
-        if isinstance(self.screen, TableViewer):
-            self.screen.query_params = query_params.params
-            self.append_query_to_history(query_params.params)
-
-    # HACK: this is a work around as the query screen can't send the event to the TableViewer screen
-    # and we want to persist this screen across an session
-    @on(QueryScreen.RunQuery)
-    async def query_screen_run_query(self, run_query: QueryScreen.RunQuery) -> None:
-        table_viewer = self.screen
-        if isinstance(table_viewer, TableViewer):
-            await table_viewer.run_query(run_query)
 
     async def watch_aws_profile(self, new_profile: str | None) -> None:
         log.info(f"App: AWS Profile changed to: {new_profile}")
