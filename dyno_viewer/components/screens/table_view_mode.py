@@ -8,6 +8,7 @@ from textual.widgets import Footer
 from textual.worker import get_current_worker
 
 from dyno_viewer.aws.ddb import (
+    get_ddb_client,
     query_items,
     scan_items,
     table_client_exist,
@@ -16,8 +17,10 @@ from dyno_viewer.components.screens import (
     TableSelectScreen,
 )
 from dyno_viewer.components.screens.file_chooser import SaveFileChooser
+from dyno_viewer.components.screens.profile_select import ProfileSelectScreen
 from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.query_history import QueryHistoryScreen
+from dyno_viewer.components.screens.region_select import RegionSelectScreen
 from dyno_viewer.components.screens.saved_querys import SavedQueriesScreen
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.db.utils import add_query_history
@@ -46,6 +49,13 @@ class TableViewer(Screen):
         Binding("o", "save_query", "Output query result to file", show=False),
         Binding("h", "show_query_history", "Show query history", show=False),
         Binding("y", "show_saved_queries", "Show saved queries", show=False),
+        Binding(
+            "p",
+            "select_profile",
+            "Profile",
+            tooltip="Select AWS Profile",
+        ),
+        Binding("r", "select_region", "Region", tooltip="Select AWS Region"),
     ]
     HELP = """
     ## Table viewer 
@@ -59,6 +69,12 @@ class TableViewer(Screen):
 
     draft_query_params: QueryParameters | None = reactive(None)
 
+    aws_profile = reactive(None)
+    aws_region = reactive("ap-southeast-2")
+    dyn_client = reactive(
+        get_ddb_client(region_name="ap-southeast-2", profile_name=None)
+    )
+
     # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :(
     table_client = reactive(None, always_update=True)
 
@@ -71,8 +87,8 @@ class TableViewer(Screen):
     def update_table_client(self):
         if self.table_name:
             # Access app's profile and region
-            app_profile = self.app.aws_profile
-            app_region = self.app.aws_region
+            app_profile = self.aws_profile
+            app_region = self.aws_region
             log.info(
                 f"updating table client for table {self.table_name} with profile {app_profile} in region {app_region}"
             )
@@ -205,6 +221,20 @@ class TableViewer(Screen):
 
     # action methods
     @work
+    async def action_select_profile(self) -> None:
+        """Open the profile select screen."""
+        profile = await self.app.push_screen_wait(ProfileSelectScreen())
+        if profile:
+            self.aws_profile = profile
+
+    @work
+    async def action_select_region(self) -> None:
+        """Open the region select screen."""
+        region = await self.app.push_screen_wait(RegionSelectScreen())
+        if region:
+            self.aws_region = region
+
+    @work
     async def action_query_table(self) -> None:
         if not self.table_client:
             self.notify("No table selected", severity="warning")
@@ -223,7 +253,7 @@ class TableViewer(Screen):
     @work
     async def action_select_table(self) -> None:
         """Open the table select screen."""
-        table = await self.app.push_screen_wait(TableSelectScreen())
+        table = await self.app.push_screen_wait(TableSelectScreen(self.dyn_client))
         if table:
             self.table_name = table
             self.update_table_client()
@@ -280,6 +310,20 @@ class TableViewer(Screen):
 
         else:
             self.notify("No table selected", severity="warning")
+
+    async def watch_aws_profile(self, new_profile: str | None) -> None:
+        log.info(f"App: AWS Profile changed to: {new_profile}")
+        self.dyn_client = get_ddb_client(
+            region_name=self.aws_region, profile_name=new_profile
+        )
+        self.screen.update_table_client()
+
+    async def watch_aws_region(self, new_region: str) -> None:
+        log.info(f"App: AWS Region changed to: {new_region}")
+        self.dyn_client = get_ddb_client(
+            region_name=new_region, profile_name=self.aws_profile
+        )
+        self.screen.update_table_client()
 
     async def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""

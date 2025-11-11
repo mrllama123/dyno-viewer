@@ -36,7 +36,7 @@ def screen_app(dynamodb_client):
 
         @work
         async def action_select_table(self) -> None:
-            result = await self.push_screen_wait(TableSelectScreen())
+            result = await self.push_screen_wait(TableSelectScreen(self.dyn_client))
             if result and self.table_name != result:
                 self.table_name = result
 
