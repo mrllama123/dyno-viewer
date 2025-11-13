@@ -4,7 +4,7 @@ from textual.message import Message
 from textual.reactive import reactive
 
 from dyno_viewer.components.screens.help import HelpScreen
-from dyno_viewer.components.screens.table_view_mode import TableViewer
+from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.db.utils import (
     start_async_session,
 )
@@ -34,14 +34,11 @@ class DynCli(App):
 
     db_session = reactive(None)
 
-    MODES = {
-        "table": TableViewer,
-    }
-
     async def on_mount(self) -> None:
         # Initialize the async DB session (SQLAlchemy)
         self.db_session = await start_async_session()
-        self.switch_mode("table")
+        self.install_screen(TableViewer(), name="table")
+        self.push_screen("table")
 
     # action methods
     async def action_exit(self) -> None:

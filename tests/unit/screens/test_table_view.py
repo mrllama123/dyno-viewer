@@ -11,7 +11,7 @@ from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
 from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.query_history import QueryHistoryScreen
-from dyno_viewer.components.screens.table_view_mode import TableViewer
+from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.db.models import QueryHistory
