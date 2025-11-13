@@ -1,8 +1,6 @@
-import pytest
 from sqlalchemy import func, select
-from textual import work
-from textual.app import App, on
-from textual.widgets import DataTable, Footer
+from textual.app import App
+from textual.widgets import DataTable
 from textual.reactive import reactive
 
 
@@ -15,7 +13,6 @@ from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.db.models import QueryHistory
-from dyno_viewer.db.utils import add_query_history
 from dyno_viewer.models import KeyCondition, QueryParameters
 
 
