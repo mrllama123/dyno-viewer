@@ -311,6 +311,8 @@ class TableViewer(Screen):
         else:
             self.notify("No table selected", severity="warning")
 
+    # watch methods
+
     async def watch_aws_profile(self, new_profile: str | None) -> None:
         log.info(f"App: AWS Profile changed to: {new_profile}")
         self.dyn_client = get_ddb_client(
