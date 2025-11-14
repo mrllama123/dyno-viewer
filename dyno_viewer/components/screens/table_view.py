@@ -22,6 +22,7 @@ from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.query_history import QueryHistoryScreen
 from dyno_viewer.components.screens.region_select import RegionSelectScreen
 from dyno_viewer.components.screens.saved_querys import SavedQueriesScreen
+from dyno_viewer.components.screens.table_viewer_sessions_select import TableViewerSessionsSelect
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.db.utils import add_query_history
 from dyno_viewer.models import OutputFormat, QueryParameters, TableInfo
@@ -310,6 +311,8 @@ class TableViewer(Screen):
 
         else:
             self.notify("No table selected", severity="warning")
+
+    # watch methods
 
     async def watch_aws_profile(self, new_profile: str | None) -> None:
         log.info(f"App: AWS Profile changed to: {new_profile}")
