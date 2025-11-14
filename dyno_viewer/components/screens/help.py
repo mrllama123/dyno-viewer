@@ -13,6 +13,7 @@ from dyno_viewer.components.screens import (
     SavedQueriesScreen,
     TableSelectScreen,
     TableViewer,
+    TableViewerSessionsSelect,
 )
 
 # constant here to not cause circular imports
@@ -24,6 +25,7 @@ SCREEN_CLASSES: list[Screen | ModalScreen] = [
     TableSelectScreen,
     QueryHistoryScreen,
     SavedQueriesScreen,
+    TableViewerSessionsSelect,
 ]
 
 
