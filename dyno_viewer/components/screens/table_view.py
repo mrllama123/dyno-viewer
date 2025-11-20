@@ -14,7 +14,7 @@ from dyno_viewer.aws.ddb import (
     table_client_exist,
 )
 from dyno_viewer.components.screens import (
-    TableSelectScreen,
+    TableSelect,
 )
 from dyno_viewer.components.screens.file_chooser import SaveFileChooser
 from dyno_viewer.components.screens.profile_select import ProfileSelect
@@ -253,7 +253,7 @@ class TableViewer(Screen):
     @work
     async def action_select_table(self) -> None:
         """Open the table select screen."""
-        table = await self.app.push_screen_wait(TableSelectScreen(self.dyn_client))
+        table = await self.app.push_screen_wait(TableSelect(self.dyn_client))
         if table:
             self.table_name = table
             self.update_table_client()

@@ -5,7 +5,7 @@ from textual.app import App, ComposeResult
 from textual.reactive import reactive
 from textual.widgets import Input, Label, ListView, OptionList
 
-from dyno_viewer.components.screens.table_select import TableSelectScreen
+from dyno_viewer.components.screens.table_select import TableSelect
 from tests.common import type_commands
 
 """
@@ -20,7 +20,7 @@ if you used the same class in multiple tests in the same dir then it will keep a
 
 @pytest.fixture
 def screen_app(dynamodb_client):
-    from dyno_viewer.components.screens.table_select import TableSelectScreen
+    from dyno_viewer.components.screens.table_select import TableSelect
 
     class ScreensApp(App):
 
@@ -36,7 +36,7 @@ def screen_app(dynamodb_client):
 
         @work
         async def action_select_table(self) -> None:
-            result = await self.push_screen_wait(TableSelectScreen(self.dyn_client))
+            result = await self.push_screen_wait(TableSelect(self.dyn_client))
             if result and self.table_name != result:
                 self.table_name = result
 
@@ -48,7 +48,7 @@ async def test_select_table(screen_app, ddb_tables):
     async with screen_app().run_test() as pilot:
         await pilot.press("t")
         current_screen = pilot.app.screen
-        assert isinstance(current_screen, TableSelectScreen)
+        assert isinstance(current_screen, TableSelect)
         input_widget: Input = current_screen.query_one(Input)
 
         assert input_widget.value == ""
@@ -72,7 +72,7 @@ async def test_select_no_tables(screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.press("t")
         current_screen = pilot.app.screen
-        assert isinstance(current_screen, TableSelectScreen)
+        assert isinstance(current_screen, TableSelect)
         list_view = current_screen.query_one(OptionList)
 
         # search dawn

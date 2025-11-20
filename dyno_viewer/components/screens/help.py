@@ -11,7 +11,7 @@ from dyno_viewer.components.screens import (
     TableQuery,
     RegionSelect,
     SavedQueryBrowser,
-    TableSelectScreen,
+    TableSelect,
     TableViewer,
     TableViewerSessionsSelect,
 )
@@ -22,7 +22,7 @@ SCREEN_CLASSES: list[Screen | ModalScreen] = [
     TableQuery,
     ProfileSelect,
     RegionSelect,
-    TableSelectScreen,
+    TableSelect,
     QueryHistoryBrowser,
     SavedQueryBrowser,
     TableViewerSessionsSelect,
