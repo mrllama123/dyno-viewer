@@ -17,7 +17,7 @@ from dyno_viewer.components.screens import (
     TableSelectScreen,
 )
 from dyno_viewer.components.screens.file_chooser import SaveFileChooser
-from dyno_viewer.components.screens.profile_select import ProfileSelectScreen
+from dyno_viewer.components.screens.profile_select import ProfileSelect
 from dyno_viewer.components.screens.query import QueryScreen
 from dyno_viewer.components.screens.query_history import QueryHistoryScreen
 from dyno_viewer.components.screens.region_select import RegionSelectScreen
@@ -223,7 +223,7 @@ class TableViewer(Screen):
     @work
     async def action_select_profile(self) -> None:
         """Open the profile select screen."""
-        profile = await self.app.push_screen_wait(ProfileSelectScreen())
+        profile = await self.app.push_screen_wait(ProfileSelect())
         if profile:
             self.aws_profile = profile
 
