@@ -4,7 +4,7 @@ from textual.app import App
 from textual.widgets import DataTable, Input
 from textual.reactive import reactive
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
-from dyno_viewer.components.screens.saved_querys import SavedQueriesScreen
+from dyno_viewer.components.screens.saved_querys_browser import SavedQueryBrowser
 from dyno_viewer.db.models import QueryHistory, SavedQuery
 from dyno_viewer.models import QueryParameters, KeyCondition, FilterCondition
 from datetime import datetime
@@ -20,13 +20,13 @@ async def test_mount_saved_queries_screen(db_session):
 
         @work
         async def action_push_saved_queries_screen(self):
-            self.params = await self.push_screen_wait(SavedQueriesScreen())
+            self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
         pilot.app.db_session = db_session
         await pilot.press("p")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, SavedQueriesScreen)
+        assert isinstance(pilot.app.screen, SavedQueryBrowser)
 
 
 @pytest.mark.time_machine(datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")))
@@ -38,7 +38,7 @@ async def test_populate_saved_queries_table(db_session):
 
         @work
         async def action_push_saved_queries_screen(self):
-            self.params = await self.push_screen_wait(SavedQueriesScreen())
+            self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
         async with db_session.begin():
@@ -61,7 +61,7 @@ async def test_populate_saved_queries_table(db_session):
         pilot.app.db_session = db_session
         await pilot.press("p")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, SavedQueriesScreen)
+        assert isinstance(pilot.app.screen, SavedQueryBrowser)
         table = pilot.app.screen.query_one(DataTable)
         assert table.row_count == 1
 
@@ -97,13 +97,13 @@ async def test_no_saved_queries(db_session):
 
         @work
         async def action_push_saved_queries_screen(self):
-            self.params = await self.push_screen_wait(SavedQueriesScreen())
+            self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
         pilot.app.db_session = db_session
         await pilot.press("p")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, SavedQueriesScreen)
+        assert isinstance(pilot.app.screen, SavedQueryBrowser)
         table = pilot.app.screen.query_one(DataTable)
         assert table.row_count == 0
 
@@ -117,7 +117,7 @@ async def test_empty_search_results(db_session):
 
         @work
         async def action_push_saved_queries_screen(self):
-            self.params = await self.push_screen_wait(SavedQueriesScreen())
+            self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
         async with db_session.begin():
@@ -159,7 +159,7 @@ async def test_empty_search_results(db_session):
         pilot.app.db_session = db_session
         await pilot.press("p")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, SavedQueriesScreen)
+        assert isinstance(pilot.app.screen, SavedQueryBrowser)
         screen = pilot.app.screen
         search_input = screen.query_one("#search_saved_queries", Input)
         search_input.value = "nonexistent_query"
@@ -178,7 +178,7 @@ async def test_select_saved_query(db_session):
 
         @work
         async def action_push_saved_queries_screen(self):
-            self.params = await self.push_screen_wait(SavedQueriesScreen())
+            self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
         async with db_session.begin():
@@ -221,7 +221,7 @@ async def test_select_saved_query(db_session):
         pilot.app.db_session = db_session
         await pilot.press("p")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, SavedQueriesScreen)
+        assert isinstance(pilot.app.screen, SavedQueryBrowser)
         table = pilot.app.screen.query_one(DataTable)
         assert table.row_count == 2
 
@@ -280,7 +280,7 @@ async def test_pagination_saved_queries(db_session):
 
         @work
         async def action_push_saved_queries_screen(self):
-            self.params = await self.push_screen_wait(SavedQueriesScreen())
+            self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
         async with db_session.begin():
@@ -304,7 +304,7 @@ async def test_pagination_saved_queries(db_session):
         pilot.app.db_session = db_session
         await pilot.press("p")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, SavedQueriesScreen)
+        assert isinstance(pilot.app.screen, SavedQueryBrowser)
         await pilot.press("tab")
         screen = pilot.app.screen
         table = screen.query_one(DataTable)
@@ -335,7 +335,7 @@ async def test_delete_saved_query(db_session):
 
         @work
         async def action_push_saved_queries_screen(self):
-            self.params = await self.push_screen_wait(SavedQueriesScreen())
+            self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
         async with db_session.begin():
@@ -359,7 +359,7 @@ async def test_delete_saved_query(db_session):
         pilot.app.db_session = db_session
         await pilot.press("p")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, SavedQueriesScreen)
+        assert isinstance(pilot.app.screen, SavedQueryBrowser)
         screen = pilot.app.screen
         table = screen.query_one(DataTable)
         assert table.row_count == 1
@@ -391,7 +391,7 @@ async def test_delete_all_saved_queries(db_session):
 
         @work
         async def action_push_saved_queries_screen(self):
-            self.params = await self.push_screen_wait(SavedQueriesScreen())
+            self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
         async with db_session.begin():
@@ -415,7 +415,7 @@ async def test_delete_all_saved_queries(db_session):
         pilot.app.db_session = db_session
         await pilot.press("p")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, SavedQueriesScreen)
+        assert isinstance(pilot.app.screen, SavedQueryBrowser)
         screen = pilot.app.screen
         table = screen.query_one(DataTable)
         assert table.row_count == 5
