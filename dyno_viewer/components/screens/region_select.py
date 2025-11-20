@@ -6,7 +6,7 @@ from textual.widgets import Label, ListItem, ListView
 from dyno_viewer.aws.session import get_all_regions
 
 
-class RegionSelectScreen(ModalScreen):
+class RegionSelect(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
 
     class RegionSelected(Message):

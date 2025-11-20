@@ -4,7 +4,7 @@ from textual.app import App
 from textual.reactive import reactive
 from textual.widgets import ListView, Label
 
-from dyno_viewer.components.screens.region_select import RegionSelectScreen
+from dyno_viewer.components.screens.region_select import RegionSelect
 
 
 @pytest.fixture()
@@ -21,7 +21,7 @@ def screen_app():
 
         @work
         async def action_select_region(self) -> None:
-            result = await self.push_screen_wait(RegionSelectScreen())
+            result = await self.push_screen_wait(RegionSelect())
             if result:
                 self.region = result
 
@@ -32,7 +32,7 @@ async def test_list_regions(iam, screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.press("r")
         screen = pilot.app.screen
-        assert isinstance(screen, RegionSelectScreen)
+        assert isinstance(screen, RegionSelect)
 
         list_view: ListView = screen.query_one(ListView)
         regions = [item.id for item in list_view.children]
@@ -79,7 +79,7 @@ async def test_select_region(iam, screen_app):
     async with screen_app().run_test() as pilot:
         await pilot.press("r")
         screen = pilot.app.screen
-        assert isinstance(screen, RegionSelectScreen)
+        assert isinstance(screen, RegionSelect)
 
         await pilot.press("tab")
 

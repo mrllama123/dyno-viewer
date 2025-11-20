@@ -20,7 +20,7 @@ from dyno_viewer.components.screens.file_chooser import SaveFileChooser
 from dyno_viewer.components.screens.profile_select import ProfileSelect
 from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.screens.query_history import QueryHistoryViewer
-from dyno_viewer.components.screens.region_select import RegionSelectScreen
+from dyno_viewer.components.screens.region_select import RegionSelect
 from dyno_viewer.components.screens.saved_querys import SavedQueriesScreen
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.db.utils import add_query_history
@@ -230,7 +230,7 @@ class TableViewer(Screen):
     @work
     async def action_select_region(self) -> None:
         """Open the region select screen."""
-        region = await self.app.push_screen_wait(RegionSelectScreen())
+        region = await self.app.push_screen_wait(RegionSelect())
         if region:
             self.aws_region = region
 
