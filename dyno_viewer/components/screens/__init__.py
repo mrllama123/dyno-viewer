@@ -5,5 +5,5 @@ from .query_history_browser import *
 from .region_select import *
 from .table_query import *
 from .table_select import *
-from .table_session_picker import *
+from .table_session_browser import *
 from .table_view import *

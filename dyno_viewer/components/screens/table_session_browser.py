@@ -9,7 +9,7 @@ from dyno_viewer.components.screens.create_rename_session import (
 )
 
 
-class TableSessionPicker(ModalScreen):
+class TableSessionBrowser(ModalScreen):
     """Modal screen for selecting sessions in the table viewer."""
 
     BINDINGS = [
