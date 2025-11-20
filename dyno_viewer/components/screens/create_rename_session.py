@@ -5,7 +5,7 @@ from textual.validation import Length
 from textual.widgets import Input, Markdown
 
 
-class RenameCreateSessionModal(ModalScreen):
+class RenameCreateSession(ModalScreen):
     """Modal screen for creating a new table viewer or renaming a session."""
 
     BINDINGS = [

@@ -8,7 +8,7 @@ from dyno_viewer.components.screens.table_viewer_sessions_select import (
     TableViewerSessionsSelect,
 )
 from dyno_viewer.components.screens.create_rename_session import (
-    RenameCreateSessionModal,
+    RenameCreateSession,
 )
 
 
@@ -188,7 +188,7 @@ async def test_rename_session():
         # rename currently highlighted (a_session)
         await pilot.press("r")
         rename_screen = pilot.app.screen
-        assert isinstance(rename_screen, RenameCreateSessionModal)
+        assert isinstance(rename_screen, RenameCreateSession)
         # type new name and submit
         await pilot.press(*list("renamed_session"))
         await pilot.press("enter")
@@ -244,7 +244,7 @@ async def test_rename_multiple_sessions():
         await pilot.pause()
         await pilot.press("r")
         rename_screen = pilot.app.screen
-        assert isinstance(rename_screen, RenameCreateSessionModal)
+        assert isinstance(rename_screen, RenameCreateSession)
         await pilot.press(*list("first_rename"))
         await pilot.press("enter")
         await pilot.pause()
@@ -254,7 +254,7 @@ async def test_rename_multiple_sessions():
         # Second rename
         await pilot.press("r")
         rename_screen = pilot.app.screen
-        assert isinstance(rename_screen, RenameCreateSessionModal)
+        assert isinstance(rename_screen, RenameCreateSession)
         await pilot.press(*list("second_rename"))
         await pilot.press("enter")
         await pilot.pause()
@@ -299,7 +299,7 @@ async def test_rename_cancel_selection():
         # initiate rename
         await pilot.press("r")
         rename_screen = pilot.app.screen
-        assert isinstance(rename_screen, RenameCreateSessionModal)
+        assert isinstance(rename_screen, RenameCreateSession)
         # cancel rename
         await pilot.press("escape")
         await pilot.pause()

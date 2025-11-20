@@ -7,7 +7,7 @@ from textual.message import Message
 from textual.reactive import reactive
 
 from dyno_viewer.components.screens.create_rename_session import (
-    RenameCreateSessionModal,
+    RenameCreateSession,
 )
 from dyno_viewer.components.screens.help import HelpScreen
 from dyno_viewer.components.screens.table_view import TableViewer
@@ -71,7 +71,7 @@ class DynCli(App):
         if not isinstance(self.screen, TableViewer):
             return
         session = await self.app.push_screen_wait(
-            RenameCreateSessionModal("Update Table Viewer Session")
+            RenameCreateSession("Update Table Viewer Session")
         )
         if session:
             self.install_screen(TableViewer(id=f"table_{uuid.uuid4()}"), name=session)
