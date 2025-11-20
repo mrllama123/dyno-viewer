@@ -12,7 +12,7 @@ from dyno_viewer.db.utils import add_saved_query
 from dyno_viewer.models import QueryParameters, TableInfo
 
 
-class QueryScreen(ModalScreen):
+class TableQuery(ModalScreen):
     BINDINGS = [
         ("escape", "exit", "Close screen"),
         (("r", "run_query", "Run Query")),

@@ -18,7 +18,7 @@ from dyno_viewer.components.screens import (
 )
 from dyno_viewer.components.screens.file_chooser import SaveFileChooser
 from dyno_viewer.components.screens.profile_select import ProfileSelect
-from dyno_viewer.components.screens.query import QueryScreen
+from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.screens.query_history import QueryHistoryViewer
 from dyno_viewer.components.screens.region_select import RegionSelectScreen
 from dyno_viewer.components.screens.saved_querys import SavedQueriesScreen
@@ -240,7 +240,7 @@ class TableViewer(Screen):
             self.notify("No table selected", severity="warning")
             return
         new_query_param = await self.app.push_screen_wait(
-            QueryScreen(self.table_info, self.draft_query_params or self.query_params)
+            TableQuery(self.table_info, self.draft_query_params or self.query_params)
         )
         if new_query_param.draft:
             self.draft_query_params = new_query_param
