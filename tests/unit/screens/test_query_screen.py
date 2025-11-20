@@ -12,7 +12,7 @@ from dyno_viewer.components.screens.query import QueryScreen
 
 from dyno_viewer.db.utils import list_saved_queries
 from tests.common import type_commands
-from dyno_viewer.components.screens.create_saved_query import CreateSavedQueryScreen
+from dyno_viewer.components.screens.create_saved_query import CreateSavedQuery
 from dyno_viewer.models import QueryParameters, TableInfo
 
 
@@ -334,7 +334,7 @@ async def test_run_query_scan_key_condition_save_query(
         await type_commands(["tab", "s"], pilot)
         await pilot.pause()
         # The screen should still be active since saving is allowed
-        assert isinstance(pilot.app.screen, CreateSavedQueryScreen)
+        assert isinstance(pilot.app.screen, CreateSavedQuery)
 
         # fill in saved query details
         await type_commands(
