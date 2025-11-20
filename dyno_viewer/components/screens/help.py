@@ -8,12 +8,12 @@ from textual.widgets import DataTable, Markdown
 from dyno_viewer.components.screens import (
     ProfileSelect,
     QueryHistoryBrowser,
-    TableQuery,
     RegionSelect,
     SavedQueryBrowser,
+    TableQuery,
     TableSelect,
+    TableSessionPicker,
     TableViewer,
-    TableViewerSessionsSelect,
 )
 
 # constant here to not cause circular imports
@@ -25,7 +25,7 @@ SCREEN_CLASSES: list[Screen | ModalScreen] = [
     TableSelect,
     QueryHistoryBrowser,
     SavedQueryBrowser,
-    TableViewerSessionsSelect,
+    TableSessionPicker,
 ]
 
 

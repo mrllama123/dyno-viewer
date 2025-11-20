@@ -10,10 +10,10 @@ from dyno_viewer.components.screens.create_rename_session import (
     RenameCreateSession,
 )
 from dyno_viewer.components.screens.help import Help
-from dyno_viewer.components.screens.table_view import TableViewer
-from dyno_viewer.components.screens.table_viewer_sessions_select import (
-    TableViewerSessionsSelect,
+from dyno_viewer.components.screens.table_session_picker import (
+    TableSessionPicker,
 )
+from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.db.utils import (
     start_async_session,
 )
@@ -80,7 +80,7 @@ class DynCli(App):
     @work
     async def action_select_session(self) -> None:
         """Open the session select screen."""
-        session = await self.app.push_screen_wait(TableViewerSessionsSelect())
+        session = await self.app.push_screen_wait(TableSessionPicker())
         if session:
             self.app.push_screen(session)
 

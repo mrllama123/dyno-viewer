@@ -18,10 +18,10 @@ from dyno_viewer.components.screens import (
 )
 from dyno_viewer.components.screens.file_chooser import SaveFileChooser
 from dyno_viewer.components.screens.profile_select import ProfileSelect
-from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.screens.query_history_browser import QueryHistoryBrowser
 from dyno_viewer.components.screens.region_select import RegionSelect
 from dyno_viewer.components.screens.saved_querys_browser import SavedQueryBrowser
+from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.db.utils import add_query_history
 from dyno_viewer.models import OutputFormat, QueryParameters, TableInfo
