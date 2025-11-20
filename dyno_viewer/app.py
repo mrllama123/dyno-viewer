@@ -9,7 +9,7 @@ from textual.reactive import reactive
 from dyno_viewer.components.screens.create_rename_session import (
     RenameCreateSession,
 )
-from dyno_viewer.components.screens.help import HelpScreen
+from dyno_viewer.components.screens.help import Help
 from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.components.screens.table_viewer_sessions_select import (
     TableViewerSessionsSelect,
@@ -64,7 +64,7 @@ class DynCli(App):
         self.app.exit()
 
     def action_show_help(self):
-        self.push_screen(HelpScreen())
+        self.push_screen(Help())
 
     @work
     async def action_create_new_table_viewer_session(self) -> None:

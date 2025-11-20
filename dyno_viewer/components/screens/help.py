@@ -29,9 +29,9 @@ SCREEN_CLASSES: list[Screen | ModalScreen] = [
 ]
 
 
-class HelpScreen(ModalScreen):
+class Help(ModalScreen):
     DEFAULT_CSS = """
-        HelpScreen {
+        Help {
             border: vkey $foreground 30%;
             layout: vertical;
             height: 100%;
