@@ -15,7 +15,7 @@ from dyno_viewer.db.utils import (
 )
 
 
-class QueryHistoryViewer(ModalScreen):
+class QueryHistoryBrowser(ModalScreen):
     BINDINGS = [
         ("escape", "app.pop_screen", "Pop screen"),
         ("d", "delete_query", "Delete Query"),

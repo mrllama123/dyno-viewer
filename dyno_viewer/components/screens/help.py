@@ -7,7 +7,7 @@ from textual.widgets import DataTable, Markdown
 
 from dyno_viewer.components.screens import (
     ProfileSelect,
-    QueryHistoryViewer,
+    QueryHistoryBrowser,
     TableQuery,
     RegionSelect,
     SavedQueryBrowser,
@@ -23,7 +23,7 @@ SCREEN_CLASSES: list[Screen | ModalScreen] = [
     ProfileSelect,
     RegionSelect,
     TableSelectScreen,
-    QueryHistoryViewer,
+    QueryHistoryBrowser,
     SavedQueryBrowser,
     TableViewerSessionsSelect,
 ]

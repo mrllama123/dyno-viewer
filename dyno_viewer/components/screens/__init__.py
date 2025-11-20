@@ -2,7 +2,7 @@ from .create_rename_session import *
 from .error import *
 from .profile_select import *
 from .table_query import *
-from .query_history import *
+from .query_history_browser import *
 from .region_select import *
 from .table_select import *
 from .table_view import *

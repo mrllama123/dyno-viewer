@@ -10,7 +10,7 @@ from dyno_viewer.aws.ddb import get_ddb_client
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
 from dyno_viewer.components.screens.table_query import TableQuery
-from dyno_viewer.components.screens.query_history import QueryHistoryViewer
+from dyno_viewer.components.screens.query_history_browser import QueryHistoryBrowser
 from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.components.table import DataTableManager
@@ -306,7 +306,7 @@ async def test_run_query_from_history(ddb_table_with_data, ddb_table, db_session
         # open query history screen
         await pilot.press("h")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, QueryHistoryViewer)
+        assert isinstance(pilot.app.screen, QueryHistoryBrowser)
         assert pilot.app.screen is not None
         # select first row in query history
         query_history_table = pilot.app.screen.query_exactly_one(

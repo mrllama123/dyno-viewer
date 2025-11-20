@@ -19,7 +19,7 @@ from dyno_viewer.components.screens import (
 from dyno_viewer.components.screens.file_chooser import SaveFileChooser
 from dyno_viewer.components.screens.profile_select import ProfileSelect
 from dyno_viewer.components.screens.table_query import TableQuery
-from dyno_viewer.components.screens.query_history import QueryHistoryViewer
+from dyno_viewer.components.screens.query_history_browser import QueryHistoryBrowser
 from dyno_viewer.components.screens.region_select import RegionSelect
 from dyno_viewer.components.screens.saved_querys_browser import SavedQueryBrowser
 from dyno_viewer.components.table import DataTableManager
@@ -290,7 +290,7 @@ class TableViewer(Screen):
     async def action_show_query_history(self) -> None:
         """Open the query history screen."""
         if self.table_client:
-            new_query_param = await self.app.push_screen_wait(QueryHistoryViewer())
+            new_query_param = await self.app.push_screen_wait(QueryHistoryBrowser())
             if new_query_param:
 
                 self.query_params = new_query_param
