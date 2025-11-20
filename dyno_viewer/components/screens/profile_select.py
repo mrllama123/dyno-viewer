@@ -6,7 +6,7 @@ from textual.widgets import Label, ListItem, ListView
 from dyno_viewer.aws.session import get_available_profiles
 
 
-class ProfileSelectScreen(ModalScreen):
+class ProfileSelect(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Pop screen")]
 
     class ProfileSelected(Message):

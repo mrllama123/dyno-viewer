@@ -9,8 +9,8 @@ from textual.reactive import reactive
 from dyno_viewer.aws.ddb import get_ddb_client
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
-from dyno_viewer.components.screens.query import QueryScreen
-from dyno_viewer.components.screens.query_history import QueryHistoryScreen
+from dyno_viewer.components.screens.table_query import TableQuery
+from dyno_viewer.components.screens.query_history_browser import QueryHistoryBrowser
 from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.components.table import DataTableManager
@@ -147,7 +147,7 @@ async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_sess
             ),
         )
         await pilot.press("q")
-        assert isinstance(pilot.app.screen, QueryScreen)
+        assert isinstance(pilot.app.screen, TableQuery)
         await pilot.press("r")
         await pilot.pause()
 
@@ -306,7 +306,7 @@ async def test_run_query_from_history(ddb_table_with_data, ddb_table, db_session
         # open query history screen
         await pilot.press("h")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, QueryHistoryScreen)
+        assert isinstance(pilot.app.screen, QueryHistoryBrowser)
         assert pilot.app.screen is not None
         # select first row in query history
         query_history_table = pilot.app.screen.query_exactly_one(
@@ -335,8 +335,8 @@ async def test_run_query_from_history(ddb_table_with_data, ddb_table, db_session
         # check if query is filled in on the query screen
         await pilot.press("q")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, QueryScreen)
-        query_screen: QueryScreen = pilot.app.screen
+        assert isinstance(pilot.app.screen, TableQuery)
+        query_screen: TableQuery = pilot.app.screen
 
         key_filter = query_screen.query_exactly_one("#keyFilter", KeyFilter)
         key_condition = key_filter.get_key_condition()

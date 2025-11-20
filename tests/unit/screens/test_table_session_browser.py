@@ -4,11 +4,11 @@ from textual.screen import Screen
 from textual import work
 from textual.widgets import OptionList, Static
 
-from dyno_viewer.components.screens.table_viewer_sessions_select import (
-    TableViewerSessionsSelect,
+from dyno_viewer.components.screens.table_session_browser import (
+    TableSessionBrowser,
 )
 from dyno_viewer.components.screens.create_rename_session import (
-    RenameCreateSessionModal,
+    RenameCreateSession,
 )
 
 
@@ -46,14 +46,14 @@ async def test_select_session():
 
         @work
         async def action_select_session(self):
-            screen_name = await self.push_screen_wait(TableViewerSessionsSelect())
+            screen_name = await self.push_screen_wait(TableSessionBrowser())
             if screen_name:
                 await self.push_screen(screen_name)
 
     async with SessionsApp().run_test() as pilot:
         await pilot.press("v")
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         # first option should be a_session because list sorted
         option_list = screen.query_one(OptionList)
         # textual OptionList children hold options; ensure sorted order
@@ -89,7 +89,7 @@ async def test_select_multiple_sessions():
 
         @work
         async def action_select_session(self):
-            screen_name = await self.push_screen_wait(TableViewerSessionsSelect())
+            screen_name = await self.push_screen_wait(TableSessionBrowser())
             if screen_name:
                 await self.push_screen(screen_name)
 
@@ -97,7 +97,7 @@ async def test_select_multiple_sessions():
         # First selection
         await pilot.press("v")
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         await pilot.press("enter")
         await pilot.pause()
         assert isinstance(pilot.app.screen, DummyTableScreen)
@@ -105,7 +105,7 @@ async def test_select_multiple_sessions():
         # Second selection
         await pilot.press("v")
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         # move to next option
         await pilot.press("down")
         await pilot.press("enter")
@@ -137,14 +137,14 @@ async def test_cancel_selection():
 
         @work
         async def action_select_session(self):
-            screen_name = await self.push_screen_wait(TableViewerSessionsSelect())
+            screen_name = await self.push_screen_wait(TableSessionBrowser())
             if screen_name:
                 await self.push_screen(screen_name)
 
     async with SessionsApp().run_test() as pilot:
         await pilot.press("v")
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         # cancel selection
         await pilot.press("escape")
         await pilot.pause()
@@ -176,19 +176,19 @@ async def test_rename_session():
 
         @work
         async def action_select_session(self):
-            screen_name = await self.push_screen_wait(TableViewerSessionsSelect())
+            screen_name = await self.push_screen_wait(TableSessionBrowser())
             if screen_name:
                 await self.push_screen(screen_name)
 
     async with SessionsApp().run_test() as pilot:
         await pilot.press("v")
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         await pilot.pause()
         # rename currently highlighted (a_session)
         await pilot.press("r")
         rename_screen = pilot.app.screen
-        assert isinstance(rename_screen, RenameCreateSessionModal)
+        assert isinstance(rename_screen, RenameCreateSession)
         # type new name and submit
         await pilot.press(*list("renamed_session"))
         await pilot.press("enter")
@@ -196,7 +196,7 @@ async def test_rename_session():
         await pilot.pause()
         # Back on selection screen
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         # confirm installed screens updated
         assert "renamed_session" in pilot.app._installed_screens
         assert "a_session" not in pilot.app._installed_screens
@@ -232,7 +232,7 @@ async def test_rename_multiple_sessions():
 
         @work
         async def action_select_session(self):
-            screen_name = await self.push_screen_wait(TableViewerSessionsSelect())
+            screen_name = await self.push_screen_wait(TableSessionBrowser())
             if screen_name:
                 await self.push_screen(screen_name)
 
@@ -240,26 +240,26 @@ async def test_rename_multiple_sessions():
         # First rename
         await pilot.press("v")
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         await pilot.pause()
         await pilot.press("r")
         rename_screen = pilot.app.screen
-        assert isinstance(rename_screen, RenameCreateSessionModal)
+        assert isinstance(rename_screen, RenameCreateSession)
         await pilot.press(*list("first_rename"))
         await pilot.press("enter")
         await pilot.pause()
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         assert "first_rename" in pilot.app._installed_screens
         # Second rename
         await pilot.press("r")
         rename_screen = pilot.app.screen
-        assert isinstance(rename_screen, RenameCreateSessionModal)
+        assert isinstance(rename_screen, RenameCreateSession)
         await pilot.press(*list("second_rename"))
         await pilot.press("enter")
         await pilot.pause()
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         assert "second_rename" in pilot.app._installed_screens
         assert "first_rename" not in pilot.app._installed_screens
 
@@ -287,25 +287,25 @@ async def test_rename_cancel_selection():
 
         @work
         async def action_select_session(self):
-            screen_name = await self.push_screen_wait(TableViewerSessionsSelect())
+            screen_name = await self.push_screen_wait(TableSessionBrowser())
             if screen_name:
                 await self.push_screen(screen_name)
 
     async with SessionsApp().run_test() as pilot:
         await pilot.press("v")
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         await pilot.pause()
         # initiate rename
         await pilot.press("r")
         rename_screen = pilot.app.screen
-        assert isinstance(rename_screen, RenameCreateSessionModal)
+        assert isinstance(rename_screen, RenameCreateSession)
         # cancel rename
         await pilot.press("escape")
         await pilot.pause()
         # back on selection screen
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         # installed screens should be unchanged
         assert "a_session" in pilot.app._installed_screens
         # highlighted option should still be a_session
@@ -321,13 +321,13 @@ async def test_no_sessions():
 
         @work
         async def action_select_session(self):
-            screen_name = await self.push_screen_wait(TableViewerSessionsSelect())
+            screen_name = await self.push_screen_wait(TableSessionBrowser())
             if screen_name:
                 await self.push_screen(screen_name)
 
     async with SessionsAppNoTables().run_test() as pilot:
         await pilot.press("v")
         screen = pilot.app.screen
-        assert isinstance(screen, TableViewerSessionsSelect)
+        assert isinstance(screen, TableSessionBrowser)
         option_list = screen.query_one(OptionList)
         assert len(option_list.options) == 0

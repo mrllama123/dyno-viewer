@@ -8,7 +8,7 @@ from textual.app import App
 from textual.widgets import DataTable
 
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
-from dyno_viewer.components.screens.query_history import QueryHistoryScreen
+from dyno_viewer.components.screens.query_history_browser import QueryHistoryBrowser
 from dyno_viewer.db.models import QueryHistory
 from dyno_viewer.constants import FILTER_CONDITIONS, ATTRIBUTE_TYPES
 from dyno_viewer.models import KeyCondition, QueryParameters, FilterCondition
@@ -64,13 +64,13 @@ async def test_query_history_screen_populates_from_db(db_session):
             self.db_session = db_session
 
         async def on_mount(self):  # type: ignore[override]
-            self.push_screen(QueryHistoryScreen())
+            self.push_screen(QueryHistoryBrowser())
 
     async with TestApp(db_session).run_test() as pilot:
         # allow background worker to complete
         await pilot.pause(0.05)
         screen = pilot.app.screen
-        assert isinstance(screen, QueryHistoryScreen)
+        assert isinstance(screen, QueryHistoryBrowser)
         table = screen.query_one(DataTable)
         assert table.row_count == 3
         # Ensure ordering is newest first (created_at descending)
@@ -116,13 +116,13 @@ async def test_query_history_screen_with_filters(db_session):
             self.db_session = db_session
 
         async def on_mount(self):  # type: ignore[override]
-            self.push_screen(QueryHistoryScreen())
+            self.push_screen(QueryHistoryBrowser())
 
     async with TestApp(db_session).run_test() as pilot:
         # allow background worker to complete
         await pilot.pause(0.05)
         screen = pilot.app.screen
-        assert isinstance(screen, QueryHistoryScreen)
+        assert isinstance(screen, QueryHistoryBrowser)
         table = screen.query_one(DataTable)
         assert table.row_count == 1
         first_row = table.get_row_at(0)
@@ -161,10 +161,10 @@ async def test_query_history_screen_pagination(db_session):
             self.db_session = db_session
 
         async def on_mount(self):  # type: ignore[override]
-            self.push_screen(QueryHistoryScreen())
+            self.push_screen(QueryHistoryBrowser())
 
     async with TestApp(db_session).run_test() as pilot:
-        screen: QueryHistoryScreen = pilot.app.screen  # type: ignore
+        screen: QueryHistoryBrowser = pilot.app.screen  # type: ignore
         await pilot.pause()
         table = screen.query_one(DataTable)
         # After initial load only first 20 rows should be present
@@ -204,14 +204,14 @@ async def test_query_history_screen_row_selection(db_session):
             self.params = None
 
         async def on_mount(self):  # type: ignore[override]
-            self.push_screen(QueryHistoryScreen(), callback=self.save_params)
+            self.push_screen(QueryHistoryBrowser(), callback=self.save_params)
 
         def save_params(self, p):
             self.params = p
 
     async with TestApp(db_session).run_test() as pilot:
         await pilot.pause(0.05)
-        screen: QueryHistoryScreen = pilot.app.screen  # type: ignore
+        screen: QueryHistoryBrowser = pilot.app.screen  # type: ignore
         table = screen.query_one(DataTable)
         assert table.row_count == 1
 
@@ -265,11 +265,11 @@ async def test_query_history_screen_delete_row(db_session):
             self.db_session = db_session
 
         async def on_mount(self):  # type: ignore[override]
-            self.push_screen(QueryHistoryScreen())
+            self.push_screen(QueryHistoryBrowser())
 
     async with TestApp(db_session).run_test() as pilot:
         await pilot.pause(0.05)
-        screen: QueryHistoryScreen = pilot.app.screen  # type: ignore
+        screen: QueryHistoryBrowser = pilot.app.screen  # type: ignore
         table = screen.query_one(DataTable)
         assert table.row_count == 2
 
@@ -317,11 +317,11 @@ async def test_query_history_screen_delete_all_rows(db_session):
             self.db_session = db_session
 
         async def on_mount(self):  # type: ignore[override]
-            self.push_screen(QueryHistoryScreen())
+            self.push_screen(QueryHistoryBrowser())
 
     async with TestApp(db_session).run_test() as pilot:
         await pilot.pause(0.05)
-        screen: QueryHistoryScreen = pilot.app.screen  # type: ignore
+        screen: QueryHistoryBrowser = pilot.app.screen  # type: ignore
         table = screen.query_one(DataTable)
         assert table.row_count == 5
 
@@ -357,14 +357,14 @@ async def test_query_history_screen_no_data(db_session):
             self.params = None
 
         async def on_mount(self):  # type: ignore[override]
-            self.push_screen(QueryHistoryScreen(), callback=self.save_params)
+            self.push_screen(QueryHistoryBrowser(), callback=self.save_params)
 
         def save_params(self, p):
             self.params = p
 
     async with TestApp(db_session).run_test() as pilot:
         await pilot.pause(0.05)
-        screen: QueryHistoryScreen = pilot.app.screen  # type: ignore
+        screen: QueryHistoryBrowser = pilot.app.screen  # type: ignore
         table = screen.query_one(DataTable)
         assert table.row_count == 0
 
@@ -401,7 +401,7 @@ async def test_query_history_screen_invalid_json(db_session):
             self.params = None
 
         async def on_mount(self):  # type: ignore[override]
-            self.push_screen(QueryHistoryScreen(), callback=self.save_params)
+            self.push_screen(QueryHistoryBrowser(), callback=self.save_params)
 
         def save_params(self, p):
             self.params = p
@@ -409,7 +409,7 @@ async def test_query_history_screen_invalid_json(db_session):
     with pytest.raises(Exception, match="1 validation error for KeyCondition"):
         async with TestApp(db_session).run_test() as pilot:
             await pilot.pause(0.05)
-            screen: QueryHistoryScreen = pilot.app.screen  # type: ignore
+            screen: QueryHistoryBrowser = pilot.app.screen  # type: ignore
             table = screen.query_one(DataTable)
             assert table.row_count == 1
 

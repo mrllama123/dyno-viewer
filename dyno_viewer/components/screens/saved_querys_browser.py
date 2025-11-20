@@ -17,7 +17,7 @@ from dyno_viewer.db.utils import (
 )
 
 
-class SavedQueriesScreen(ModalScreen):
+class SavedQueryBrowser(ModalScreen):
     BINDINGS = [
         Binding("escape", "app.pop_screen", "Pop screen"),
         Binding("n", "next_page", "Next Page"),

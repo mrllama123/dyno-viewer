@@ -5,11 +5,11 @@ from textual.screen import ModalScreen
 from textual.widgets import Markdown, OptionList
 
 from dyno_viewer.components.screens.create_rename_session import (
-    RenameCreateSessionModal,
+    RenameCreateSession,
 )
 
 
-class TableViewerSessionsSelect(ModalScreen):
+class TableSessionBrowser(ModalScreen):
     """Modal screen for selecting sessions in the table viewer."""
 
     BINDINGS = [
@@ -53,7 +53,7 @@ class TableViewerSessionsSelect(ModalScreen):
 
         if selected_option:
             new_session_name = await self.app.push_screen_wait(
-                RenameCreateSessionModal("Rename Table Viewer Session")
+                RenameCreateSession("Rename Table Viewer Session")
             )
             if new_session_name:
                 self.app._installed_screens[new_session_name] = (

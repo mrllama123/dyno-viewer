@@ -6,32 +6,32 @@ from textual.screen import ModalScreen, Screen
 from textual.widgets import DataTable, Markdown
 
 from dyno_viewer.components.screens import (
-    ProfileSelectScreen,
-    QueryHistoryScreen,
-    QueryScreen,
-    RegionSelectScreen,
-    SavedQueriesScreen,
-    TableSelectScreen,
+    ProfileSelect,
+    QueryHistoryBrowser,
+    RegionSelect,
+    SavedQueryBrowser,
+    TableQuery,
+    TableSelect,
+    TableSessionBrowser,
     TableViewer,
-    TableViewerSessionsSelect,
 )
 
 # constant here to not cause circular imports
 SCREEN_CLASSES: list[Screen | ModalScreen] = [
     TableViewer,
-    QueryScreen,
-    ProfileSelectScreen,
-    RegionSelectScreen,
-    TableSelectScreen,
-    QueryHistoryScreen,
-    SavedQueriesScreen,
-    TableViewerSessionsSelect,
+    TableQuery,
+    ProfileSelect,
+    RegionSelect,
+    TableSelect,
+    QueryHistoryBrowser,
+    SavedQueryBrowser,
+    TableSessionBrowser,
 ]
 
 
-class HelpScreen(ModalScreen):
+class Help(ModalScreen):
     DEFAULT_CSS = """
-        HelpScreen {
+        Help {
             border: vkey $foreground 30%;
             layout: vertical;
             height: 100%;

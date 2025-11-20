@@ -9,7 +9,7 @@ from textual.worker import get_current_worker
 from dyno_viewer.aws.ddb import list_all_tables
 
 
-class TableSelectScreen(ModalScreen):
+class TableSelect(ModalScreen):
     BINDINGS = [("escape", "app.pop_screen", "Exit popup")]
 
     HELP = """

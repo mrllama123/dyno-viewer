@@ -8,11 +8,11 @@ from textual.pilot import Pilot
 from dyno_viewer.aws.ddb import scan_items
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
-from dyno_viewer.components.screens.query import QueryScreen
+from dyno_viewer.components.screens.table_query import TableQuery
 
 from dyno_viewer.db.utils import list_saved_queries
 from tests.common import type_commands
-from dyno_viewer.components.screens.create_saved_query import CreateSavedQueryScreen
+from dyno_viewer.components.screens.create_saved_query import CreateSavedQuery
 from dyno_viewer.models import QueryParameters, TableInfo
 
 
@@ -30,7 +30,7 @@ def screen_app():
         @work
         async def action_run_query(self):
             self.dyn_query = await self.push_screen_wait(
-                QueryScreen(table_info=self.table_info)
+                TableQuery(table_info=self.table_info)
             )
 
     return QueryScreenApp
@@ -38,7 +38,7 @@ def screen_app():
 
 async def assert_primary_key(pilot: Pilot, ddb_item):
     screen = pilot.app.screen
-    assert isinstance(screen, QueryScreen)
+    assert isinstance(screen, TableQuery)
     key_query = screen.query_one(KeyFilter)
     # set pk to customer#test
     await type_commands(["tab" for _ in range(0, 2)], pilot)
@@ -48,7 +48,7 @@ async def assert_primary_key(pilot: Pilot, ddb_item):
 
 async def assert_gsi_primary_key(pilot: Pilot, ddb_item):
     screen = pilot.app.screen
-    assert isinstance(screen, QueryScreen)
+    assert isinstance(screen, TableQuery)
     key_query = screen.query_one(KeyFilter)
     # set to gsi 1
     await pilot.press("tab", "down", "down", "enter")
@@ -61,7 +61,7 @@ async def assert_gsi_primary_key(pilot: Pilot, ddb_item):
 async def assert_gsi_sort_key(pilot: Pilot, ddb_item):
     # TODO handle different cond and types
     screen = pilot.app.screen
-    assert isinstance(screen, QueryScreen)
+    assert isinstance(screen, TableQuery)
     key_filter = screen.query_one(KeyFilter)
     # attr filter type is string
     assert key_filter.query_one("#attrType").value == "string"
@@ -76,7 +76,7 @@ async def assert_gsi_sort_key(pilot: Pilot, ddb_item):
 
 async def assert_sort_key(pilot: Pilot, ddb_item):
     screen = pilot.app.screen
-    assert isinstance(screen, QueryScreen)
+    assert isinstance(screen, TableQuery)
     key_filter = screen.query_one(KeyFilter)
     # attr filter type is string
     assert key_filter.query_one("#attrType").value == "string"
@@ -92,7 +92,7 @@ async def assert_sort_key(pilot: Pilot, ddb_item):
 async def assert_filter_one(pilot: Pilot, attr_name, attr_value):
     # add new filter
     screen = pilot.app.screen
-    assert isinstance(screen, QueryScreen)
+    assert isinstance(screen, TableQuery)
     await type_commands(["enter"], pilot)
     assert len(screen.query(FilterQuery)) == 1
     filter_query = screen.query_one(FilterQuery)
@@ -300,7 +300,7 @@ async def test_run_query_scan(screen_app, ddb_table, ddb_table_with_data):
 
         # send run query message back to root app
         await pilot.press("tab", "tab", "r")
-        assert not isinstance(pilot.app.screen, QueryScreen)
+        assert not isinstance(pilot.app.screen, TableQuery)
         dyn_query: QueryParameters | None = pilot.app.dyn_query
         assert dyn_query
         assert dyn_query.scan_mode
@@ -334,7 +334,7 @@ async def test_run_query_scan_key_condition_save_query(
         await type_commands(["tab", "s"], pilot)
         await pilot.pause()
         # The screen should still be active since saving is allowed
-        assert isinstance(pilot.app.screen, CreateSavedQueryScreen)
+        assert isinstance(pilot.app.screen, CreateSavedQuery)
 
         # fill in saved query details
         await type_commands(
@@ -344,7 +344,7 @@ async def test_run_query_scan_key_condition_save_query(
 
         await pilot.pause()
 
-        assert isinstance(pilot.app.screen, QueryScreen)
+        assert isinstance(pilot.app.screen, TableQuery)
         saved_queries = await list_saved_queries(db_session)
 
         assert saved_queries
@@ -372,7 +372,7 @@ async def test_run_query_scan_no_filters(screen_app, ddb_table, ddb_table_with_d
         )
 
         await pilot.press("q")
-        assert isinstance(pilot.app.screen, QueryScreen)
+        assert isinstance(pilot.app.screen, TableQuery)
         await pilot.press(
             "enter",
             "tab",
@@ -405,7 +405,7 @@ async def test_run_query_scan_no_filters_no_save_query(
         pilot.app.db_session = db_session
 
         await pilot.press("q")
-        assert isinstance(pilot.app.screen, QueryScreen)
+        assert isinstance(pilot.app.screen, TableQuery)
         await pilot.press(
             "enter",
             "tab",
@@ -421,7 +421,7 @@ async def test_run_query_scan_no_filters_no_save_query(
         await pilot.pause()
 
         # The screen should still be active since saving is not allowed
-        assert isinstance(pilot.app.screen, QueryScreen)
+        assert isinstance(pilot.app.screen, TableQuery)
 
 
 async def test_run_query_scan_no_key_condition_no_save_query(
@@ -437,7 +437,7 @@ async def test_run_query_scan_no_key_condition_no_save_query(
         pilot.app.db_session = db_session
 
         await pilot.press("q")
-        assert isinstance(pilot.app.screen, QueryScreen)
+        assert isinstance(pilot.app.screen, TableQuery)
         await pilot.press(
             # ensure key condition is empty
             "tab",
@@ -454,7 +454,7 @@ async def test_run_query_scan_no_key_condition_no_save_query(
         await pilot.pause()
 
         # The screen should still be active since saving is not allowed
-        assert isinstance(pilot.app.screen, QueryScreen)
+        assert isinstance(pilot.app.screen, TableQuery)
 
 
 async def test_run_query_invalid_no_key_or_filters(screen_app, ddb_table):
@@ -469,7 +469,7 @@ async def test_run_query_invalid_no_key_or_filters(screen_app, ddb_table):
         # Do not type partition key; attempt to run immediately.
         await pilot.press("r")
         # Should remain on QueryScreen and no dyn_query produced.
-        assert isinstance(pilot.app.screen, QueryScreen)
+        assert isinstance(pilot.app.screen, TableQuery)
         assert pilot.app.dyn_query is None
 
 
@@ -484,7 +484,7 @@ async def test_run_query_scan_mode_no_filters(screen_app, ddb_table):
         # Toggle scan mode (initial focus presumed on scan switch) and leave without adding filters.
         await pilot.press("enter")  # toggle scan on
         await pilot.press("r")
-        assert not isinstance(pilot.app.screen, QueryScreen)
+        assert not isinstance(pilot.app.screen, TableQuery)
         assert pilot.app.dyn_query
         assert pilot.app.dyn_query.scan_mode
         assert not pilot.app.dyn_query.filter_conditions

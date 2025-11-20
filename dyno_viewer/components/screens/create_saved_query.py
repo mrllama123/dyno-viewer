@@ -9,7 +9,7 @@ from textual.widgets import Button, Input, Markdown, Static
 from dyno_viewer.db.models import SavedQuery
 
 
-class CreateSavedQueryScreen(ModalScreen):
+class CreateSavedQuery(ModalScreen):
 
     BINDINGS = [
         Binding(key="escape", action="app.pop_screen", description="exit screen"),

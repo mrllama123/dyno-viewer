@@ -14,14 +14,14 @@ from dyno_viewer.aws.ddb import (
     table_client_exist,
 )
 from dyno_viewer.components.screens import (
-    TableSelectScreen,
+    TableSelect,
 )
 from dyno_viewer.components.screens.file_chooser import SaveFileChooser
-from dyno_viewer.components.screens.profile_select import ProfileSelectScreen
-from dyno_viewer.components.screens.query import QueryScreen
-from dyno_viewer.components.screens.query_history import QueryHistoryScreen
-from dyno_viewer.components.screens.region_select import RegionSelectScreen
-from dyno_viewer.components.screens.saved_querys import SavedQueriesScreen
+from dyno_viewer.components.screens.profile_select import ProfileSelect
+from dyno_viewer.components.screens.query_history_browser import QueryHistoryBrowser
+from dyno_viewer.components.screens.region_select import RegionSelect
+from dyno_viewer.components.screens.saved_querys_browser import SavedQueryBrowser
+from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.db.utils import add_query_history
 from dyno_viewer.models import OutputFormat, QueryParameters, TableInfo
@@ -223,14 +223,14 @@ class TableViewer(Screen):
     @work
     async def action_select_profile(self) -> None:
         """Open the profile select screen."""
-        profile = await self.app.push_screen_wait(ProfileSelectScreen())
+        profile = await self.app.push_screen_wait(ProfileSelect())
         if profile:
             self.aws_profile = profile
 
     @work
     async def action_select_region(self) -> None:
         """Open the region select screen."""
-        region = await self.app.push_screen_wait(RegionSelectScreen())
+        region = await self.app.push_screen_wait(RegionSelect())
         if region:
             self.aws_region = region
 
@@ -240,7 +240,7 @@ class TableViewer(Screen):
             self.notify("No table selected", severity="warning")
             return
         new_query_param = await self.app.push_screen_wait(
-            QueryScreen(self.table_info, self.draft_query_params or self.query_params)
+            TableQuery(self.table_info, self.draft_query_params or self.query_params)
         )
         if new_query_param.draft:
             self.draft_query_params = new_query_param
@@ -253,7 +253,7 @@ class TableViewer(Screen):
     @work
     async def action_select_table(self) -> None:
         """Open the table select screen."""
-        table = await self.app.push_screen_wait(TableSelectScreen(self.dyn_client))
+        table = await self.app.push_screen_wait(TableSelect(self.dyn_client))
         if table:
             self.table_name = table
             self.update_table_client()
@@ -290,7 +290,7 @@ class TableViewer(Screen):
     async def action_show_query_history(self) -> None:
         """Open the query history screen."""
         if self.table_client:
-            new_query_param = await self.app.push_screen_wait(QueryHistoryScreen())
+            new_query_param = await self.app.push_screen_wait(QueryHistoryBrowser())
             if new_query_param:
 
                 self.query_params = new_query_param
@@ -302,7 +302,7 @@ class TableViewer(Screen):
     async def action_show_saved_queries(self) -> None:
         """Open the saved queries screen."""
         if self.table_client:
-            new_query_param = await self.app.push_screen_wait(SavedQueriesScreen())
+            new_query_param = await self.app.push_screen_wait(SavedQueryBrowser())
             if new_query_param:
                 query_screen = self.app.get_screen("query")
                 self.query_params = new_query_param

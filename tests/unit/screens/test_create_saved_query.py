@@ -1,6 +1,6 @@
 from textual import work
 
-from dyno_viewer.components.screens.create_saved_query import CreateSavedQueryScreen
+from dyno_viewer.components.screens.create_saved_query import CreateSavedQuery
 from dyno_viewer.db.models import SavedQuery
 
 
@@ -17,7 +17,7 @@ async def test_create_saved_query_screen_submit_saved_query():
 
         @work
         async def action_create_saved_query(self):
-            self.saved_query = await self.push_screen_wait(CreateSavedQueryScreen())
+            self.saved_query = await self.push_screen_wait(CreateSavedQuery())
 
     async with TestCreateSavedQueryScreen().run_test() as pilot:
         await pilot.press("s")
@@ -26,7 +26,7 @@ async def test_create_saved_query_screen_submit_saved_query():
         screen = pilot.app.screen
 
         await pilot.pause()
-        assert isinstance(screen, CreateSavedQueryScreen)
+        assert isinstance(screen, CreateSavedQuery)
 
         query_name_input = screen.query_one("#query_name", Input)
         query_description_input = screen.query_one("#query_description", Input)
@@ -53,16 +53,16 @@ async def test_create_saved_query_screen_validation_click():
 
         @work
         async def action_create_saved_query(self):
-            self.saved_query = await self.push_screen_wait(CreateSavedQueryScreen())
+            self.saved_query = await self.push_screen_wait(CreateSavedQuery())
 
     async with TestCreateSavedQueryScreen().run_test() as pilot:
         await pilot.press("s")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, CreateSavedQueryScreen)
+        assert isinstance(pilot.app.screen, CreateSavedQuery)
         await pilot.click("#create_button")
 
         await pilot.pause()
-        assert isinstance(pilot.app.screen, CreateSavedQueryScreen)
+        assert isinstance(pilot.app.screen, CreateSavedQuery)
 
         error_message = pilot.app.screen.query_one("#name_error", Static)
         assert "cannot be empty" in error_message.content
@@ -76,18 +76,18 @@ async def test_create_saved_query_screen_validation_blur():
 
         @work
         async def action_create_saved_query(self):
-            self.saved_query = await self.push_screen_wait(CreateSavedQueryScreen())
+            self.saved_query = await self.push_screen_wait(CreateSavedQuery())
 
     async with TestCreateSavedQueryScreen().run_test() as pilot:
         await pilot.press("s")
         await pilot.pause()
-        assert isinstance(pilot.app.screen, CreateSavedQueryScreen)
+        assert isinstance(pilot.app.screen, CreateSavedQuery)
 
         await pilot.press("tab")  # Focus on query name input
         await pilot.press("tab")  # Focus on query description input
         await pilot.press("enter")  # Try to create without a name
 
         await pilot.pause()
-        assert isinstance(pilot.app.screen, CreateSavedQueryScreen)
+        assert isinstance(pilot.app.screen, CreateSavedQuery)
         error_message = pilot.app.screen.query_one("#name_error", Static)
         assert "cannot be empty" in error_message.content

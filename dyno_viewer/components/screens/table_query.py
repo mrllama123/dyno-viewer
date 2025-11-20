@@ -7,12 +7,12 @@ from textual.widgets import Button, Footer, Label, OptionList, Switch
 
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
-from dyno_viewer.components.screens.create_saved_query import CreateSavedQueryScreen
+from dyno_viewer.components.screens.create_saved_query import CreateSavedQuery
 from dyno_viewer.db.utils import add_saved_query
 from dyno_viewer.models import QueryParameters, TableInfo
 
 
-class QueryScreen(ModalScreen):
+class TableQuery(ModalScreen):
     BINDINGS = [
         ("escape", "exit", "Close screen"),
         (("r", "run_query", "Run Query")),
@@ -156,7 +156,7 @@ class QueryScreen(ModalScreen):
         if self.scan_mode and not self.query(FilterQuery):
             self.notify("Cannot save query: No filter conditions.", severity="warning")
             return
-        saved_query = await self.app.push_screen_wait(CreateSavedQueryScreen())
+        saved_query = await self.app.push_screen_wait(CreateSavedQuery())
         if saved_query:
             query_params = self.generate_query_parameters()
             await add_saved_query(

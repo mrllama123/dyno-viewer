@@ -4,7 +4,7 @@ from textual.app import App
 from textual.reactive import reactive
 from textual.widgets import ListView, Label
 
-from dyno_viewer.components.screens.profile_select import ProfileSelectScreen
+from dyno_viewer.components.screens.profile_select import ProfileSelect
 
 
 @pytest.fixture
@@ -21,7 +21,7 @@ def screen_app():
 
         @work
         async def action_select_profile(self) -> None:
-            result = await self.push_screen_wait(ProfileSelectScreen())
+            result = await self.push_screen_wait(ProfileSelect())
             if result:
                 self.profile = result
 
@@ -73,10 +73,10 @@ async def test_select_profile_escape(iam, screen_app, mocker):
     )
     async with screen_app().run_test() as pilot:
         await pilot.press("p")
-        assert isinstance(pilot.app.screen, ProfileSelectScreen)
+        assert isinstance(pilot.app.screen, ProfileSelect)
 
         await pilot.press("escape")
-        assert not isinstance(pilot.app.screen, ProfileSelectScreen)
+        assert not isinstance(pilot.app.screen, ProfileSelect)
 
         assert pilot.app.profile == ""
 
@@ -88,7 +88,7 @@ async def test_select_profile_no_profiles(screen_app, mocker):
     )
     async with screen_app().run_test() as pilot:
         await pilot.press("p")
-        assert isinstance(pilot.app.screen, ProfileSelectScreen)
+        assert isinstance(pilot.app.screen, ProfileSelect)
         # Check that the ListView is empty
         list_view = pilot.app.screen.query_one(ListView)
         assert len(list_view.children) == 0

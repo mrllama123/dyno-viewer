@@ -1,11 +1,11 @@
-from dyno_viewer.components.screens.help import HelpScreen
+from dyno_viewer.components.screens.help import Help
 from textual.app import App
 
 
 def test_help_screen(snap_compare):
     class TestApp(App):
         SCREENS = {
-            "help": HelpScreen,
+            "help": Help,
         }
         BINDINGS = [
             ("?", "show_help", "Show Help"),

@@ -7,13 +7,13 @@ from textual.message import Message
 from textual.reactive import reactive
 
 from dyno_viewer.components.screens.create_rename_session import (
-    RenameCreateSessionModal,
+    RenameCreateSession,
 )
-from dyno_viewer.components.screens.help import HelpScreen
+from dyno_viewer.components.screens.help import Help
+from dyno_viewer.components.screens.table_session_browser import (
+    TableSessionBrowser,
+)
 from dyno_viewer.components.screens.table_view import TableViewer
-from dyno_viewer.components.screens.table_viewer_sessions_select import (
-    TableViewerSessionsSelect,
-)
 from dyno_viewer.db.utils import (
     start_async_session,
 )
@@ -64,14 +64,14 @@ class DynCli(App):
         self.app.exit()
 
     def action_show_help(self):
-        self.push_screen(HelpScreen())
+        self.push_screen(Help())
 
     @work
     async def action_create_new_table_viewer_session(self) -> None:
         if not isinstance(self.screen, TableViewer):
             return
         session = await self.app.push_screen_wait(
-            RenameCreateSessionModal("Update Table Viewer Session")
+            RenameCreateSession("Update Table Viewer Session")
         )
         if session:
             self.install_screen(TableViewer(id=f"table_{uuid.uuid4()}"), name=session)
@@ -80,7 +80,7 @@ class DynCli(App):
     @work
     async def action_select_session(self) -> None:
         """Open the session select screen."""
-        session = await self.app.push_screen_wait(TableViewerSessionsSelect())
+        session = await self.app.push_screen_wait(TableSessionBrowser())
         if session:
             self.app.push_screen(session)
 
