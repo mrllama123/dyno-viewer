@@ -37,3 +37,5 @@ ATTRIBUTE_TYPES = [
     "list",
     "set",
 ]
+
+CONFIG_DIR_NAME = "dyno-viewer"

@@ -17,7 +17,7 @@ from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.db.utils import (
     start_async_session,
 )
-from dyno_viewer.models import TableInfo
+from dyno_viewer.models import Config, TableInfo
 
 
 class QueryResult(Message):
@@ -50,6 +50,7 @@ class DynCli(App):
     ]
 
     db_session = reactive(None)
+    app_config = reactive(Config.load_config())
 
     async def on_mount(self) -> None:
         # Initialize the async DB session (SQLAlchemy)
@@ -83,6 +84,20 @@ class DynCli(App):
         session = await self.app.push_screen_wait(TableSessionBrowser())
         if session:
             self.app.push_screen(session)
+
+    def watch_theme(self, new_theme: str) -> None:
+        """Called automatically when the theme changes."""
+        if not self.app_config:
+            return
+        if new_theme == self.app_config.theme:
+            return
+        self.app_config.theme = new_theme
+        self.app_config.save_config()
+
+    def watch_app_config(self, new_value: Config) -> None:
+        if new_value:
+            if new_value.theme != self.theme:
+                self.theme = new_value.theme
 
 
 def run() -> None:

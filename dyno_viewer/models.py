@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any, TypedDict
 
 from boto3.dynamodb.conditions import Attr, ConditionBase, Key
-from pydantic import BaseModel, computed_field, field_validator
+from pydantic import BaseModel, computed_field, field_validator, model_validator
 
 from dyno_viewer.aws.ddb import (
     convert_filter_exp_attr_cond,
@@ -14,9 +14,12 @@ from dyno_viewer.aws.ddb import (
 )
 from dyno_viewer.constants import (
     ATTRIBUTE_TYPES,
+    CONFIG_DIR_NAME,
     FILTER_CONDITIONS,
     SORT_KEY_CONDITIONS,
 )
+from dyno_viewer.util.path import ensure_config_dir
+import yaml
 
 
 class OutputFormat(Enum):
@@ -155,3 +158,25 @@ class QueryParameters(BaseModel):
 class SavedQuery(BaseModel):
     name: str
     description: str
+
+
+class Config(BaseModel):
+    page_size: int = 20
+    max_items: int = 1000
+    theme: str = "textual-dark"
+
+    @classmethod
+    def load_config(cls) -> "Config":
+        app_path = ensure_config_dir(CONFIG_DIR_NAME)
+        config_file_path = app_path / "config.yaml"
+        if config_file_path.exists():
+            config_file = yaml.safe_load(config_file_path.read_bytes())
+            return cls.model_validate(config_file)
+        config = cls()
+        config.save_config()
+        return config
+
+    def save_config(self) -> None:
+        app_path = ensure_config_dir(CONFIG_DIR_NAME)
+        config_file_path = app_path / "config.yaml"
+        config_file_path.write_text(yaml.safe_dump(self.model_dump()), encoding="utf-8")
