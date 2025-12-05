@@ -159,14 +159,18 @@ class TableViewer(Screen):
                 scan_items(
                     self.table_client,
                     paginate=False,
-                    Limit=50,
+                    Limit=(
+                        self.app.app_config.page_size if self.app.app_config else 50
+                    ),
                     **extra_params,
                 )
                 if getattr(query_params, "scan_mode", True)
                 else query_items(
                     self.table_client,
                     paginate=False,
-                    Limit=50,
+                    Limit=(
+                        self.app.app_config.page_size if self.app.app_config else 50
+                    ),
                     **extra_params,
                 )
             )
@@ -292,9 +296,7 @@ class TableViewer(Screen):
         if self.table_client:
             new_query_param = await self.app.push_screen_wait(QueryHistoryBrowser())
             if new_query_param:
-
                 self.query_params = new_query_param
-
         else:
             self.notify("No table selected", severity="warning")
 

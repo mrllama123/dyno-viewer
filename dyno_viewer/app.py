@@ -1,11 +1,11 @@
 import uuid
 
-from textual import work
+from textual import on, work
 from textual.app import App
 from textual.binding import Binding
-from textual.message import Message
 from textual.reactive import reactive
 
+from dyno_viewer.components.screens.app_options import AppOptions
 from dyno_viewer.components.screens.create_rename_session import (
     RenameCreateSession,
 )
@@ -14,24 +14,9 @@ from dyno_viewer.components.screens.table_session_browser import (
     TableSessionBrowser,
 )
 from dyno_viewer.components.screens.table_view import TableViewer
-from dyno_viewer.db.utils import (
-    start_async_session,
-)
-from dyno_viewer.models import Config, TableInfo
-
-
-class QueryResult(Message):
-    def __init__(self, data, next_token, update_existing_data=False) -> None:
-        self.data = data
-        self.next_token = next_token
-        self.update_existing_data = update_existing_data
-        super().__init__()
-
-
-class UpdateDynTableInfo(Message):
-    def __init__(self, table_info: TableInfo) -> None:
-        self.table_info = table_info
-        super().__init__()
+from dyno_viewer.db.utils import delete_all_query_history, start_async_session
+from dyno_viewer.messages import ClearQueryHistory
+from dyno_viewer.models import Config
 
 
 class DynCli(App):
@@ -46,6 +31,7 @@ class DynCli(App):
             show=False,
         ),
         Binding("s", "select_session", "Select session", show=False),
+        Binding("`", "show_options", "Options", show=False),
         Binding("?", "show_help", "Help", tooltip="Show help", priority=True),
     ]
 
@@ -60,12 +46,19 @@ class DynCli(App):
         )
         self.push_screen("default_table")
 
-    # action methods``
+    @on(ClearQueryHistory)
+    async def process_clear_query_history_request(self, _: ClearQueryHistory) -> None:
+        self.worker_delete_query_history()
+
+    # action methods
     async def action_exit(self) -> None:
         self.app.exit()
 
     def action_show_help(self):
         self.push_screen(Help())
+
+    def action_show_options(self) -> None:
+        self.push_screen(AppOptions())
 
     @work
     async def action_create_new_table_viewer_session(self) -> None:
@@ -84,6 +77,14 @@ class DynCli(App):
         session = await self.app.push_screen_wait(TableSessionBrowser())
         if session:
             self.app.push_screen(session)
+
+    @work(exclusive=True, group="purge_query_history")
+    async def worker_delete_query_history(self) -> None:
+        """Clear all query history from the database."""
+        if not self.db_session:
+            return
+        await delete_all_query_history(self.db_session)
+        self.notify("Query history cleared.")
 
     def watch_theme(self, new_theme: str) -> None:
         """Called automatically when the theme changes."""

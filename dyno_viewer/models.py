@@ -4,8 +4,9 @@ from operator import and_
 from pathlib import Path
 from typing import Any, TypedDict
 
+import yaml
 from boto3.dynamodb.conditions import Attr, ConditionBase, Key
-from pydantic import BaseModel, computed_field, field_validator, model_validator
+from pydantic import BaseModel, computed_field, field_validator
 
 from dyno_viewer.aws.ddb import (
     convert_filter_exp_attr_cond,
@@ -19,7 +20,6 @@ from dyno_viewer.constants import (
     SORT_KEY_CONDITIONS,
 )
 from dyno_viewer.util.path import ensure_config_dir
-import yaml
 
 
 class OutputFormat(Enum):
@@ -162,7 +162,6 @@ class SavedQuery(BaseModel):
 
 class Config(BaseModel):
     page_size: int = 20
-    max_items: int = 1000
     theme: str = "textual-dark"
 
     @classmethod
