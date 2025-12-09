@@ -304,9 +304,7 @@ class TableViewer(Screen):
         if self.table_client:
             new_query_param = await self.app.push_screen_wait(SavedQueryBrowser())
             if new_query_param:
-                query_screen = self.app.get_screen("query")
                 self.query_params = new_query_param
-                query_screen.input_query_params = new_query_param
 
         else:
             self.notify("No table selected", severity="warning")
