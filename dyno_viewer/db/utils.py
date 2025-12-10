@@ -2,6 +2,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
+from dyno_viewer.constants import CONFIG_DIR_NAME
 from dyno_viewer.db.models import (
     Base,
     ListQueryHistoryResult,
@@ -15,7 +16,7 @@ from dyno_viewer.util.path import ensure_config_dir
 
 async def start_async_session() -> AsyncSession:
     """Create and return an AsyncSession instance."""
-    app_path = ensure_config_dir("dyno-viewer")
+    app_path = ensure_config_dir(CONFIG_DIR_NAME)
     engine = create_async_engine(
         f"sqlite+aiosqlite:///{app_path}/db.db",
         connect_args={"check_same_thread": False},

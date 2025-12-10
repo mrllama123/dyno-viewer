@@ -15,6 +15,7 @@ pyclip = "^0.7.0"
 textual = ">=0.24.1,<6.5.0"
 aiosqlite = "^0.21.0"
 sqlalchemy = {extras = ["asyncio"], version = "^2.0.44"}
+pyyaml = "^6.0.3"
 
 
 [tool.poetry.group.dev.dependencies]

@@ -23,6 +23,7 @@ class TableViewModeApp(App):
     aws_profile = reactive(None)
     aws_region = reactive("ap-southeast-2")
     db_session = reactive(None)
+    app_config = reactive(None)
 
     MODES = {
         "table": TableViewer,
