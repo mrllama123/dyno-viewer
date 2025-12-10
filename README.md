@@ -11,6 +11,15 @@ Which is basically a spreadsheet with menus to change the table etc just like th
 
 This is still in early alpha so some things to be expect things to be broken, I will fix them as i have time. Prs are welcome 
 
+
+## Features
+
+- Query dynamodb tables via primary key, secondary indexes and scan
+- Save queries for later re-use
+- Save query history
+- Output results in csv or JSON format
+- wip support for have multiple sessions open at once
+
 ## Installing
 
 ### prerequisites
@@ -30,6 +39,28 @@ I recommend using [pipx](https://github.com/pypa/pipx):
 ```bash
 pipx install dyno-viewer
 ```
+
+## Configuration
+
+Dyno-viewer supports a simple app configuration file to preset defaults and tweak behavior without passing flags each run. If this doesn't exist then it will create it in the following paths:
+
+- **Config file path (MacOS):** `~/Library/Application Support/dyno-viewer/config.yaml`
+- **Config file path (Linux):** `~/.config/dyno-viewer/config.yaml`
+- **Config file path (Windows):** `%APPDATA%/dyno-viewer/config.yaml`
+
+Example `config.yaml`:
+
+```yaml
+
+theme: "textual-dark"          # what theme to use see: https://textual.textualize.io/guide/design/#changing-the-theme
+page_size: 100          # number of rows to fetch per page
+
+```
+
+For saved queries and session data they are stored in an sqlite database in the same following path i.e:
+- **MacOS:** `~/Library/Application Support/dyno-viewer/db.db`
+- **Linux:** `~/.local/share/dyno-viewer/db.db`
+- **Windows:** `%LOCALAPPDATA%/dyno-viewer/db.db`
 
 ## Dev notes
 
