@@ -124,6 +124,8 @@ class TableViewer(Screen):
         self.dyn_client = get_ddb_client(
             region_name=self.aws_region, profile_name=self.aws_profile
         )
+        if not self.app.app_config:
+            return
         if self.app.app_config.load_last_query_on_startup:
             last_query = await get_last_query_history(self.app.db_session)
             if last_query:

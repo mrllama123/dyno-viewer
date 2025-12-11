@@ -35,6 +35,12 @@ async def start_async_session() -> AsyncSession:
     return async_session_local()
 
 
+async def get_last_query_history(session: AsyncSession) -> QueryHistory | None:
+    stmt = select(QueryHistory).order_by(QueryHistory.created_at.desc()).limit(1)
+    result = await session.execute(stmt)
+    return result.scalars().first()
+
+
 async def add_query_history(session: AsyncSession, params: QueryParameters) -> None:
     query_history = QueryHistory.from_query_params(params)
     stmt = (
