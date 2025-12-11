@@ -163,6 +163,7 @@ class SavedQuery(BaseModel):
 class Config(BaseModel):
     page_size: int = 20
     theme: str = "textual-dark"
+    load_last_query_on_startup: bool = True
 
     @classmethod
     def load_config(cls) -> "Config":

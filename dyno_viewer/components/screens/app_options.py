@@ -2,7 +2,7 @@ from textual import on
 from textual.app import ComposeResult
 from textual.containers import Container
 from textual.screen import ModalScreen
-from textual.widgets import Button, Input, Label, Markdown, OptionList
+from textual.widgets import Button, Input, Label, Markdown, OptionList, Switch
 from textual.widgets.option_list import Option
 
 from dyno_viewer.messages import ClearQueryHistory
@@ -19,7 +19,7 @@ class AppOptions(ModalScreen):
         margin: 1 1;
         background: $boost;
         border: heavy grey;
-        height: 26;
+        height: 35;
     }
     #themeContainer OptionList {
         height: 8;
@@ -30,6 +30,9 @@ class AppOptions(ModalScreen):
     }
 
     #pageSizeContainer  {
+        height: 5;
+    }
+    #loadLastQueryContainer  {
         height: 5;
     }
     #clearQueryHistoryButton {
@@ -46,6 +49,12 @@ class AppOptions(ModalScreen):
             with Container(id="pageSizeContainer"):
                 yield Label("Page Size:")
                 yield Input(id="pageSizeInput")
+            with Container(id="loadLastQueryContainer"):
+                yield Label("Load Last Query on Startup:")
+                yield Switch(
+                    id="loadLastQuerySwitch",
+                    value=self.app.app_config.load_last_query_on_startup,
+                )
             yield Button(
                 "Clear Query History", id="clearQueryHistoryButton", variant="error"
             )
@@ -71,11 +80,14 @@ class AppOptions(ModalScreen):
     def action_exit(self) -> None:
         if self.app.app_config:
             theme_option_list = self.query_one("#themeOptionList", OptionList)
-            selected_theme = theme_option_list.highlighted_option
-            if selected_theme:
-                self.app.app_config.theme = selected_theme.id
+            load_last_query_switch = self.query_one("#loadLastQuerySwitch", Switch)
             page_size_input = self.query_one("#pageSizeInput", Input)
+            if selected_theme := theme_option_list.highlighted_option:
+                self.app.app_config.theme = selected_theme.id
             if page_size_input.value.isdigit():
                 self.app.app_config.page_size = int(page_size_input.value)
+            self.app.app_config.load_last_query_on_startup = (
+                load_last_query_switch.value
+            )
             self.app.app_config.save_config()
         self.app.pop_screen()
