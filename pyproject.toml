@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "dyno_viewer"}]
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = ">=3.10,<4.0"
 boto3 = "^1.42.6"
 simplejson = "^3.20.2"
 dynamodb-json = "^1.3"
