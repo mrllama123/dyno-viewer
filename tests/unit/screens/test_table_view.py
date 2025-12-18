@@ -1,3 +1,4 @@
+import uuid
 import pytest
 from sqlalchemy import func, select
 from textual import work
@@ -16,7 +17,8 @@ from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.components.table import DataTableManager
 from dyno_viewer.db.models import QueryHistory
 from dyno_viewer.db.utils import add_query_history
-from dyno_viewer.models import KeyCondition, QueryParameters
+from dyno_viewer.models import KeyCondition, QueryParameters, SortKeyCondition
+from dyno_viewer.models import Config
 
 
 class TableViewModeApp(App):
@@ -25,12 +27,11 @@ class TableViewModeApp(App):
     db_session = reactive(None)
     app_config = reactive(None)
 
-    MODES = {
-        "table": TableViewer,
-    }
-
     def on_mount(self) -> None:
-        self.switch_mode("table")
+        self.install_screen(
+            TableViewer(id=f"table_{uuid.uuid4()}"), name="default_table"
+        )
+        self.push_screen("default_table")
 
 
 async def test_table_view_mode_initialization(db_session):
@@ -349,3 +350,77 @@ async def test_run_query_from_history(ddb_table_with_data, ddb_table, db_session
 
         filter_queries = query_screen.query(FilterQuery)
         assert len(filter_queries) == 0
+
+
+async def test_table_view_mode_load_last_query_on_startup(
+    ddb_table_with_data, ddb_table, db_session, user_config_dir_tmp_path
+):
+    class TableViewModeApp(App):
+        aws_profile = reactive(None)
+        aws_region = reactive("ap-southeast-2")
+        db_session = reactive(None)
+        app_config = reactive(Config.load_config())
+
+        def on_mount(self) -> None:
+            self.db_session = db_session
+            self.install_screen(
+                TableViewer(id=f"table_{uuid.uuid4()}"), name="default_table"
+            )
+            self.push_screen("default_table")
+    async with db_session.begin():
+        db_session.add(
+            QueryHistory.from_query_params(
+                QueryParameters(
+                    scan_mode=False,
+                    table_name=ddb_table.name,
+                    primary_key_name="pk",
+                    sort_key_name="sk",
+                    key_condition=KeyCondition(
+                        partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+                        sortKey=SortKeyCondition(
+                            attrType="string", attrValue="CUSOMER", attrCondition="=="
+                        ),
+                    ),
+                    filter_conditions=[],
+                )
+            )
+        )
+    await db_session.commit()
+    async with TableViewModeApp().run_test() as pilot:
+        # pilot.app.db_session = db_session
+        # await pilot.pause()
+        table_viewer: TableViewer = pilot.app.screen
+        assert isinstance(table_viewer, TableViewer)
+        table_name = ddb_table.name
+
+        # set dyn_client
+        pilot.app.dyn_client = get_ddb_client(
+            region_name=pilot.app.aws_region, profile_name=pilot.app.aws_profile
+        )
+
+        # set table name
+        table_viewer.table_name = table_name
+        table_viewer.update_table_client()
+        await pilot.pause(1)
+
+        assert table_viewer.table_name == table_name
+        assert table_viewer.table_client is not None
+
+        # check table info is set
+        assert table_viewer.table_info is not None
+        assert table_viewer.table_info["tableName"] == table_name
+
+        data_table = table_viewer.query_exactly_one("#data_table", DataTable)
+        assert data_table.row_count == 1
+        rows = [data_table.get_row_at(i) for i in range(0, data_table.row_count)]
+        assert rows == [
+            [
+                "customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+                "CUSOMER",
+                "CUSTOMER",
+                "customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+                None,
+                None,
+                "test1",
+            ]
+        ]

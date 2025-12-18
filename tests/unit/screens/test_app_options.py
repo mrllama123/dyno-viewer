@@ -47,7 +47,10 @@ async def test_initial_options_display(user_config_dir_tmp_path):
         pilot.app.app_config = Config.load_config()
         config_path = user_config_dir_tmp_path / "config.yaml"
         assert config_path.exists()
-        assert config_path.read_text() == "page_size: 20\ntheme: textual-dark\n"
+        assert (
+            config_path.read_text()
+            == "load_last_query_on_startup: true\npage_size: 20\ntheme: textual-dark\n"
+        )
         await pilot.press("o")
 
         screen = pilot.app.screen
@@ -80,7 +83,7 @@ async def test_theme_selection_updates_app_theme(user_config_dir_tmp_path):
         config_path = user_config_dir_tmp_path / "config.yaml"
         assert (
             config_path.read_text()
-            == f"page_size: 20\ntheme: {option_list.highlighted_option.id}\n"
+            == f"load_last_query_on_startup: true\npage_size: 20\ntheme: {option_list.highlighted_option.id}\n"
         )
 
 
@@ -111,7 +114,29 @@ async def test_exit_saves_theme_and_page_size(user_config_dir_tmp_path):
         config_path = user_config_dir_tmp_path / "config.yaml"
         assert (
             config_path.read_text()
-            == f"page_size: 55\ntheme: {option_list.highlighted_option.id}\n"
+            == f"load_last_query_on_startup: true\npage_size: 55\ntheme: {option_list.highlighted_option.id}\n"
+        )
+
+
+async def test_load_last_query_switch(user_config_dir_tmp_path):
+    async with OptionsTestApp().run_test() as pilot:
+        pilot.app.app_config = Config.load_config()
+        await pilot.press("o")
+        screen = pilot.app.screen
+        load_last_query_switch = screen.query_one("#loadLastQuerySwitch")
+
+        # Toggle the switch
+        load_last_query_switch.toggle()
+
+        # Exit to save config
+        await pilot.press("escape")
+
+        # Config should reflect the switch state
+        assert pilot.app.app_config.load_last_query_on_startup == False
+        config_path = user_config_dir_tmp_path / "config.yaml"
+        assert (
+            config_path.read_text()
+            == "load_last_query_on_startup: false\npage_size: 20\ntheme: textual-dark\n"
         )
 
 
@@ -168,4 +193,3 @@ async def test_clear_query_history(db_session, user_config_dir_tmp_path):
         result = await db_session.execute(QueryHistory.__table__.select())
         rows = result.fetchall()
         assert len(rows) == 0
-

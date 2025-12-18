@@ -23,7 +23,7 @@ from dyno_viewer.components.screens.region_select import RegionSelect
 from dyno_viewer.components.screens.saved_querys_browser import SavedQueryBrowser
 from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.db.utils import add_query_history
+from dyno_viewer.db.utils import add_query_history, get_last_query_history
 from dyno_viewer.models import OutputFormat, QueryParameters, TableInfo
 from dyno_viewer.util import save_query_results_to_csv, save_query_results_to_json
 
@@ -72,7 +72,7 @@ class TableViewer(Screen):
     aws_profile = reactive(None)
     aws_region = reactive("ap-southeast-2")
     dyn_client = reactive(
-        get_ddb_client(region_name="ap-southeast-2", profile_name=None)
+        None,
     )
 
     # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :(
@@ -83,6 +83,9 @@ class TableViewer(Screen):
     def compose(self) -> ComposeResult:
         yield DataTableManager().data_bind(TableViewer.data, TableViewer.table_info)
         yield Footer()
+
+    async def on_mount(self) -> None:
+        self.on_mount_setup()
 
     def update_table_client(self):
         if self.table_name:
@@ -115,6 +118,18 @@ class TableViewer(Screen):
             self.table_info = None
 
     # worker methods
+
+    @work(exclusive=True, group="on_mount_setup")
+    async def on_mount_setup(self) -> None:
+        self.dyn_client = get_ddb_client(
+            region_name=self.aws_region, profile_name=self.aws_profile
+        )
+        if not self.app.app_config:
+            return
+        if self.app.app_config.load_last_query_on_startup:
+            last_query = await get_last_query_history(self.app.db_session)
+            if last_query:
+                self.query_params = last_query.to_query_params()
 
     @work(exclusive=True, group="update_dyn_table_info", thread=True)
     def get_dyn_table_info(self) -> None:
