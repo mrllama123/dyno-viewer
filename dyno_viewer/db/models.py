@@ -52,6 +52,11 @@ class QueryBase(Base):
             }
         )
 
+    def to_dict(self) -> dict:
+        return {
+            column.name: getattr(self, column.name) for column in self.__table__.columns
+        }
+
 
 class QueryHistory(QueryBase):
     __tablename__ = "query_history"
@@ -110,3 +115,9 @@ class ListSavedQueriesResult(BaseModel):
     total: int
     total_pages: int
     items: list[SavedQuery]
+
+
+class DbDump(BaseModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    query_history: list[dict]
+    saved_queries: list[dict]

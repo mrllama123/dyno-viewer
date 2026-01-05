@@ -9,16 +9,21 @@ from dyno_viewer.db.models import (
     ListSavedQueriesResult,
     QueryHistory,
     SavedQuery,
+    DbDump,
 )
 from dyno_viewer.models import QueryParameters
 from dyno_viewer.util.path import ensure_config_dir
+import json
+from pathlib import Path
 
 
-async def start_async_session() -> AsyncSession:
+async def start_async_session(db_path: Path | None = None) -> AsyncSession:
     """Create and return an AsyncSession instance."""
-    app_path = ensure_config_dir(CONFIG_DIR_NAME)
+    if not db_path:
+        app_path = ensure_config_dir(CONFIG_DIR_NAME)
+        db_path = app_path / "db.db"
     engine = create_async_engine(
-        f"sqlite+aiosqlite:///{app_path}/db.db",
+        f"sqlite+aiosqlite:///{db_path}",
         connect_args={"check_same_thread": False},
         pool_pre_ping=True,
     )
@@ -33,6 +38,57 @@ async def start_async_session() -> AsyncSession:
         bind=engine, class_=AsyncSession, expire_on_commit=False, autoflush=False
     )
     return async_session_local()
+
+
+async def backup_db(
+    session: AsyncSession,
+    output_path: Path | None = None,
+    output_file_name: str = "db_dump.json",
+) -> DbDump:
+    """Backup the database contents"""
+    query_history_db_items = await list_all_query_history(session)
+    saved_query_db_items = await list_all_saved_queries(session)
+    result = DbDump.model_validate(
+        {
+            "query_history": [item.to_dict() for item in query_history_db_items],
+            "saved_queries": [item.to_dict() for item in saved_query_db_items],
+        }
+    )
+    if output_path:
+        file_path = output_path / output_file_name
+        file_path.write_text(
+            result.model_dump_json(indent=4, default=str), encoding="utf-8"
+        )
+
+    return result
+
+
+async def restore_db(
+    session: AsyncSession,
+    dump: DbDump | None = None,
+    dump_path: Path | None = None,
+    delete_existing: bool = True,
+) -> None:
+    """Restore the database contents from  a DbDump object."""
+    if not dump and not dump_path:
+        raise ValueError("Either dump or dump_path must be provided.")
+    if delete_existing:
+        await delete_all_query_history(session)
+        await delete_all_saved_queries(session)
+
+    if not dump:
+        file_content = dump_path.read_text(encoding="utf-8")
+        dump = DbDump.model_validate_json(file_content)
+
+    for item in dump.query_history:
+        query_history = QueryHistory(**item)
+        session.add(query_history)
+
+    for item in dump.saved_queries:
+        saved_query = SavedQuery(**item)
+        session.add(saved_query)
+
+    await session.commit()
 
 
 async def get_last_query_history(session: AsyncSession) -> QueryHistory | None:
@@ -133,6 +189,12 @@ async def list_query_history(
     return ListQueryHistoryResult(total=total, total_pages=total_pages, items=items)
 
 
+async def list_all_query_history(session: AsyncSession) -> list[QueryHistory]:
+    stmt = select(QueryHistory)
+    result = await session.execute(stmt)
+    return result.scalars().all()
+
+
 async def list_saved_queries(
     session: AsyncSession, page: int = 1, page_size: int = 20, search: str = ""
 ) -> ListSavedQueriesResult:
@@ -153,6 +215,12 @@ async def list_saved_queries(
     )
     total_pages = (total + page_size - 1) // page_size
     return ListSavedQueriesResult(total=total, total_pages=total_pages, items=items)
+
+
+async def list_all_saved_queries(session: AsyncSession) -> list[SavedQuery]:
+    stmt = select(SavedQuery)
+    result = await session.execute(stmt)
+    return result.scalars().all()
 
 
 async def delete_saved_query(session: AsyncSession, query_id: int) -> None:
