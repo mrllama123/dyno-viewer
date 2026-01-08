@@ -51,6 +51,10 @@ black = { cmd = "black dyno_viewer", help = "Run black on codebase" }
 isort = { cmd = "isort --profile=black dyno_viewer", help = "Run isort on codebase" }
 lint = ["check_black", "check_imports", "pylint"]
 lint-fix = ["black", "isort"]
+[tool.poe.tasks.db-rev]
+cmd = "alembic revision --autogenerate -m"
+help = "Create a new database migration"
+cwd = "dyno_viewer"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
