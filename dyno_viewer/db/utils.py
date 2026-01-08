@@ -15,6 +15,7 @@ from dyno_viewer.models import QueryParameters
 from dyno_viewer.util.path import ensure_config_dir
 import json
 from pathlib import Path
+import shutil
 
 
 async def start_async_session(db_path: Path | None = None) -> AsyncSession:
@@ -40,10 +41,20 @@ async def start_async_session(db_path: Path | None = None) -> AsyncSession:
     return async_session_local()
 
 
+async def has_alembic_version_table(session: AsyncSession) -> bool:
+    result = await session.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version';"
+    )
+    table = result.scalar()
+    return table is not None
+
+
 async def backup_db(
     session: AsyncSession,
     output_path: Path | None = None,
     output_file_name: str = "db_dump.json",
+    db_path: Path | None = None,
+    delete_existing: bool = False,
 ) -> DbDump:
     """Backup the database contents"""
     query_history_db_items = await list_all_query_history(session)
@@ -55,11 +66,18 @@ async def backup_db(
         }
     )
     if output_path:
-        file_path = output_path / output_file_name
-        file_path.write_text(
-            result.model_dump_json(indent=4, default=str), encoding="utf-8"
-        )
+        if db_path:
+            result.db_backup_path = output_path / db_path.name
+            result.db_path_to_restore_to = db_path
+            shutil.copy2(db_path, output_path / db_path.name)
+        db_dump_file_path = output_path / output_file_name
 
+        db_dump_file_path.write_text(
+            result.model_dump_json(indent=4), encoding="utf-8"
+        )
+    if delete_existing:
+        await delete_all_query_history(session)
+        await delete_all_saved_queries(session)
     return result
 
 
@@ -67,18 +85,21 @@ async def restore_db(
     session: AsyncSession,
     dump: DbDump | None = None,
     dump_path: Path | None = None,
-    delete_existing: bool = True,
+    revert_db: bool = False,
 ) -> None:
     """Restore the database contents from  a DbDump object."""
     if not dump and not dump_path:
         raise ValueError("Either dump or dump_path must be provided.")
-    if delete_existing:
-        await delete_all_query_history(session)
-        await delete_all_saved_queries(session)
-
     if not dump:
         file_content = dump_path.read_text(encoding="utf-8")
         dump = DbDump.model_validate_json(file_content)
+    if revert_db:
+        if not dump.db_backup_path or not dump.db_path_to_restore_to:
+            raise ValueError(
+                "No db_backup_path found in the dump to revert the database."
+            )
+        shutil.copy2(dump.db_backup_path, dump.db_path_to_restore_to)
+        return
 
     for item in dump.query_history:
         query_history = QueryHistory(**item)
@@ -123,12 +144,16 @@ async def delete_query_history(session: AsyncSession, history_id: int) -> None:
     if query_history:
         await session.delete(query_history)
         await session.commit()
+    
 
 
-async def delete_all_query_history(session: AsyncSession) -> None:
+async def delete_all_query_history(session: AsyncSession, delete_table: bool = False) -> None:
     stmt = delete(QueryHistory)
     await session.execute(stmt)
     await session.commit()
+    if delete_table:
+        await session.execute("DROP TABLE IF EXISTS query_history;")
+        await session.commit()
 
 
 async def get_total_pages(session: AsyncSession, page_size: int) -> int:
