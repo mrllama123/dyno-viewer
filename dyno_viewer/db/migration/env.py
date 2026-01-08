@@ -30,12 +30,11 @@ target_metadata = Base.metadata
 # my_important_option = config.get_main_option("my_important_option")
 # ... etc.
 def get_db_url() -> str:
-    db_path = (
-        os.getenv("DB_PATH")
-        if os.getenv("DB_PATH")
-        else ensure_config_dir(CONFIG_DIR_NAME) / "db.db"
-    )
-    return f"sqlite:///{db_path}"
+    if not os.getenv("DB_PATH"):
+        db_path = ensure_config_dir(CONFIG_DIR_NAME) / "db.db"
+        return f"sqlite://{db_path.resolve()}"
+
+    return f"sqlite:///{os.getenv('DB_PATH')}"
 
 
 def run_migrations_offline() -> None:
@@ -50,6 +49,7 @@ def run_migrations_offline() -> None:
     script output.
 
     """
+    print("Running migrations in offline mode")
     url = config.get_main_option("sqlalchemy.url", get_db_url())
     context.configure(
         url=url,
@@ -70,6 +70,9 @@ def run_migrations_online() -> None:
 
     """
     config.set_main_option("sqlalchemy.url", get_db_url())
+    print(
+        f"Running migrations in online mode with url: {config.get_main_option('sqlalchemy.url')}"
+    )
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",

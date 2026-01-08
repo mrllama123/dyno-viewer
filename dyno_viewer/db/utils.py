@@ -1,4 +1,4 @@
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -51,10 +51,9 @@ async def has_alembic_version_table(session: AsyncSession) -> bool:
 
 async def backup_db(
     session: AsyncSession,
-    output_path: Path | None = None,
+    output_path:  Path ,
+    db_path: Path,
     output_file_name: str = "db_dump.json",
-    db_path: Path | None = None,
-    delete_existing: bool = False,
 ) -> DbDump:
     """Backup the database contents"""
     query_history_db_items = await list_all_query_history(session)
@@ -65,19 +64,14 @@ async def backup_db(
             "saved_queries": [item.to_dict() for item in saved_query_db_items],
         }
     )
-    if output_path:
-        if db_path:
-            result.db_backup_path = output_path / db_path.name
-            result.db_path_to_restore_to = db_path
-            shutil.copy2(db_path, output_path / db_path.name)
-        db_dump_file_path = output_path / output_file_name
 
-        db_dump_file_path.write_text(
-            result.model_dump_json(indent=4), encoding="utf-8"
-        )
-    if delete_existing:
-        await delete_all_query_history(session)
-        await delete_all_saved_queries(session)
+    result.db_backup_path = output_path / db_path.name
+    result.db_path_to_restore_to = db_path
+    db_dump_file_path = output_path / output_file_name
+    shutil.copy2(db_path, output_path / db_path.name)
+
+    db_dump_file_path.write_text(result.model_dump_json(indent=4), encoding="utf-8")
+
     return result
 
 
@@ -144,15 +138,16 @@ async def delete_query_history(session: AsyncSession, history_id: int) -> None:
     if query_history:
         await session.delete(query_history)
         await session.commit()
-    
 
 
-async def delete_all_query_history(session: AsyncSession, delete_table: bool = False) -> None:
+async def delete_all_query_history(
+    session: AsyncSession, delete_table: bool = False
+) -> None:
     stmt = delete(QueryHistory)
     await session.execute(stmt)
     await session.commit()
     if delete_table:
-        await session.execute("DROP TABLE IF EXISTS query_history;")
+        await session.execute(text("DROP TABLE IF EXISTS query_history;"))
         await session.commit()
 
 
@@ -257,7 +252,12 @@ async def delete_saved_query(session: AsyncSession, query_id: int) -> None:
         await session.commit()
 
 
-async def delete_all_saved_queries(session: AsyncSession) -> None:
+async def delete_all_saved_queries(
+    session: AsyncSession, delete_table: bool = False
+) -> None:
     stmt = delete(SavedQuery)
     await session.execute(stmt)
     await session.commit()
+    if delete_table:
+        await session.execute(text("DROP TABLE IF EXISTS saved_query;"))
+        await session.commit()
