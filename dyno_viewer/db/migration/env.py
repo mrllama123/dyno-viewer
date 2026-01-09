@@ -69,7 +69,8 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    config.set_main_option("sqlalchemy.url", get_db_url())
+    if not config.get_main_option("sqlalchemy.url"):
+        config.set_main_option("sqlalchemy.url", get_db_url())
     print(
         f"Running migrations in online mode with url: {config.get_main_option('sqlalchemy.url')}"
     )

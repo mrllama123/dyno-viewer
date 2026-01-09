@@ -1,31 +1,16 @@
 import asyncio
-import json
 from pathlib import Path
-from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Any
 
-from sqlalchemy import select
 from dyno_viewer.util.path import get_user_config_dir
 from dyno_viewer.constants import CONFIG_DIR_NAME
-from dyno_viewer.db.models import QueryHistory, SavedQuery, DbDump
 from dyno_viewer.db.utils import (
-    has_alembic_version_table,
-    list_all_query_history,
-    list_all_saved_queries,
-    delete_all_query_history,
-    delete_all_saved_queries,
     start_async_session,
     migrate_db,
     backup_db,
-    restore_db,
+    drop_all_tables
 )
-from alembic.config import Config
-from alembic import command
 import argparse
-from sqlalchemy import MetaData
 import os
-
-from dyno_viewer.util.path import ensure_config_dir
 
 
 async def main() -> None:
@@ -64,13 +49,13 @@ async def main() -> None:
             output_path=working_dir,
             db_path=db_file_path,
         )
-
+        await drop_all_tables(session)
     except Exception:
         raise
     finally:
         if session:
             await session.close()
-
+    # db_file_path.unlink(missing_ok=True)
     migrate_db(
         db_path=db_file_path,
     )

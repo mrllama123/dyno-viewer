@@ -62,7 +62,7 @@ def get_alembic_config(
     if not alembic_config_path:
         alembic_config_path = Path(__file__).resolve().parents[1] / "alembic.ini"
     alembic_cfg = AlembicConfig(str(alembic_config_path))
-    alembic_cfg.set_main_option("sqlalchemy.url", f"sqlite://{db_path.resolve()}")
+    alembic_cfg.set_main_option("sqlalchemy.url", f"sqlite:///{db_path.resolve()}")
     alembic_cfg.attributes["configure_logger"] = False
     return alembic_cfg
 
@@ -98,7 +98,7 @@ async def has_alembic_version_table(session: AsyncSession) -> bool:
 
 async def drop_all_tables(session: AsyncSession) -> None:
     await session.execute(text("DROP TABLE IF EXISTS query_history;"))
-    await session.execute(text("DROP TABLE IF EXISTS saved_query;"))
+    await session.execute(text("DROP TABLE IF EXISTS saved_queries;"))
     await session.execute(text("DROP TABLE IF EXISTS alembic_version;"))
     await session.commit()
 
@@ -133,7 +133,6 @@ async def restore_db(
     session: AsyncSession,
     dump: DbDump | None = None,
     dump_path: Path | None = None,
-    revert_db: bool = False,
 ) -> None:
     """Restore the database contents from  a DbDump object."""
     if not dump and not dump_path:
@@ -141,13 +140,6 @@ async def restore_db(
     if not dump:
         file_content = dump_path.read_text(encoding="utf-8")
         dump = DbDump.model_validate_json(file_content)
-    if revert_db:
-        if not dump.db_backup_path or not dump.db_path_to_restore_to:
-            raise ValueError(
-                "No db_backup_path found in the dump to revert the database."
-            )
-        shutil.copy2(dump.db_backup_path, dump.db_path_to_restore_to)
-        return
 
     for item in dump.query_history:
         query_history = QueryHistory(**item)
