@@ -16,6 +16,9 @@ from dyno_viewer.util.path import ensure_config_dir
 import json
 from pathlib import Path
 import shutil
+from alembic import command
+from alembic.config import Config as AlembicConfig
+from alembic.util.exc import DatabaseNotAtHead
 
 
 async def start_async_session(db_path: Path | None = None) -> AsyncSession:
@@ -41,6 +44,50 @@ async def start_async_session(db_path: Path | None = None) -> AsyncSession:
     return async_session_local()
 
 
+def get_alembic_config(
+    db_path: Path | None = None, alembic_config_path: Path | None = None
+) -> AlembicConfig:
+    """gets the alembic config for the given database path
+
+    :param db_path: the database path, defaults to app config
+    :type db_path: Path | None, optional
+    :param alembic_config_path: the alembic config file path, defaults to the default alembic.ini
+    :type alembic_config_path: Path | None, optional
+    :return: Alembic configuration object
+    :rtype: AlembicConfig
+    """
+    if not db_path:
+        app_path = ensure_config_dir(CONFIG_DIR_NAME)
+        db_path = app_path / "db.db"
+    if not alembic_config_path:
+        alembic_config_path = Path(__file__).resolve().parents[1] / "alembic.ini"
+    alembic_cfg = AlembicConfig(str(alembic_config_path))
+    alembic_cfg.set_main_option("sqlalchemy.url", f"sqlite://{db_path.resolve()}")
+    alembic_cfg.attributes["configure_logger"] = False
+    return alembic_cfg
+
+
+def is_migration_needed(alembic_cfg: AlembicConfig) -> bool:
+    try:
+        command.current(alembic_cfg, check_heads=True, verbose=False)
+    except DatabaseNotAtHead:
+        return True
+    except Exception:
+        raise
+    return False
+
+
+def migrate_db(
+    db_path: Path | None = None, alembic_config_path: Path | None = None
+) -> None:
+    if not db_path:
+        app_path = ensure_config_dir(CONFIG_DIR_NAME)
+        db_path = app_path / "db.db"
+    alembic_cfg = get_alembic_config(db_path, alembic_config_path)
+    if is_migration_needed(alembic_cfg):
+        command.upgrade(alembic_cfg, "head")
+
+
 async def has_alembic_version_table(session: AsyncSession) -> bool:
     result = await session.execute(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version';"
@@ -49,9 +96,16 @@ async def has_alembic_version_table(session: AsyncSession) -> bool:
     return table is not None
 
 
+async def drop_all_tables(session: AsyncSession) -> None:
+    await session.execute(text("DROP TABLE IF EXISTS query_history;"))
+    await session.execute(text("DROP TABLE IF EXISTS saved_query;"))
+    await session.execute(text("DROP TABLE IF EXISTS alembic_version;"))
+    await session.commit()
+
+
 async def backup_db(
     session: AsyncSession,
-    output_path:  Path ,
+    output_path: Path,
     db_path: Path,
     output_file_name: str = "db_dump.json",
 ) -> DbDump:
