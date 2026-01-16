@@ -120,7 +120,5 @@ class ListSavedQueriesResult(BaseModel):
 
 class DbDump(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
-    db_backup_path: Path | None = None
-    db_path_to_restore_to: Path | None = None
     query_history: list[dict]
     saved_queries: list[dict]

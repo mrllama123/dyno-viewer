@@ -2,7 +2,7 @@ from sqlalchemy import delete, func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from dyno_viewer.constants import CONFIG_DIR_NAME
+from dyno_viewer.constants import CONFIG_DIR_NAME, DB_FILENAME
 from dyno_viewer.db.models import (
     Base,
     ListQueryHistoryResult,
@@ -25,7 +25,7 @@ async def start_async_session(db_path: Path | None = None) -> AsyncSession:
     """Create and return an AsyncSession instance."""
     if not db_path:
         app_path = ensure_config_dir(CONFIG_DIR_NAME)
-        db_path = app_path / "db.db"
+        db_path = app_path / DB_FILENAME
     engine = create_async_engine(
         f"sqlite+aiosqlite:///{db_path}",
         connect_args={"check_same_thread": False},
@@ -103,13 +103,16 @@ async def drop_all_tables(session: AsyncSession) -> None:
     await session.commit()
 
 
-async def backup_db(
+async def dump_db(
     session: AsyncSession,
-    output_path: Path,
-    db_path: Path,
-    output_file_name: str = "db_dump.json",
 ) -> DbDump:
-    """Backup the database contents"""
+    """Dump the database contents into a DbDump object.
+
+    :param session: the database session
+    :type session: AsyncSession
+    :return: DbDump object containing the database contents
+    :rtype: DbDump
+    """
     query_history_db_items = await list_all_query_history(session)
     saved_query_db_items = await list_all_saved_queries(session)
     result = DbDump.model_validate(
@@ -118,15 +121,37 @@ async def backup_db(
             "saved_queries": [item.to_dict() for item in saved_query_db_items],
         }
     )
-
-    result.db_backup_path = output_path / db_path.name
-    result.db_path_to_restore_to = db_path
-    db_dump_file_path = output_path / output_file_name
-    shutil.copy2(db_path, output_path / db_path.name)
-
-    db_dump_file_path.write_text(result.model_dump_json(indent=4), encoding="utf-8")
-
     return result
+
+
+def backup_db(
+    db_path: Path,
+    backup_dir: Path,
+    db_dump: DbDump | None = None,
+    backup_db_file_name: str = "db_backup.db",
+    backup_db_dump_file_name: str = "db_dump.json",
+) -> None:
+    """Backup the database file and optionally the database dump to the specified directory.
+
+    :param db_path: path to the database file
+    :type db_path: Path
+    :param backup_dir: directory where the backup will be stored
+    :type backup_dir: Path
+    :param db_dump: database dump object to be saved, defaults to None
+    :type db_dump: DbDump | None, optional
+    :param backup_db_file_name: name of the backup database file, defaults to "db_backup.db"
+    :type backup_db_file_name: str, optional
+    :param backup_db_dump_file_name: name of the backup database dump file, defaults to "db_dump.json"
+    :type backup_db_dump_file_name: str, optional
+    """
+    backup_dir.mkdir(exist_ok=True)
+    backup_db_dump_file_path = backup_dir / backup_db_dump_file_name
+    backup_file_path = backup_dir / backup_db_file_name
+    if db_dump:
+        backup_db_dump_file_path.write_text(
+            db_dump.model_dump_json(indent=4), encoding="utf-8"
+        )
+    shutil.copy2(db_path, backup_file_path)
 
 
 async def restore_db(
