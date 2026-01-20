@@ -14,9 +14,12 @@ from dyno_viewer.components.screens.table_session_browser import (
     TableSessionBrowser,
 )
 from dyno_viewer.components.screens.table_view import TableViewer
+from dyno_viewer.constants import CONFIG_DIR_NAME, DATABASE_FILE_PATH
 from dyno_viewer.db.utils import delete_all_query_history, start_async_session
+from dyno_viewer.db.data_store import setup_connection
 from dyno_viewer.messages import ClearQueryHistory
 from dyno_viewer.models import Config
+from dyno_viewer.util.path import ensure_config_dir, get_user_config_dir
 
 
 class DynCli(App):
@@ -40,11 +43,17 @@ class DynCli(App):
 
     async def on_mount(self) -> None:
         # Initialize the async DB session (SQLAlchemy)
-        self.db_session = await start_async_session()
+        ensure_config_dir(CONFIG_DIR_NAME)
+        # self.db_session = await start_async_session()
         self.install_screen(
             TableViewer(id=f"table_{uuid.uuid4()}"), name="default_table"
         )
         self.push_screen("default_table")
+        self.startup()
+
+    async def on_unmount(self) -> None:
+        if self.db_session:
+            await self.db_session.close()
 
     @on(ClearQueryHistory)
     async def process_clear_query_history_request(self, _: ClearQueryHistory) -> None:
@@ -70,6 +79,11 @@ class DynCli(App):
         if session:
             self.install_screen(TableViewer(id=f"table_{uuid.uuid4()}"), name=session)
             self.app.push_screen(session)
+
+    @work(exclusive=True, group="startup")
+    async def startup(self) -> None:
+        """Perform time consuming startup tasks i.e like setting up DB connections"""
+        self.db_session = await setup_connection(DATABASE_FILE_PATH)
 
     @work
     async def action_select_session(self) -> None:

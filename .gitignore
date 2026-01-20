@@ -133,3 +133,11 @@ dmypy.json
 .flatpak-builder
 .flatpak
 .repo
+
+#. misc
+*.db
+*.sqlite
+*.sqlite3
+*.log
+*.db-shm
+*.db-wal

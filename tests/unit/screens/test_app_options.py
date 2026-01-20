@@ -4,11 +4,18 @@ from textual.reactive import reactive
 from textual.widgets import Button, Input, OptionList
 
 from dyno_viewer.components.screens.app_options import AppOptions
-from dyno_viewer.db.models import QueryHistory, KeyCondition
+from dyno_viewer.db.models import QueryHistory, RecordType
+from dyno_viewer.models import KeyCondition, QueryParameters
 from dyno_viewer.messages import ClearQueryHistory
 from dyno_viewer.models import Config
-from dyno_viewer.db.utils import delete_all_query_history
+from dyno_viewer.db.queries import (
+    remove_all_query_history,
+    add_query_history,
+    list_query_history,
+)
 from datetime import datetime
+from zoneinfo import ZoneInfo
+import time_machine
 
 
 class OptionsTestApp(App):
@@ -27,7 +34,7 @@ class OptionsTestApp(App):
         """Clear all query history from the database."""
         if not self.db_session:
             return
-        await delete_all_query_history(self.db_session)
+        await remove_all_query_history(self.db_session)
         self.notify("Query history cleared.")
 
     @on(ClearQueryHistory)
@@ -140,47 +147,47 @@ async def test_load_last_query_switch(user_config_dir_tmp_path):
         )
 
 
-async def test_clear_query_history(db_session, user_config_dir_tmp_path):
+async def test_clear_query_history(data_store_db_session, user_config_dir_tmp_path):
     # Build three sample QueryHistory rows
-    async with db_session.begin():
+    query_params = [
+        QueryParameters(
+            scan_mode=False,
+            primary_key_name="pk",
+            sort_key_name="sk",
+            index="table",
+            key_condition=KeyCondition(partitionKeyValue="A"),
+            filter_conditions=[],
+        ),
+        QueryParameters(
+            scan_mode=False,
+            primary_key_name="pk",
+            sort_key_name="sk",
+            index="table",
+            key_condition=KeyCondition(partitionKeyValue="B"),
+            filter_conditions=[],
+        ),
+    ]
+    for i, query_history in enumerate(query_params):
+        with time_machine.travel(
+            datetime(2024, 1, 1, 12, 0, i, tzinfo=ZoneInfo("UTC")), tick=False
+        ):
+            await add_query_history(data_store_db_session, query_history)
 
-        # created_at descending should show row3 first
-        db_session.add_all(
-            [
-                QueryHistory(
-                    scan_mode=False,
-                    primary_key_name="pk",
-                    sort_key_name="sk",
-                    index="table",
-                    key_condition=KeyCondition(partitionKeyValue="A").model_dump_json(),
-                    filter_conditions="[]",
-                    created_at=datetime(2024, 1, 1, 12, 0, 0),
-                ),
-                QueryHistory(
-                    scan_mode=True,
-                    primary_key_name="pk",
-                    sort_key_name="sk",
-                    index="table",
-                    key_condition=None,
-                    filter_conditions="[]",
-                    created_at=datetime(2024, 1, 1, 12, 0, 1),
-                ),
-                QueryHistory(
-                    scan_mode=False,
-                    primary_key_name="pk",
-                    sort_key_name="sk",
-                    index="table",
-                    key_condition=KeyCondition(partitionKeyValue="B").model_dump_json(),
-                    filter_conditions="[]",
-                    created_at=datetime(2024, 1, 1, 12, 0, 2),
-                ),
-            ]
-        )
+    # Verify all query histories are in the DB
+    list_query_history_result = await list_query_history(data_store_db_session)
+    for param in query_params:
+        assert param in [row.data for row in list_query_history_result]
+    async with data_store_db_session.execute(
+        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        (RecordType.QueryHistory.value,),
+    ) as cursor:
+        row = await cursor.fetchone()
+        assert len(row) == 1
+        assert row[0] == 2
 
-    await db_session.commit()
     async with OptionsTestApp().run_test() as pilot:
         pilot.app.app_config = Config.load_config()
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.press("o")
         screen = pilot.app.screen
 
@@ -190,6 +197,15 @@ async def test_clear_query_history(db_session, user_config_dir_tmp_path):
         await pilot.pause(0.5)
 
         # Verify that query history is cleared
-        result = await db_session.execute(QueryHistory.__table__.select())
-        rows = result.fetchall()
-        assert len(rows) == 0
+        list_query_history_result = await list_query_history(data_store_db_session)
+        for query_history in query_params:
+            assert query_history not in [row.data for row in list_query_history_result]
+        async with data_store_db_session.execute(
+            "SELECT COUNT(*) FROM data_store WHERE type = ?",
+            (RecordType.QueryHistory.value,),
+        ) as cursor:
+            row = await cursor.fetchone()
+            assert len(row) == 1
+            assert row[0] == 0
+
+            

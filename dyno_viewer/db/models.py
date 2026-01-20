@@ -3,11 +3,17 @@ from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column
 
-from dyno_viewer.models import FilterCondition, KeyCondition, QueryParameters
+from dyno_viewer.models import (
+    FilterCondition,
+    KeyCondition,
+    QueryParameters,
+    SavedQuery,
+)
+from enum import Enum
 
 Base = declarative_base()
 
@@ -72,32 +78,6 @@ class QueryHistory(QueryBase):
         )
 
 
-class SavedQuery(QueryBase):
-    __tablename__ = "saved_queries"
-
-    name: Mapped[str] = mapped_column(String, nullable=False, index=True)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-
-    @classmethod
-    def from_query_params(
-        cls, params: QueryParameters, name: str, description: str = ""
-    ) -> "QueryHistory":
-        return cls(
-            name=name,
-            description=description,
-            scan_mode=params.scan_mode,
-            primary_key_name=params.primary_key_name,
-            sort_key_name=params.sort_key_name,
-            index=params.index,
-            key_condition=(
-                params.key_condition.model_dump_json() if params.key_condition else None
-            ),
-            filter_conditions=json.dumps(
-                [f.model_dump() for f in params.filter_conditions]
-            ),
-        )
-
-
 class ListQueryHistoryResult(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     total: int
@@ -105,8 +85,39 @@ class ListQueryHistoryResult(BaseModel):
     items: list[QueryHistory]
 
 
-class ListSavedQueriesResult(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    total: int
-    total_pages: int
-    items: list[SavedQuery]
+
+
+class JsonPathNode(BaseModel):
+    path: str
+    value: str
+
+
+class RecordType(Enum):
+    SavedQuery = "SavedQuery"
+    QueryHistory = "QueryHistory"
+
+
+class ListQueryHistoryResultRow(BaseModel):
+    data: QueryParameters
+    created_at: datetime
+    key: str
+
+    @field_validator("created_at", mode="after")
+    @classmethod
+    def ensure_timezone(cls, v: datetime) -> datetime:
+        if v.tzinfo is None:
+            return v.replace(tzinfo=ZoneInfo("UTC"))
+        return v
+
+
+class ListSavedQueryResultRow(BaseModel):
+    data: SavedQuery
+    created_at: datetime
+    key: str
+
+    @field_validator("created_at", mode="after")
+    @classmethod
+    def ensure_timezone(cls, v: datetime) -> datetime:
+        if v.tzinfo is None:
+            return v.replace(tzinfo=ZoneInfo("UTC"))
+        return v

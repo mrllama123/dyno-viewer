@@ -7,11 +7,11 @@ from textual.widgets import DataTable, Markdown
 
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
-from dyno_viewer.db.utils import (
-    delete_all_query_history,
-    delete_query_history,
+from dyno_viewer.db.data_store import remove
+from dyno_viewer.db.queries import (
     get_query_history,
     list_query_history,
+    remove_all_query_history,
 )
 
 
@@ -34,7 +34,7 @@ class QueryHistoryBrowser(ModalScreen):
     """
 
     next_page = reactive(1)
-    total_pages = reactive(-1)
+    at_last_page = reactive(False)
 
     class QueryHistoryResult(Message):
         def __init__(self, data) -> None:
@@ -55,21 +55,20 @@ class QueryHistoryBrowser(ModalScreen):
         table.focus()
         self.retrieve_query_history()
 
-    @work(exclusive=True)
-    async def retrieve_query_history(self):
-
+    @work(exclusive=True, group="retrieve_query_history")
+    async def retrieve_query_history(self) -> None:
+        if self.at_last_page:
+            return
         result = await list_query_history(
             self.app.db_session, page=self.next_page, page_size=20
         )
-        self.total_pages = result.total_pages
-        if result.total_pages > 1 and self.next_page < result.total_pages:
-            self.next_page += 1
-
+        if len(result) == 0:
+            self.at_last_page = True
+            return
         table = self.query_one(DataTable)
-        for item in result.items:
-            # this might eventually be slow with large data but for now it's ok
-            query_params = item.to_query_params()
-            boto_params = query_params.boto_params
+        self.next_page += 1
+        for param in result:
+            boto_params = param.data.boto_params
             key_condition = (
                 pretty_condition(boto_params["KeyConditionExpression"], is_key=True)
                 if boto_params.get("KeyConditionExpression")
@@ -81,11 +80,11 @@ class QueryHistoryBrowser(ModalScreen):
                 else ""
             )
             table.add_row(
-                item.created_at.isoformat(sep=" ", timespec="seconds"),
-                item.scan_mode,
+                str(param.created_at),
+                param.data.scan_mode,
                 key_condition,
                 filter_conditions,
-                key=item.id,
+                key=param.key,
             )
 
     @work(exclusive=True)
@@ -93,12 +92,12 @@ class QueryHistoryBrowser(ModalScreen):
         table = self.query_one(DataTable)
         if table.cursor_row is not None:
             row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
-            await delete_query_history(self.app.db_session, row_key.value)
+            await remove(self.app.db_session, row_key.value)
             table.remove_row(row_key)
 
     @work(exclusive=True)
     async def remove_all_query_history_rows(self) -> None:
-        await delete_all_query_history(self.app.db_session)
+        await remove_all_query_history(self.app.db_session)
         table = self.query_one(DataTable)
         table.clear()
 
@@ -107,11 +106,11 @@ class QueryHistoryBrowser(ModalScreen):
         query_history = await get_query_history(
             self.app.db_session, message.row_key.value
         )
-        self.dismiss(query_history.to_query_params() if query_history else None)
+        self.dismiss(query_history)
 
     async def action_next_page(self) -> None:
-        if self.next_page <= self.total_pages:
-            self.retrieve_query_history()
+        # if self.at_last_page:
+        self.retrieve_query_history()
 
     async def action_delete_query(self) -> None:
         self.remove_query_history_row()

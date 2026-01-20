@@ -5,14 +5,22 @@ from textual.widgets import DataTable, Input
 from textual.reactive import reactive
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.components.screens.saved_querys_browser import SavedQueryBrowser
-from dyno_viewer.db.models import QueryHistory, SavedQuery
-from dyno_viewer.models import QueryParameters, KeyCondition, FilterCondition
+from dyno_viewer.db.models import QueryHistory, RecordType, SavedQuery
+from dyno_viewer.models import (
+    QueryParameters,
+    KeyCondition,
+    FilterCondition,
+    SavedQuery,
+)
+from dyno_viewer.db.queries import add_saved_query, list_saved_queries
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from sqlalchemy import select, func
+import time_machine
+
+from tests.conftest import data_store_db_session
 
 
-async def test_mount_saved_queries_screen(db_session):
+async def test_mount_saved_queries_screen(data_store_db_session):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -23,14 +31,13 @@ async def test_mount_saved_queries_screen(db_session):
             self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
 
 
-@pytest.mark.time_machine(datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")))
-async def test_populate_saved_queries_table(db_session):
+async def test_populate_saved_queries_table(data_store_db_session):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -40,25 +47,31 @@ async def test_populate_saved_queries_table(db_session):
         async def action_push_saved_queries_screen(self):
             self.params = await self.push_screen_wait(SavedQueryBrowser())
 
+    saved_query = SavedQuery(
+        name="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+        description="Test saved query",
+        scan_mode=False,
+        primary_key_name="pk",
+        sort_key_name="sk",
+        key_condition=KeyCondition(
+            partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+            sortKeyCondition=None,
+        ),
+    )
+    with time_machine.travel(
+        datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")), tick=False
+    ):
+        await add_saved_query(
+            data_store_db_session,
+            saved_query,
+        )
+
+    assert saved_query in [
+        row.data for row in await list_saved_queries(data_store_db_session)
+    ]
+
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        async with db_session.begin():
-            db_session.add(
-                SavedQuery.from_query_params(
-                    QueryParameters(
-                        scan_mode=False,
-                        primary_key_name="pk",
-                        sort_key_name="sk",
-                        key_condition=KeyCondition(
-                            partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
-                            sortKeyCondition=None,
-                        ),
-                    ),
-                    name="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
-                    description="Test saved query",
-                )
-            )
-        await db_session.commit()
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -69,7 +82,7 @@ async def test_populate_saved_queries_table(db_session):
         assert row == [
             "customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
             "Test saved query",
-            "2024-06-01 12:00:00",
+            "2024-06-01 12:00:00+00:00",
             False,
             "pk = 'customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d'",
             "",
@@ -89,7 +102,7 @@ async def test_populate_saved_queries_table(db_session):
 
 
 @pytest.mark.time_machine(datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")))
-async def test_no_saved_queries(db_session):
+async def test_no_saved_queries(data_store_db_session):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -100,7 +113,7 @@ async def test_no_saved_queries(db_session):
             self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -108,8 +121,8 @@ async def test_no_saved_queries(db_session):
         assert table.row_count == 0
 
 
-@pytest.mark.time_machine(datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")))
-async def test_empty_search_results(db_session):
+# @pytest.mark.time_machine(datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")))
+async def test_empty_search_results(data_store_db_session):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -119,44 +132,87 @@ async def test_empty_search_results(db_session):
         async def action_push_saved_queries_screen(self):
             self.params = await self.push_screen_wait(SavedQueryBrowser())
 
+    saved_queries = [
+        SavedQuery(
+            name="Active Items Query",
+            description="Query for active items",
+            scan_mode=True,
+            primary_key_name="pk",
+            sort_key_name="sk",
+            key_condition=None,
+            filter_conditions=[
+                FilterCondition(
+                    attrName="status",
+                    attrCondition="==",
+                    attrValue="active",
+                    attrType="string",
+                )
+            ],
+        ),
+        SavedQuery(
+            name="Customer 123 Query",
+            description="Query for customer 123",
+            scan_mode=False,
+            primary_key_name="pk",
+            sort_key_name="sk",
+            key_condition=KeyCondition(
+                partitionKeyValue="customer#123", sortKeyCondition=None
+            ),
+        ),
+    ]
+    for saved_query in saved_queries:
+        await add_saved_query(data_store_db_session, saved_query)
+    # Verify all saved queries are in the DB
+    for saved_query in saved_queries:
+        assert saved_query in [
+            row.data for row in await list_saved_queries(data_store_db_session)
+        ]
+    async with data_store_db_session.execute(
+        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        (RecordType.SavedQuery.value,),
+    ) as cursor:
+        row = await cursor.fetchone()
+        assert len(row) == 1
+        assert row[0] == 2
+
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        async with db_session.begin():
-            db_session.add(
-                SavedQuery.from_query_params(
-                    QueryParameters(
-                        scan_mode=True,
-                        primary_key_name="pk",
-                        sort_key_name="sk",
-                        key_condition=None,
-                        filter_conditions=[
-                            FilterCondition(
-                                attrName="status",
-                                attrCondition="==",
-                                attrValue="active",
-                                attrType="string",
-                            )
-                        ],
-                    ),
-                    name="Active Items Query",
-                    description="Query for active items",
-                )
-            )
-            db_session.add(
-                SavedQuery.from_query_params(
-                    QueryParameters(
-                        scan_mode=False,
-                        primary_key_name="pk",
-                        sort_key_name="sk",
-                        key_condition=KeyCondition(
-                            partitionKeyValue="customer#123", sortKeyCondition=None
-                        ),
-                    ),
-                    name="Customer 123 Query",
-                    description="Query for customer 123",
-                )
-            )
-        await db_session.commit()
-        pilot.app.db_session = db_session
+        # async with db_session.begin():
+        #     db_session.add(
+        #         SavedQuery.from_query_params(
+        #             QueryParameters(
+        #                 scan_mode=True,
+        #                 primary_key_name="pk",
+        #                 sort_key_name="sk",
+        #                 key_condition=None,
+        #                 filter_conditions=[
+        #                     FilterCondition(
+        #                         attrName="status",
+        #                         attrCondition="==",
+        #                         attrValue="active",
+        #                         attrType="string",
+        #                     )
+        #                 ],
+        #             ),
+        #             name="Active Items Query",
+        #             description="Query for active items",
+        #         )
+        #     )
+        #     db_session.add(
+        #         SavedQuery.from_query_params(
+        #             QueryParameters(
+        #                 scan_mode=False,
+        #                 primary_key_name="pk",
+        #                 sort_key_name="sk",
+        #                 key_condition=KeyCondition(
+        #                     partitionKeyValue="customer#123", sortKeyCondition=None
+        #                 ),
+        #             ),
+        #             name="Customer 123 Query",
+        #             description="Query for customer 123",
+        #         )
+        #     )
+        # await db_session.commit()
+        pilot.app.db_session = data_store_db_session
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -169,8 +225,7 @@ async def test_empty_search_results(db_session):
         assert table.row_count == 0
 
 
-@pytest.mark.time_machine(datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")))
-async def test_select_saved_query(db_session):
+async def test_select_saved_query(data_store_db_session):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -180,45 +235,63 @@ async def test_select_saved_query(db_session):
         async def action_push_saved_queries_screen(self):
             self.params = await self.push_screen_wait(SavedQueryBrowser())
 
-    async with TestSavedQueriesScreenApp().run_test() as pilot:
-        async with db_session.begin():
-            db_session.add(
-                SavedQuery.from_query_params(
-                    QueryParameters(
-                        scan_mode=True,
-                        primary_key_name="pk",
-                        sort_key_name="sk",
-                        key_condition=None,
-                        filter_conditions=[
-                            FilterCondition(
-                                attrName="status",
-                                attrCondition="==",
-                                attrValue="active",
-                                attrType="string",
-                            )
-                        ],
-                    ),
-                    name="Active Items Query",
-                    description="Query for active items",
+    saved_queries = [
+        SavedQuery(
+            name="Active Items Query",
+            description="Query for active items",
+            scan_mode=True,
+            primary_key_name="pk",
+            sort_key_name="sk",
+            key_condition=None,
+            filter_conditions=[
+                FilterCondition(
+                    attrName="status",
+                    attrCondition="==",
+                    attrValue="active",
+                    attrType="string",
                 )
-            )
-            db_session.add(
-                SavedQuery.from_query_params(
-                    QueryParameters(
-                        scan_mode=False,
-                        primary_key_name="pk",
-                        sort_key_name="sk",
-                        key_condition=KeyCondition(
-                            partitionKeyValue="customer#123", sortKeyCondition=None
-                        ),
-                    ),
-                    name="Customer 123 Query",
-                    description="Query for customer 123",
-                )
-            )
-        await db_session.commit()
+            ],
+        ),
+        SavedQuery(
+            name="Customer 123 Query",
+            description="Query for customer 123",
+            scan_mode=False,
+            primary_key_name="pk",
+            sort_key_name="sk",
+            key_condition=KeyCondition(
+                partitionKeyValue="customer#123", sortKeyCondition=None
+            ),
+        ),
+    ]
 
-        pilot.app.db_session = db_session
+    with time_machine.travel(
+        datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")), tick=False
+    ):
+        await add_saved_query(
+            data_store_db_session,
+            saved_queries[0],
+        )
+        await add_saved_query(
+            data_store_db_session,
+            saved_queries[1],
+        )
+    # Verify all saved queries are in the DB
+    saved_queries_db = [
+        row.data for row in await list_saved_queries(data_store_db_session)
+    ]
+    for saved_query in saved_queries:
+        assert saved_query in saved_queries_db
+
+    async with data_store_db_session.execute(
+        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        (RecordType.SavedQuery.value,),
+    ) as cursor:
+        row = await cursor.fetchone()
+        assert len(row) == 1
+        assert row[0] == 2
+
+    async with TestSavedQueriesScreenApp().run_test() as pilot:
+        pilot.app.db_session = data_store_db_session
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -228,7 +301,7 @@ async def test_select_saved_query(db_session):
         assert table.get_row_at(0) == [
             "Customer 123 Query",
             "Query for customer 123",
-            "2024-06-01 12:00:00",
+            "2024-06-01 12:00:00+00:00",
             False,
             "pk = 'customer#123'",
             "",
@@ -236,7 +309,7 @@ async def test_select_saved_query(db_session):
         assert table.get_row_at(1) == [
             "Active Items Query",
             "Query for active items",
-            "2024-06-01 12:00:00",
+            "2024-06-01 12:00:00+00:00",
             True,
             "",
             "status = 'active'",
@@ -245,13 +318,7 @@ async def test_select_saved_query(db_session):
         await pilot.pause()
         params = pilot.app.params
         assert isinstance(params, QueryParameters)
-        assert not params.scan_mode
-        assert params.primary_key_name == "pk"
-        assert params.sort_key_name == "sk"
-        assert params.key_condition
-        assert params.key_condition.partitionKeyValue == "customer#123"
-        assert params.key_condition.sortKey is None
-        assert len(params.filter_conditions) == 0
+        assert params == saved_queries[1]
 
         # Reset and test the other saved query
         await pilot.press("p")  # reopen the screen
@@ -261,18 +328,10 @@ async def test_select_saved_query(db_session):
         await pilot.pause()
         params = pilot.app.params
         assert isinstance(params, QueryParameters)
-        assert params.scan_mode is True
-        assert params.primary_key_name == "pk"
-        assert params.sort_key_name == "sk"
-        assert params.key_condition is None
-        assert len(params.filter_conditions) == 1
-        assert params.filter_conditions[0].attrName == "status"
-        assert params.filter_conditions[0].attrCondition == "=="
-        assert params.filter_conditions[0].attrValue == "active"
-        assert params.filter_conditions[0].attrType == "string"
+        assert params == saved_queries[0]
 
 
-async def test_pagination_saved_queries(db_session):
+async def test_pagination_saved_queries(data_store_db_session):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -282,26 +341,39 @@ async def test_pagination_saved_queries(db_session):
         async def action_push_saved_queries_screen(self):
             self.params = await self.push_screen_wait(SavedQueryBrowser())
 
-    async with TestSavedQueriesScreenApp().run_test() as pilot:
-        async with db_session.begin():
-            for i in range(100):
-                db_session.add(
-                    SavedQuery.from_query_params(
-                        QueryParameters(
-                            scan_mode=False,
-                            primary_key_name="pk",
-                            sort_key_name="sk",
-                            key_condition=KeyCondition(
-                                partitionKeyValue=f"item#{i}", sortKeyCondition=None
-                            ),
-                        ),
-                        name=f"Item {i} Query",
-                        description=f"Query for item {i}",
-                    )
-                )
-        await db_session.commit()
+    saved_queries = [
+        SavedQuery(
+            name=f"Item {i} Query",
+            description=f"Query for item {i}",
+            scan_mode=False,
+            primary_key_name="pk",
+            sort_key_name="sk",
+            key_condition=KeyCondition(
+                partitionKeyValue=f"item#{i}", sortKeyCondition=None
+            ),
+        )
+        for i in range(100)
+    ]
+    for saved_query in saved_queries:
+        await add_saved_query(data_store_db_session, saved_query)
 
-        pilot.app.db_session = db_session
+    # Verify all saved queries are in the DB
+    for saved_query in saved_queries:
+        assert saved_query in [
+            row.data
+            for row in await list_saved_queries(data_store_db_session, page_size=200)
+        ]
+    async with data_store_db_session.execute(
+        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        (RecordType.SavedQuery.value,),
+    ) as cursor:
+        row = await cursor.fetchone()
+        assert len(row) == 1
+        assert row[0] == 100
+
+    async with TestSavedQueriesScreenApp().run_test() as pilot:
+
+        pilot.app.db_session = data_store_db_session
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -327,7 +399,7 @@ async def test_pagination_saved_queries(db_session):
         assert table.row_count == 100  # now should have all 100 entries
 
 
-async def test_delete_saved_query(db_session):
+async def test_delete_saved_query(data_store_db_session):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -337,26 +409,23 @@ async def test_delete_saved_query(db_session):
         async def action_push_saved_queries_screen(self):
             self.params = await self.push_screen_wait(SavedQueryBrowser())
 
+    saved_query = SavedQuery(
+        name="Delete Me Query",
+        description="This query will be deleted",
+        scan_mode=False,
+        primary_key_name="pk",
+        sort_key_name="sk",
+        key_condition=KeyCondition(
+            partitionKeyValue="customer#delete_me",
+            sortKeyCondition=None,
+        ),
+    )
+    await add_saved_query(data_store_db_session, saved_query)
+    assert saved_query in [
+        row.data for row in await list_saved_queries(data_store_db_session)
+    ]
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        async with db_session.begin():
-            db_session.add(
-                SavedQuery.from_query_params(
-                    QueryParameters(
-                        scan_mode=False,
-                        primary_key_name="pk",
-                        sort_key_name="sk",
-                        key_condition=KeyCondition(
-                            partitionKeyValue="customer#delete_me",
-                            sortKeyCondition=None,
-                        ),
-                    ),
-                    name="Delete Me Query",
-                    description="This query will be deleted",
-                )
-            )
-        await db_session.commit()
-
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -374,16 +443,19 @@ async def test_delete_saved_query(db_session):
         assert table.row_count == 0
 
         # Verify all rows are deleted from the DB
-        total = await db_session.scalar(
-            select(func.count()).select_from(  # pylint: disable=not-callable
-                QueryHistory
-            )
-        )
+        assert saved_query not in [
+            row.data for row in await list_saved_queries(data_store_db_session)
+        ]
+        async with data_store_db_session.execute(
+            "SELECT COUNT(*) FROM data_store WHERE type = ?",
+            (RecordType.SavedQuery.value,),
+        ) as cursor:
+            row = await cursor.fetchone()
+            assert len(row) == 1
+            assert row[0] == 0
 
-        assert total == 0
 
-
-async def test_delete_all_saved_queries(db_session):
+async def test_delete_all_saved_queries(data_store_db_session):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -393,26 +465,24 @@ async def test_delete_all_saved_queries(db_session):
         async def action_push_saved_queries_screen(self):
             self.params = await self.push_screen_wait(SavedQueryBrowser())
 
-    async with TestSavedQueriesScreenApp().run_test() as pilot:
-        async with db_session.begin():
-            for i in range(5):
-                db_session.add(
-                    SavedQuery.from_query_params(
-                        QueryParameters(
-                            scan_mode=False,
-                            primary_key_name="pk",
-                            sort_key_name="sk",
-                            key_condition=KeyCondition(
-                                partitionKeyValue=f"item#{i}", sortKeyCondition=None
-                            ),
-                        ),
-                        name=f"Item {i} Query",
-                        description=f"Query for item {i}",
-                    )
-                )
-        await db_session.commit()
+    saved_queries = [
+        SavedQuery(
+            name=f"Item {i} Query",
+            description=f"Query for item {i}",
+            scan_mode=False,
+            primary_key_name="pk",
+            sort_key_name="sk",
+            key_condition=KeyCondition(
+                partitionKeyValue=f"item#{i}", sortKeyCondition=None
+            ),
+        )
+        for i in range(5)
+    ]
+    for saved_query in saved_queries:
+        await add_saved_query(data_store_db_session, saved_query)
 
-        pilot.app.db_session = db_session
+    async with TestSavedQueriesScreenApp().run_test() as pilot:
+        pilot.app.db_session = data_store_db_session
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -429,8 +499,14 @@ async def test_delete_all_saved_queries(db_session):
         assert table.row_count == 0
 
         # Verify all rows are deleted from the DB
-        total = await db_session.scalar(
-            select(func.count()).select_from(SavedQuery)  # pylint: disable=not-callable
-        )
-
-        assert total == 0
+        for saved_query in saved_queries:
+            assert saved_query not in [
+                row.data for row in await list_saved_queries(data_store_db_session)
+            ]
+        async with data_store_db_session.execute(
+            "SELECT COUNT(*) FROM data_store WHERE type = ?",
+            (RecordType.SavedQuery.value,),
+        ) as cursor:
+            row = await cursor.fetchone()
+            assert len(row) == 1
+            assert row[0] == 0
