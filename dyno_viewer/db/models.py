@@ -1,9 +1,10 @@
 import json
 from datetime import datetime
-from typing import Optional
+from enum import Enum
+from typing import Any, Optional, TypedDict
 from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column
 
@@ -110,3 +111,13 @@ class ListSavedQueriesResult(BaseModel):
     total: int
     total_pages: int
     items: list[SavedQuery]
+
+
+class RecordType(Enum):
+    QueryHistory = "QueryHistory"
+    SavedQuery = "SavedQuery"
+
+
+class JSONPathValue(TypedDict):
+    path: str
+    value: Any

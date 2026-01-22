@@ -1,3 +1,4 @@
+from typing import Any, List
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -5,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from dyno_viewer.constants import CONFIG_DIR_NAME
 from dyno_viewer.db.models import (
     Base,
+    JSONPathValue,
     ListQueryHistoryResult,
     ListSavedQueriesResult,
     QueryHistory,
@@ -12,6 +14,31 @@ from dyno_viewer.db.models import (
 )
 from dyno_viewer.models import QueryParameters
 from dyno_viewer.util.path import ensure_config_dir
+
+
+def json_path_from_dict(data: dict[str, Any]) -> List[JSONPathValue]:
+    """
+    Generate JSON paths from a nested dictionary.
+
+    :param data: Input dictionary
+    :type data: dict[str, Any]
+    :return: List of JSON paths with its corresponding values
+    :rtype: List[JSONPathValue]
+    """
+
+    def walk(obj: dict[str, Any], prefix: str) -> List[JSONPathValue]:
+        paths: List[JSONPathValue] = []
+        for key, value in obj.items():
+            current = f"{prefix}.{key}"
+            if isinstance(value, dict):
+                paths.extend(walk(value, current))
+            else:
+                paths.append(JSONPathValue(path=current, value=value))
+        return paths
+
+    if not isinstance(data, dict):
+        return []
+    return walk(data, "$")
 
 
 async def start_async_session() -> AsyncSession:

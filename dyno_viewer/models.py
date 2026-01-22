@@ -155,7 +155,7 @@ class QueryParameters(BaseModel):
         return v
 
 
-class SavedQuery(BaseModel):
+class SavedQuery(QueryParameters):
     name: str
     description: str
 
