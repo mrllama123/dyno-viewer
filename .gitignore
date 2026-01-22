@@ -135,4 +135,6 @@ dmypy.json
 .repo
 
 # misc
-db.db
+*.db
+*db-shm
+*db-wal
