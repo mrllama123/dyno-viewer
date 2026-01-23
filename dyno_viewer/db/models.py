@@ -8,6 +8,7 @@ from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column
 
 from dyno_viewer.models import FilterCondition, KeyCondition, QueryParameters
+from enum import Enum
 
 Base = declarative_base()
 
@@ -110,3 +111,13 @@ class ListSavedQueriesResult(BaseModel):
     total: int
     total_pages: int
     items: list[SavedQuery]
+
+
+class JsonPathNode(BaseModel):
+    path: str
+    value: str
+
+
+class RecordType(Enum):
+    SavedQuery = "SavedQuery"
+    QueryHistory = "QueryHistory"
