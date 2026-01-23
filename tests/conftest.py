@@ -1,4 +1,5 @@
 from typing import AsyncGenerator
+import aiosqlite
 import pytest_asyncio
 from tests.fixtures.ddb_tables import *
 from tests.fixtures.moto import *
@@ -7,6 +8,7 @@ from tests.fixtures.setup import *
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from dyno_viewer.constants import CONFIG_DIR_NAME
+from dyno_viewer.db.data_store import setup_connection
 
 
 from dyno_viewer.db.models import Base
@@ -32,6 +34,15 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
     finally:
         await session.close()
         await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def data_store_db_session() -> AsyncGenerator[aiosqlite.Connection, None]:
+    try:
+        connection = await setup_connection()
+        yield connection
+    finally:
+        await connection.close()
 
 
 @pytest.fixture
