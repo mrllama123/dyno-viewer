@@ -7,7 +7,7 @@ from zoneinfo import ZoneInfo
 import aiosqlite
 
 from dyno_viewer.db.data_store import insert
-from dyno_viewer.db.models import RecordType
+from dyno_viewer.db.models import ListQueryHistoryResultRow, RecordType
 from dyno_viewer.models import QueryParameters, SavedQuery
 
 # exclude computed fields like boto_params
@@ -110,7 +110,7 @@ async def list_saved_queries(
 
 async def list_query_history(
     connection: aiosqlite.Connection, page: int = 1, page_size: int = 10
-) -> list[QueryParameters]:
+) -> list[ListQueryHistoryResultRow]:
     """
     List all query history from the data_store table.
 
@@ -126,12 +126,18 @@ async def list_query_history(
     offset = (page - 1) * page_size
     query_history = []
     async with connection.execute(
-        "SELECT data FROM data_store WHERE type = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+        "SELECT data, created_at, key FROM data_store WHERE type = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
         (RecordType.QueryHistory.value, page_size, offset),
     ) as cursor:
         async for row in cursor:
             data = json.loads(row[0])
-            query_history.append(QueryParameters.model_validate(data))
+            query_history.append(
+                ListQueryHistoryResultRow(
+                    data=QueryParameters.model_validate(data),
+                    created_at=row[1],
+                    key=row[2],
+                )
+            )
     return query_history
 
 
@@ -181,7 +187,7 @@ async def get_saved_query_by_name(
     return None
 
 
-async def delete_all_query_history(connection: aiosqlite.Connection) -> None:
+async def remove_all_query_history(connection: aiosqlite.Connection) -> None:
     """
     Delete all query history from the data_store table.
 

@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional
 from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, field_validator
 from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, declarative_base, mapped_column
 
@@ -121,3 +121,16 @@ class JsonPathNode(BaseModel):
 class RecordType(Enum):
     SavedQuery = "SavedQuery"
     QueryHistory = "QueryHistory"
+
+
+class ListQueryHistoryResultRow(BaseModel):
+    data: QueryParameters
+    created_at: datetime
+    key: str
+
+    @field_validator("created_at", mode="after")
+    @classmethod
+    def ensure_timezone(cls, v: datetime) -> datetime:
+        if v.tzinfo is None:
+            return v.replace(tzinfo=ZoneInfo("UTC"))
+        return v

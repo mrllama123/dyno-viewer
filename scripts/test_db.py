@@ -27,6 +27,68 @@ from dyno_viewer.db.queries import (
 )
 
 
+async def seed_data(connection: aiosqlite.Connection) -> None:
+    for _ in range(50):
+        await add_query_history(
+            connection,
+            QueryParameters.model_validate(
+                {
+                    "scan_mode": False,
+                    "primary_key_name": "pk",
+                    "sort_key_name": "sk",
+                    "key_condition": KeyCondition.model_validate(
+                        {
+                            "partitionKeyValue": "partition_value",
+                        }
+                    ),
+                    "filter_conditions": [],
+                    "next_token": None,
+                }
+            ),
+        )
+        time.sleep(0.2)
+    for _ in range(20):
+        await add_saved_query(
+            connection,
+            name=f"Test Saved Query {uuid.uuid4()}",
+            description="A test saved query",
+            params=QueryParameters.model_validate(
+                {
+                    "scan_mode": False,
+                    "primary_key_name": "pk",
+                    "sort_key_name": "sk",
+                    "key_condition": KeyCondition.model_validate(
+                        {
+                            "partitionKeyValue": "partition_value",
+                        }
+                    ),
+                    "filter_conditions": [],
+                    "next_token": None,
+                }
+            ),
+        )
+        time.sleep(0.2)
+    for _ in range(50):
+        await add_query_history(
+            connection,
+            QueryParameters.model_validate(
+                {
+                    "scan_mode": False,
+                    "primary_key_name": "pk",
+                    "sort_key_name": "sk",
+                    "key_condition": KeyCondition.model_validate(
+                        {
+                            "partitionKeyValue": "partition_value",
+                        }
+                    ),
+                    "filter_conditions": [],
+                    "next_token": None,
+                }
+            ),
+        )
+        time.sleep(0.2)
+
+
 async def main() -> None:
     parser = argparse.ArgumentParser(
         description="Test local storage",
@@ -37,56 +99,30 @@ async def main() -> None:
         default=Path("db.db"),
         help="Path to the SQLite database file",
     )
+    parser.add_argument(
+        "--seed-data",
+        action="store_true",
+        help="Seed the database with test data",
+    )
     args = parser.parse_args()
     connection = await setup_connection(args.db_path)
-    # for _ in range(5):
-    #     await add_saved_query(
-    #         connection,
-    #         name=f"Test Saved Query {uuid.uuid4()}",
-    #         description="A test saved query",
-    #         params=QueryParameters.model_validate(
-    #             {
-    #                 "scan_mode": False,
-    #                 "primary_key_name": "pk",
-    #                 "sort_key_name": "sk",
-    #                 "key_condition": KeyCondition.model_validate(
-    #                     {
-    #                         "partitionKeyValue": "partition_value",
-    #                     }
-    #                 ),
-    #                 "filter_conditions": [],
-    #                 "next_token": None,
-    #             }
-    #         ),
-    #     )
-    #     time.sleep(0.2)
-    # for _ in range(30):
-    #     await add_history_query(
-    #         connection,
-    #         QueryParameters.model_validate({
-    #             "scan_mode": False,
-    #             "primary_key_name": "pk",
-    #             "sort_key_name": "sk",
-    #             "key_condition": KeyCondition.model_validate({
-    #                 "partitionKeyValue": "partition_value",
-    #             }),
-    #             "filter_conditions": [],
-    #             "next_token": None,
-    #         }),
-    #     )
-    #     time.sleep(0.2)
-    # page = 1
-    # results = []
-    # result = await list_query_history(connection, page=page, page_size=10)
-    # results.extend(result)
-    # print(f"Page {page}: {len(result)} results")
-    # while result:
-    #     result = await list_query_history(connection, page=page, page_size=10)
-    #     page += 1
-    #     print(f"Page {page}: {len(result)} results")
-    #     if result:
-    #         results.append(result)
 
+    if args.seed_data:
+        print("Seeding data...")
+        await seed_data(connection)
+
+    page = 1
+    results = []
+    result = await list_query_history(connection, page=page, page_size=10)
+    results.extend(result)
+    print(f"Page {page}: {len(result)} results")
+    while result:
+        result = await list_query_history(connection, page=page, page_size=10)
+        page += 1
+        print(f"Page {page}: {len(result)} results")
+        if result:
+            results.append(result)
+    print(results[0].created_at.tzinfo)
     saved_query = await get_saved_query_by_name(
         connection,
         "Test Saved Query ced7f097-b471-465e-8e56-a2f0d7dfc2a7",

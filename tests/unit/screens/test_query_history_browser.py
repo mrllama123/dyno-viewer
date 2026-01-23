@@ -10,51 +10,56 @@ from textual.widgets import DataTable
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.components.screens.query_history_browser import QueryHistoryBrowser
 from dyno_viewer.db.models import QueryHistory
+from dyno_viewer.db.queries import add_query_history
 from dyno_viewer.constants import FILTER_CONDITIONS, ATTRIBUTE_TYPES
 from dyno_viewer.models import KeyCondition, QueryParameters, FilterCondition
 import simplejson as json
+import time_machine
 
 
-async def test_query_history_screen_populates_from_db(db_session):
+async def test_query_history_screen_populates_from_db(
+    db_session, data_store_db_session
+):
     """Ensure the screen reads query history rows from the DB and displays them."""
 
     # Build three sample QueryHistory rows
-    async with db_session.begin():
-
-        # created_at descending should show row3 first
-        db_session.add_all(
-            [
-                QueryHistory(
-                    scan_mode=False,
-                    primary_key_name="pk",
-                    sort_key_name="sk",
-                    index="table",
-                    key_condition=KeyCondition(partitionKeyValue="A").model_dump_json(),
-                    filter_conditions="[]",
-                    created_at=datetime(2024, 1, 1, 12, 0, 0),
-                ),
-                QueryHistory(
-                    scan_mode=True,
-                    primary_key_name="pk",
-                    sort_key_name="sk",
-                    index="table",
-                    key_condition=None,
-                    filter_conditions="[]",
-                    created_at=datetime(2024, 1, 1, 12, 0, 1),
-                ),
-                QueryHistory(
-                    scan_mode=False,
-                    primary_key_name="pk",
-                    sort_key_name="sk",
-                    index="table",
-                    key_condition=KeyCondition(partitionKeyValue="B").model_dump_json(),
-                    filter_conditions="[]",
-                    created_at=datetime(2024, 1, 1, 12, 0, 2),
-                ),
-            ]
+    # async with db_session.begin():
+    with time_machine.travel(datetime(2024, 1, 1, 12, 0, 0), tick=False):
+        await add_query_history(
+            data_store_db_session,
+            QueryParameters(
+                scan_mode=False,
+                primary_key_name="pk",
+                sort_key_name="sk",
+                index="table",
+                key_condition=KeyCondition(partitionKeyValue="A"),
+                filter_conditions=[],
+            ),
         )
-
-    await db_session.commit()
+    with time_machine.travel(datetime(2024, 1, 1, 12, 0, 1), tick=False):
+        await add_query_history(
+            data_store_db_session,
+            QueryParameters(
+                scan_mode=True,
+                primary_key_name="pk",
+                sort_key_name="sk",
+                index="table",
+                key_condition=None,
+                filter_conditions=[],
+            ),
+        )
+    with time_machine.travel(datetime(2024, 1, 1, 12, 0, 2), tick=False):
+        await add_query_history(
+            data_store_db_session,
+            QueryParameters(
+                scan_mode=False,
+                primary_key_name="pk",
+                sort_key_name="sk",
+                index="table",
+                key_condition=KeyCondition(partitionKeyValue="B"),
+                filter_conditions=[],
+            ),
+        )
 
     class TestApp(App):
         CSS = ""
