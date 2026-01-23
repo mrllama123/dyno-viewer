@@ -51,16 +51,18 @@ class QueryHistoryBrowser(ModalScreen):
         table.focus()
         self.retrieve_query_history()
 
-    @work(exclusive=True)
+    @work(exclusive=True, group="retrieve_query_history")
     async def retrieve_query_history(self) -> None:
+        if self.at_last_page:
+            return
         result = await list_query_history(
             self.app.db_session, page=self.next_page, page_size=20
         )
-        if len(result.items) == 0:
+        if len(result) == 0:
             self.at_last_page = True
             return
-        self.next_page += 1
         table = self.query_one(DataTable)
+        self.next_page += 1
         for param in result:
             boto_params = param.data.boto_params
             key_condition = (
@@ -75,6 +77,7 @@ class QueryHistoryBrowser(ModalScreen):
             )
             table.add_row(
                 str(param.created_at),
+                param.data.scan_mode,
                 key_condition,
                 filter_conditions,
                 key=param.key,
@@ -100,8 +103,8 @@ class QueryHistoryBrowser(ModalScreen):
         self.dismiss(query_history)
 
     async def action_next_page(self) -> None:
-        if self.at_last_page:
-            self.retrieve_query_history()
+        # if self.at_last_page:
+        self.retrieve_query_history()
 
     async def action_delete_query(self) -> None:
         self.remove_query_history_row()
