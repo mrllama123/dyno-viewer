@@ -37,6 +37,7 @@ async def add_query_history(
         f"{date}_{key_uuid}",
         params.model_dump(mode="json", exclude=EXCLUDED_FIELDS),
         record_type=RecordType.QueryHistory.value,
+        created_at=date,
     )
 
 
@@ -69,6 +70,7 @@ async def add_saved_query(
             **params.model_dump(),
         }
     )
+    date = datetime.now(ZoneInfo("UTC")).isoformat()
     await insert(
         connection,
         str(
@@ -78,6 +80,7 @@ async def add_saved_query(
         ),
         saved_query.model_dump(mode="json", exclude=EXCLUDED_FIELDS),
         record_type=RecordType.SavedQuery.value,
+        created_at=date,
     )
 
 

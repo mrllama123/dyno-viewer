@@ -49,6 +49,7 @@ async def insert(
     key: str,
     data: dict,
     record_type: str | None = None,
+    created_at: str | None = None,
 ):
     """
     Insert a new record into the data_store table.
@@ -61,16 +62,27 @@ async def insert(
     :type data: dict
     :param record_type: Optional type of the record
     :type record_type: str | None
+    :param created_at: Optional creation timestamp
+    :type created_at: str | None
     """
-    sql_statement = (
-        "INSERT INTO data_store (key, data, type) VALUES (?, ?, ?)"
-        if record_type
-        else "INSERT INTO data_store (key, data) VALUES (?, ?)"
-    )
-    values = (
-        (key, json.dumps(data), record_type) if record_type else (key, json.dumps(data))
-    )
-    await connection.execute(sql_statement, values)
+    sql_statement = "INSERT INTO data_store"
+
+    cols = ["key", "data"]
+    placeholders = ["?", "?"]
+    if record_type:
+        cols.append("type")
+        placeholders.append("?")
+    if created_at:
+        cols.append("created_at")
+        placeholders.append("?")
+    sql_statement += f" ({', '.join(cols)}) VALUES ({', '.join(placeholders)})"
+    values = (key, json.dumps(data))
+    if record_type:
+        values += (record_type,)
+    if created_at:
+        values += (created_at,)
+
+    await connection.execute(sql_statement, (values))
     await connection.commit()
 
 
