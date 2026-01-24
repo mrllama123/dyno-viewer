@@ -5,7 +5,7 @@ from textual.widgets import DataTable, Input
 from textual.reactive import reactive
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.components.screens.saved_querys_browser import SavedQueryBrowser
-from dyno_viewer.db.models import QueryHistory, RecordType, SavedQuery
+from dyno_viewer.db.models import RecordType
 from dyno_viewer.models import (
     QueryParameters,
     KeyCondition,
@@ -17,7 +17,6 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 import time_machine
 
-from tests.conftest import data_store_db_session
 
 
 async def test_mount_saved_queries_screen(data_store_db_session):

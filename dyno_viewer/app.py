@@ -15,11 +15,11 @@ from dyno_viewer.components.screens.table_session_browser import (
 )
 from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.constants import CONFIG_DIR_NAME, DATABASE_FILE_PATH
-from dyno_viewer.db.utils import delete_all_query_history, start_async_session
 from dyno_viewer.db.data_store import setup_connection
+from dyno_viewer.db.queries import delete_all_saved_queries
 from dyno_viewer.messages import ClearQueryHistory
 from dyno_viewer.models import Config
-from dyno_viewer.util.path import ensure_config_dir, get_user_config_dir
+from dyno_viewer.util.path import ensure_config_dir
 
 
 class DynCli(App):
@@ -44,12 +44,13 @@ class DynCli(App):
     async def on_mount(self) -> None:
         # Initialize the async DB session (SQLAlchemy)
         ensure_config_dir(CONFIG_DIR_NAME)
+        self.db_session = await setup_connection(DATABASE_FILE_PATH)
         # self.db_session = await start_async_session()
         self.install_screen(
             TableViewer(id=f"table_{uuid.uuid4()}"), name="default_table"
         )
         self.push_screen("default_table")
-        self.startup()
+        
 
     async def on_unmount(self) -> None:
         if self.db_session:
@@ -80,11 +81,6 @@ class DynCli(App):
             self.install_screen(TableViewer(id=f"table_{uuid.uuid4()}"), name=session)
             self.app.push_screen(session)
 
-    @work(exclusive=True, group="startup")
-    async def startup(self) -> None:
-        """Perform time consuming startup tasks i.e like setting up DB connections"""
-        self.db_session = await setup_connection(DATABASE_FILE_PATH)
-
     @work
     async def action_select_session(self) -> None:
         """Open the session select screen."""
@@ -97,7 +93,7 @@ class DynCli(App):
         """Clear all query history from the database."""
         if not self.db_session:
             return
-        await delete_all_query_history(self.db_session)
+        await delete_all_saved_queries(self.db_session)
         self.notify("Query history cleared.")
 
     def watch_theme(self, new_theme: str) -> None:

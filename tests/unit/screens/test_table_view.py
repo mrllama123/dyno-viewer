@@ -1,9 +1,7 @@
 import uuid
 import pytest
-from sqlalchemy import func, select
-from textual import work
-from textual.app import App, on
-from textual.widgets import DataTable, Footer
+from textual.app import App
+from textual.widgets import DataTable
 from textual.reactive import reactive
 
 
@@ -14,8 +12,8 @@ from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.screens.query_history_browser import QueryHistoryBrowser
 from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.db.models import QueryHistory, RecordType
+
+from dyno_viewer.db.models import RecordType
 from dyno_viewer.db.queries import list_query_history, add_query_history
 from dyno_viewer.models import KeyCondition, QueryParameters, SortKeyCondition
 from dyno_viewer.models import Config
@@ -178,6 +176,7 @@ async def test_table_view_mode_run_query(
         assert len(list_query_history_result) == 1
         assert list_query_history_result[0].data == params
 
+
 async def test_table_view_mode_pagination(
     ddb_table_with_data, ddb_table, data_store_db_session
 ):
@@ -263,30 +262,36 @@ async def test_table_view_mode_pagination(
             assert row[0] == 0
 
 
-@pytest.mark.skip(
-    reason="needs to have the QueryHistoryBrowser integrated with new datastore"
-)
 async def test_run_query_from_history(
-    ddb_table_with_data, ddb_table, db_session, data_store_db_session
+    ddb_table_with_data, ddb_table, data_store_db_session
 ):
-    async with db_session.begin():
-        db_session.add(
-            QueryHistory.from_query_params(
-                QueryParameters(
-                    scan_mode=False,
-                    table_name=ddb_table.name,
-                    primary_key_name="pk",
-                    sort_key_name="sk",
-                    key_condition=KeyCondition(
-                        partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
-                    ),
-                    filter_conditions=[],
-                )
-            )
-        )
-    await db_session.commit()
+    query_param = QueryParameters(
+        scan_mode=False,
+        table_name=ddb_table.name,
+        primary_key_name="pk",
+        sort_key_name="sk",
+        key_condition=KeyCondition(
+            partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+        ),
+        filter_conditions=[],
+    )
+
+    await add_query_history(
+        data_store_db_session,
+        query_param,
+    )
+    assert query_param in [
+        row.data for row in await list_query_history(data_store_db_session)
+    ]
+    async with data_store_db_session.execute(
+        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        (RecordType.QueryHistory.value,),
+    ) as cursor:
+        row = await cursor.fetchone()
+        assert len(row) == 1
+        assert row[0] == 1
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)

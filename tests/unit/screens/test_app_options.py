@@ -4,7 +4,7 @@ from textual.reactive import reactive
 from textual.widgets import Button, Input, OptionList
 
 from dyno_viewer.components.screens.app_options import AppOptions
-from dyno_viewer.db.models import QueryHistory, RecordType
+from dyno_viewer.db.models import  RecordType
 from dyno_viewer.models import KeyCondition, QueryParameters
 from dyno_viewer.messages import ClearQueryHistory
 from dyno_viewer.models import Config
@@ -208,4 +208,4 @@ async def test_clear_query_history(data_store_db_session, user_config_dir_tmp_pa
             assert len(row) == 1
             assert row[0] == 0
 
-            
+
