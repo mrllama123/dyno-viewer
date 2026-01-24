@@ -8,7 +8,11 @@ from textual.widgets import DataTable, Markdown
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.db.data_store import remove, get
-from dyno_viewer.db.queries import list_query_history, remove_all_query_history
+from dyno_viewer.db.queries import (
+    get_query_history,
+    list_query_history,
+    remove_all_query_history,
+)
 
 
 class QueryHistoryBrowser(ModalScreen):
@@ -88,7 +92,7 @@ class QueryHistoryBrowser(ModalScreen):
         table = self.query_one(DataTable)
         if table.cursor_row is not None:
             row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
-            await remove(self.app.db_session, row_key)
+            await remove(self.app.db_session, row_key.value)
             table.remove_row(row_key)
 
     @work(exclusive=True)
@@ -99,7 +103,9 @@ class QueryHistoryBrowser(ModalScreen):
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, message: DataTable.RowSelected) -> None:
-        query_history = await get(self.app.db_session, message.row_key.value)
+        query_history = await get_query_history(
+            self.app.db_session, message.row_key.value
+        )
         self.dismiss(query_history)
 
     async def action_next_page(self) -> None:

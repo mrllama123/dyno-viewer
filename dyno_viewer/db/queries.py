@@ -144,6 +144,30 @@ async def list_query_history(
     return query_history
 
 
+async def get_query_history(
+    connection: aiosqlite.Connection, key: str
+) -> QueryParameters | None:
+    """
+    Retrieve a query history entry by key from the data_store table.
+
+    :param connection: Database connection
+    :type connection: aiosqlite.Connection
+    :param key: Key of the query history entry
+    :type key: str
+    :return: Retrieved query parameters or None if not found
+    :rtype: QueryParameters | None
+    """
+    async with connection.execute(
+        "SELECT data FROM data_store WHERE type = ? AND key = ?",
+        (RecordType.QueryHistory.value, key),
+    ) as cursor:
+        row = await cursor.fetchone()
+        if row:
+            data = json.loads(row[0])
+            return QueryParameters.model_validate(data)
+    return None
+
+
 async def get_last_query_ran(
     connection: aiosqlite.Connection,
 ) -> QueryParameters | None:
