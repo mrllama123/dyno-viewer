@@ -313,7 +313,7 @@ async def test_query_history_screen_delete_all_rows(data_store_db_session):
 
         # Verify all rows are deleted from the DB
         async with data_store_db_session.execute(
-            "SELECT COUNT(*) FROM data_store WHERE type = ?",
+            "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.QueryHistory.value,),
         ) as cursor:
             row = await cursor.fetchone()

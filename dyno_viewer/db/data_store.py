@@ -70,7 +70,7 @@ async def insert(
     cols = ["key", "data"]
     placeholders = ["?", "?"]
     if record_type:
-        cols.append("type")
+        cols.append("record_type")
         placeholders.append("?")
     if created_at:
         cols.append("created_at")
@@ -180,7 +180,7 @@ async def _create_data_store_table(connection: aiosqlite.Connection) -> None:
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         key TEXT NOT NULL UNIQUE,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        type TEXT,
+        record_type TEXT,
         data TEXT NOT NULL,
         CHECK (json_valid(data))
     )

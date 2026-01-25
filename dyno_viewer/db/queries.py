@@ -141,9 +141,9 @@ async def list_saved_queries(
     saved_queries = []
     statement = "SELECT data, created_at, key FROM data_store"
     where_clauses = (
-        f"WHERE json_extract(data, '$.name') LIKE '%{search}%' AND type = ?"
+        f"WHERE json_extract(data, '$.name') LIKE '%{search}%' AND record_type = ?"
         if search
-        else "WHERE type = ?"
+        else "WHERE record_type = ?"
     )
     order_limit_offset = "ORDER BY key LIMIT ? OFFSET ?"
     query = f"{statement} {where_clauses} {order_limit_offset}"
@@ -181,7 +181,7 @@ async def list_query_history(
     offset = (page - 1) * page_size
     query_history = []
     async with connection.execute(
-        "SELECT data, created_at, key FROM data_store WHERE type = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+        "SELECT data, created_at, key FROM data_store WHERE record_type = ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
         (RecordType.QueryHistory.value, page_size, offset),
     ) as cursor:
         async for row in cursor:
@@ -210,7 +210,7 @@ async def get_query_history(
     :rtype: QueryParameters | None
     """
     async with connection.execute(
-        "SELECT data FROM data_store WHERE type = ? AND key = ?",
+        "SELECT data FROM data_store WHERE record_type = ? AND key = ?",
         (RecordType.QueryHistory.value, key),
     ) as cursor:
         row = await cursor.fetchone()
@@ -232,7 +232,7 @@ async def get_last_query_ran(
     :rtype: QueryParameters | None
     """
     async with connection.execute(
-        "SELECT data FROM data_store WHERE type = ? ORDER BY created_at DESC LIMIT 1",
+        "SELECT data FROM data_store WHERE record_type = ? ORDER BY created_at DESC LIMIT 1",
         (RecordType.QueryHistory.value,),
     ) as cursor:
         row = await cursor.fetchone()
@@ -256,7 +256,7 @@ async def get_saved_query_by_name(
     :rtype: SavedQuery | None
     """
     async with connection.execute(
-        "SELECT data FROM data_store WHERE type = ? AND json_extract(data, '$.name') = ?",
+        "SELECT data FROM data_store WHERE record_type = ? AND json_extract(data, '$.name') = ?",
         (RecordType.SavedQuery.value, name),
     ) as cursor:
         row = await cursor.fetchone()
@@ -280,7 +280,7 @@ async def get_saved_query(
     :rtype: SavedQuery | None
     """
     async with connection.execute(
-        "SELECT data FROM data_store WHERE type = ? AND key = ?",
+        "SELECT data FROM data_store WHERE record_type = ? AND key = ?",
         (RecordType.SavedQuery.value, key),
     ) as cursor:
         row = await cursor.fetchone()
@@ -298,7 +298,7 @@ async def remove_all_query_history(connection: aiosqlite.Connection) -> None:
     :type connection: aiosqlite.Connection
     """
     await connection.execute(
-        "DELETE FROM data_store WHERE type = ?",
+        "DELETE FROM data_store WHERE record_type = ?",
         (RecordType.QueryHistory.value,),
     )
     await connection.commit()
@@ -312,7 +312,7 @@ async def delete_all_saved_queries(connection: aiosqlite.Connection) -> None:
     :type connection: aiosqlite.Connection
     """
     await connection.execute(
-        "DELETE FROM data_store WHERE type = ?",
+        "DELETE FROM data_store WHERE record_type = ?",
         (RecordType.SavedQuery.value,),
     )
     await connection.commit()

@@ -50,7 +50,7 @@ async def test_table_view_mode_initialization(data_store_db_session):
         assert len(data_table.rows) == 0
 
         async with data_store_db_session.execute(
-            "SELECT COUNT(*) FROM data_store WHERE type = ?",
+            "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.QueryHistory.value,),
         ) as cursor:
             row = await cursor.fetchone()
@@ -94,7 +94,7 @@ async def test_table_view_mode_set_table_name(ddb_table, data_store_db_session):
         )  # columns should be set after data is loaded
 
         async with data_store_db_session.execute(
-            "SELECT COUNT(*) FROM data_store WHERE type = ?",
+            "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.QueryHistory.value,),
         ) as cursor:
             row = await cursor.fetchone()
@@ -254,7 +254,7 @@ async def test_table_view_mode_pagination(
 
         # check if query is not added to history as its a scan
         async with data_store_db_session.execute(
-            "SELECT COUNT(*) FROM data_store WHERE type = ?",
+            "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.QueryHistory.value,),
         ) as cursor:
             row = await cursor.fetchone()
@@ -284,7 +284,7 @@ async def test_run_query_from_history(
         row.data for row in await list_query_history(data_store_db_session)
     ]
     async with data_store_db_session.execute(
-        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.QueryHistory.value,),
     ) as cursor:
         row = await cursor.fetchone()
@@ -401,7 +401,7 @@ async def test_table_view_mode_load_last_query_on_startup(
     )
     # check if added to database
     async with data_store_db_session.execute(
-        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.QueryHistory.value,),
     ) as cursor:
         row = await cursor.fetchone()

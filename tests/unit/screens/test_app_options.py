@@ -178,7 +178,7 @@ async def test_clear_query_history(data_store_db_session, user_config_dir_tmp_pa
     for param in query_params:
         assert param in [row.data for row in list_query_history_result]
     async with data_store_db_session.execute(
-        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.QueryHistory.value,),
     ) as cursor:
         row = await cursor.fetchone()
@@ -201,7 +201,7 @@ async def test_clear_query_history(data_store_db_session, user_config_dir_tmp_pa
         for query_history in query_params:
             assert query_history not in [row.data for row in list_query_history_result]
         async with data_store_db_session.execute(
-            "SELECT COUNT(*) FROM data_store WHERE type = ?",
+            "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.QueryHistory.value,),
         ) as cursor:
             row = await cursor.fetchone()

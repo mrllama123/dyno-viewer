@@ -167,7 +167,7 @@ async def test_empty_search_results(data_store_db_session):
             row.data for row in await list_saved_queries(data_store_db_session)
         ]
     async with data_store_db_session.execute(
-        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.SavedQuery.value,),
     ) as cursor:
         row = await cursor.fetchone()
@@ -282,7 +282,7 @@ async def test_select_saved_query(data_store_db_session):
         assert saved_query in saved_queries_db
 
     async with data_store_db_session.execute(
-        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.SavedQuery.value,),
     ) as cursor:
         row = await cursor.fetchone()
@@ -363,7 +363,7 @@ async def test_pagination_saved_queries(data_store_db_session):
             for row in await list_saved_queries(data_store_db_session, page_size=200)
         ]
     async with data_store_db_session.execute(
-        "SELECT COUNT(*) FROM data_store WHERE type = ?",
+        "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.SavedQuery.value,),
     ) as cursor:
         row = await cursor.fetchone()
@@ -446,7 +446,7 @@ async def test_delete_saved_query(data_store_db_session):
             row.data for row in await list_saved_queries(data_store_db_session)
         ]
         async with data_store_db_session.execute(
-            "SELECT COUNT(*) FROM data_store WHERE type = ?",
+            "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.SavedQuery.value,),
         ) as cursor:
             row = await cursor.fetchone()
@@ -503,7 +503,7 @@ async def test_delete_all_saved_queries(data_store_db_session):
                 row.data for row in await list_saved_queries(data_store_db_session)
             ]
         async with data_store_db_session.execute(
-            "SELECT COUNT(*) FROM data_store WHERE type = ?",
+            "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.SavedQuery.value,),
         ) as cursor:
             row = await cursor.fetchone()
