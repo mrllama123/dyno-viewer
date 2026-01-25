@@ -28,9 +28,6 @@ async def add_query_history(
     :param params: Query parameters
     :type params: QueryParameters
     """
-    if params.scan_mode and not params.filter_conditions:
-        # Avoid storing full table scans without filters in history
-        return
     key_uuid = str(
         uuid.uuid5(uuid.NAMESPACE_DNS, params.model_dump_json(exclude=EXCLUDED_FIELDS))
     )
