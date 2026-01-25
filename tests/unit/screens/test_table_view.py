@@ -1,9 +1,7 @@
 import uuid
 import pytest
-from sqlalchemy import func, select
-from textual import work
-from textual.app import App, on
-from textual.widgets import DataTable, Footer
+from textual.app import App
+from textual.widgets import DataTable
 from textual.reactive import reactive
 
 
@@ -14,9 +12,9 @@ from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.screens.query_history_browser import QueryHistoryBrowser
 from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.db.models import QueryHistory
-from dyno_viewer.db.utils import add_query_history
+
+from dyno_viewer.db.models import RecordType
+from dyno_viewer.db.queries import list_query_history, add_query_history
 from dyno_viewer.models import KeyCondition, QueryParameters, SortKeyCondition
 from dyno_viewer.models import Config
 
@@ -34,9 +32,9 @@ class TableViewModeApp(App):
         self.push_screen("default_table")
 
 
-async def test_table_view_mode_initialization(db_session):
+async def test_table_view_mode_initialization(data_store_db_session):
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.pause()
         assert isinstance(pilot.app.screen, TableViewer)
         table_viewer: TableViewer = pilot.app.screen
@@ -51,18 +49,18 @@ async def test_table_view_mode_initialization(db_session):
         assert len(data_table.columns) == 0
         assert len(data_table.rows) == 0
 
-        total = await db_session.scalar(
-            select(func.count()).select_from(  # pylint: disable=not-callable
-                QueryHistory
-            )
-        )
+        async with data_store_db_session.execute(
+            "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
+            (RecordType.QueryHistory.value,),
+        ) as cursor:
+            row = await cursor.fetchone()
+            assert len(row) == 1
+            assert row[0] == 0
 
-        assert total == 0
 
-
-async def test_table_view_mode_set_table_name(ddb_table, db_session):
+async def test_table_view_mode_set_table_name(ddb_table, data_store_db_session):
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -95,18 +93,20 @@ async def test_table_view_mode_set_table_name(ddb_table, db_session):
             len(data_table[0].columns) > 0
         )  # columns should be set after data is loaded
 
-        total = await db_session.scalar(
-            select(func.count()).select_from(  # pylint: disable=not-callable
-                QueryHistory
-            )
-        )
+        async with data_store_db_session.execute(
+            "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
+            (RecordType.QueryHistory.value,),
+        ) as cursor:
+            row = await cursor.fetchone()
+            assert len(row) == 1
+            assert row[0] == 0
 
-        assert total == 0
 
-
-async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_session):
+async def test_table_view_mode_run_query(
+    ddb_table_with_data, ddb_table, data_store_db_session
+):
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -139,7 +139,7 @@ async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_sess
         assert len(data_table.columns) > 0  # columns should be set after data is loaded
 
         # run a query to get customer with pk customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d
-        pilot.app.screen.query_params = QueryParameters(
+        params = QueryParameters(
             scan_mode=False,
             table_name=table_name,
             primary_key_name="pk",
@@ -148,6 +148,7 @@ async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_sess
                 partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
             ),
         )
+        pilot.app.screen.query_params = params
         await pilot.press("q")
         assert isinstance(pilot.app.screen, TableQuery)
         await pilot.press("r")
@@ -169,18 +170,18 @@ async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_sess
         ]
 
         # check if query is added to history
-        total = await db_session.scalar(
-            select(func.count()).select_from(  # pylint: disable=not-callable
-                QueryHistory
-            )
+        list_query_history_result = await list_query_history(
+            pilot.app.db_session,
         )
+        assert len(list_query_history_result) == 1
+        assert list_query_history_result[0].data == params
 
-        assert total == 1
 
-
-async def test_table_view_mode_pagination(ddb_table_with_data, ddb_table, db_session):
+async def test_table_view_mode_pagination(
+    ddb_table_with_data, ddb_table, data_store_db_session
+):
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -252,34 +253,45 @@ async def test_table_view_mode_pagination(ddb_table_with_data, ddb_table, db_ses
         assert page_two != page_zero
 
         # check if query is not added to history as its a scan
-        total = await db_session.scalar(
-            select(func.count()).select_from(  # pylint: disable=not-callable
-                QueryHistory
-            )
-        )
+        async with data_store_db_session.execute(
+            "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
+            (RecordType.QueryHistory.value,),
+        ) as cursor:
+            row = await cursor.fetchone()
+            assert len(row) == 1
+            assert row[0] == 0
 
-        assert total == 0
 
+async def test_run_query_from_history(
+    ddb_table_with_data, ddb_table, data_store_db_session
+):
+    query_param = QueryParameters(
+        scan_mode=False,
+        table_name=ddb_table.name,
+        primary_key_name="pk",
+        sort_key_name="sk",
+        key_condition=KeyCondition(
+            partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+        ),
+        filter_conditions=[],
+    )
 
-async def test_run_query_from_history(ddb_table_with_data, ddb_table, db_session):
-    async with db_session.begin():
-        db_session.add(
-            QueryHistory.from_query_params(
-                QueryParameters(
-                    scan_mode=False,
-                    table_name=ddb_table.name,
-                    primary_key_name="pk",
-                    sort_key_name="sk",
-                    key_condition=KeyCondition(
-                        partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
-                    ),
-                    filter_conditions=[],
-                )
-            )
-        )
-    await db_session.commit()
+    await add_query_history(
+        data_store_db_session,
+        query_param,
+    )
+    assert query_param in [
+        row.data for row in await list_query_history(data_store_db_session)
+    ]
+    async with data_store_db_session.execute(
+        "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
+        (RecordType.QueryHistory.value,),
+    ) as cursor:
+        row = await cursor.fetchone()
+        assert len(row) == 1
+        assert row[0] == 1
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -353,7 +365,10 @@ async def test_run_query_from_history(ddb_table_with_data, ddb_table, db_session
 
 
 async def test_table_view_mode_load_last_query_on_startup(
-    ddb_table_with_data, ddb_table, db_session, user_config_dir_tmp_path
+    ddb_table_with_data,
+    ddb_table,
+    user_config_dir_tmp_path,
+    data_store_db_session,
 ):
     class TableViewModeApp(App):
         aws_profile = reactive(None)
@@ -362,33 +377,37 @@ async def test_table_view_mode_load_last_query_on_startup(
         app_config = reactive(Config.load_config())
 
         def on_mount(self) -> None:
-            self.db_session = db_session
+            self.db_session = data_store_db_session
             self.install_screen(
                 TableViewer(id=f"table_{uuid.uuid4()}"), name="default_table"
             )
             self.push_screen("default_table")
-    async with db_session.begin():
-        db_session.add(
-            QueryHistory.from_query_params(
-                QueryParameters(
-                    scan_mode=False,
-                    table_name=ddb_table.name,
-                    primary_key_name="pk",
-                    sort_key_name="sk",
-                    key_condition=KeyCondition(
-                        partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
-                        sortKey=SortKeyCondition(
-                            attrType="string", attrValue="CUSOMER", attrCondition="=="
-                        ),
-                    ),
-                    filter_conditions=[],
-                )
-            )
-        )
-    await db_session.commit()
+
+    await add_query_history(
+        data_store_db_session,
+        QueryParameters(
+            scan_mode=False,
+            table_name=ddb_table.name,
+            primary_key_name="pk",
+            sort_key_name="sk",
+            key_condition=KeyCondition(
+                partitionKeyValue="customer#0e044201-d3ce-4ce9-99c3-594ef3f2c60d",
+                sortKey=SortKeyCondition(
+                    attrType="string", attrValue="CUSOMER", attrCondition="=="
+                ),
+            ),
+            filter_conditions=[],
+        ),
+    )
+    # check if added to database
+    async with data_store_db_session.execute(
+        "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
+        (RecordType.QueryHistory.value,),
+    ) as cursor:
+        row = await cursor.fetchone()
+        assert len(row) == 1
+        assert row[0] == 1
     async with TableViewModeApp().run_test() as pilot:
-        # pilot.app.db_session = db_session
-        # await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
         table_name = ddb_table.name

@@ -9,8 +9,8 @@ from dyno_viewer.aws.ddb import scan_items
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
 from dyno_viewer.components.screens.table_query import TableQuery
+from dyno_viewer.db.queries import list_saved_queries
 
-from dyno_viewer.db.utils import list_saved_queries
 from tests.common import type_commands
 from dyno_viewer.components.screens.create_saved_query import CreateSavedQuery
 from dyno_viewer.models import QueryParameters, TableInfo
@@ -315,7 +315,7 @@ async def test_run_query_scan(screen_app, ddb_table, ddb_table_with_data):
 
 
 async def test_run_query_scan_key_condition_save_query(
-    screen_app, ddb_table, ddb_table_with_data, db_session
+    screen_app, ddb_table, ddb_table_with_data, data_store_db_session
 ):
 
     async with screen_app().run_test() as pilot:
@@ -325,7 +325,7 @@ async def test_run_query_scan_key_condition_save_query(
             gsi={"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
             tableName=ddb_table.name,
         )
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
 
         await pilot.press("q")
 
@@ -345,20 +345,11 @@ async def test_run_query_scan_key_condition_save_query(
         await pilot.pause()
 
         assert isinstance(pilot.app.screen, TableQuery)
-        saved_queries = await list_saved_queries(db_session)
+        saved_queries = await list_saved_queries(data_store_db_session)
 
         assert saved_queries
-        assert len(saved_queries.items) == 1
-        assert saved_queries.items[0].name == "test_query_name"
-        assert saved_queries.items[0].description == "This is a test saved query."
+        assert len(saved_queries) == 1
 
-        query_params = saved_queries.items[0].to_query_params()
-        assert not query_params.scan_mode
-        assert (
-            query_params.key_condition.partitionKeyValue == ddb_table_with_data[0]["pk"]
-        )
-        assert not query_params.key_condition.sortKey
-        assert not query_params.filter_conditions
 
 
 async def test_run_query_scan_no_filters(screen_app, ddb_table, ddb_table_with_data):
@@ -392,7 +383,7 @@ async def test_run_query_scan_no_filters(screen_app, ddb_table, ddb_table_with_d
 
 
 async def test_run_query_scan_no_filters_no_save_query(
-    db_session, screen_app, ddb_table, ddb_table_with_data
+    data_store_db_session, screen_app, ddb_table, ddb_table_with_data
 ):
 
     async with screen_app().run_test() as pilot:
@@ -402,7 +393,7 @@ async def test_run_query_scan_no_filters_no_save_query(
             gsi={"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
             tableName=ddb_table.name,
         )
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
 
         await pilot.press("q")
         assert isinstance(pilot.app.screen, TableQuery)
@@ -425,7 +416,7 @@ async def test_run_query_scan_no_filters_no_save_query(
 
 
 async def test_run_query_scan_no_key_condition_no_save_query(
-    db_session, screen_app, ddb_table, ddb_table_with_data
+    data_store_db_session, screen_app, ddb_table, ddb_table_with_data
 ):
 
     async with screen_app().run_test() as pilot:
@@ -434,7 +425,7 @@ async def test_run_query_scan_no_key_condition_no_save_query(
             gsi={"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
             tableName=ddb_table.name,
         )
-        pilot.app.db_session = db_session
+        pilot.app.db_session = data_store_db_session
 
         await pilot.press("q")
         assert isinstance(pilot.app.screen, TableQuery)

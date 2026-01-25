@@ -8,16 +8,35 @@ from textual.widgets import Input, Button, Static
 from textual.app import App
 from textual.reactive import reactive
 
+from dyno_viewer.models import FilterCondition, QueryParameters
+
 
 async def test_create_saved_query_screen_submit_saved_query():
     class TestCreateSavedQueryScreen(App):
         BINDINGS = [("s", "create_saved_query", "Create Saved Query")]
 
         saved_query = reactive(None)
+        query_params = reactive(
+            QueryParameters(
+                scan_mode=True,
+                primary_key_name="pk",
+                sort_key_name="sk",
+                filter_conditions=[
+                    FilterCondition(
+                        attrName="test",
+                        attrCondition="==",
+                        attrValue="value",
+                        attrType="string",
+                    )
+                ],
+            )
+        )
 
         @work
         async def action_create_saved_query(self):
-            self.saved_query = await self.push_screen_wait(CreateSavedQuery())
+            self.saved_query = await self.push_screen_wait(
+                CreateSavedQuery(self.query_params)
+            )
 
     async with TestCreateSavedQueryScreen().run_test() as pilot:
         await pilot.press("s")
@@ -50,10 +69,27 @@ async def test_create_saved_query_screen_validation_click():
         BINDINGS = [("s", "create_saved_query", "Create Saved Query")]
 
         saved_query = reactive(None)
+        query_params = reactive(
+            QueryParameters(
+                scan_mode=True,
+                primary_key_name="pk",
+                sort_key_name="sk",
+                filter_conditions=[
+                    FilterCondition(
+                        attrName="test",
+                        attrCondition="==",
+                        attrValue="value",
+                        attrType="string",
+                    )
+                ],
+            )
+        )
 
         @work
         async def action_create_saved_query(self):
-            self.saved_query = await self.push_screen_wait(CreateSavedQuery())
+            self.saved_query = await self.push_screen_wait(
+                CreateSavedQuery(self.query_params)
+            )
 
     async with TestCreateSavedQueryScreen().run_test() as pilot:
         await pilot.press("s")
@@ -73,10 +109,25 @@ async def test_create_saved_query_screen_validation_blur():
         BINDINGS = [("s", "create_saved_query", "Create Saved Query")]
 
         saved_query = reactive(None)
+        query_params = reactive(
+            QueryParameters(
+                scan_mode=True,
+                primary_key_name="pk",
+                sort_key_name="sk",
+                filter_conditions=[
+                    FilterCondition(
+                        attrName="test",
+                        attrCondition="==",
+                        attrValue="value",
+                        attrType="string",
+                    )
+                ],
+            )
+        )
 
         @work
         async def action_create_saved_query(self):
-            self.saved_query = await self.push_screen_wait(CreateSavedQuery())
+            self.saved_query = await self.push_screen_wait(CreateSavedQuery(self.query_params))
 
     async with TestCreateSavedQueryScreen().run_test() as pilot:
         await pilot.press("s")

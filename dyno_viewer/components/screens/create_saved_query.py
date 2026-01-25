@@ -7,6 +7,7 @@ from textual.validation import Length
 from textual.widgets import Button, Input, Markdown, Static
 
 from dyno_viewer.db.models import SavedQuery
+from dyno_viewer.models import QueryParameters
 
 
 class CreateSavedQuery(ModalScreen):
@@ -47,6 +48,10 @@ class CreateSavedQuery(ModalScreen):
     }
 
     """
+
+    def __init__(self, query_params: QueryParameters) -> None:
+        super().__init__()
+        self.query_params = query_params
 
     def compose(self) -> ComposeResult:
         # Additional UI components for creating a saved query would go here
@@ -98,5 +103,11 @@ class CreateSavedQuery(ModalScreen):
         if not query_name.is_valid:
             return
         self.dismiss(
-            SavedQuery(name=query_name.value, description=query_description.value)
+            SavedQuery.model_validate(
+                {
+                    "name": query_name.value,
+                    "description": query_description.value,
+                    **self.query_params.model_dump(),
+                }
+            )
         )

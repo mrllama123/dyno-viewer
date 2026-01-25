@@ -1,4 +1,6 @@
 # DynamoDB query condition operators for sort key filtering
+from dyno_viewer.util.path import get_user_config_dir
+
 SORT_KEY_CONDITIONS = [
     "==",
     ">",
@@ -39,3 +41,5 @@ ATTRIBUTE_TYPES = [
 ]
 
 CONFIG_DIR_NAME = "dyno-viewer"
+
+DATABASE_FILE_PATH = get_user_config_dir(CONFIG_DIR_NAME) / "data-store.db"

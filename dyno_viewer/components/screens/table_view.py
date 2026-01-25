@@ -23,7 +23,7 @@ from dyno_viewer.components.screens.region_select import RegionSelect
 from dyno_viewer.components.screens.saved_querys_browser import SavedQueryBrowser
 from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.db.utils import add_query_history, get_last_query_history
+from dyno_viewer.db.queries import add_query_history, get_last_query_ran
 from dyno_viewer.models import OutputFormat, QueryParameters, TableInfo
 from dyno_viewer.util import save_query_results_to_csv, save_query_results_to_json
 
@@ -127,9 +127,9 @@ class TableViewer(Screen):
         if not self.app.app_config:
             return
         if self.app.app_config.load_last_query_on_startup:
-            last_query = await get_last_query_history(self.app.db_session)
+            last_query = await get_last_query_ran(self.app.db_session)
             if last_query:
-                self.query_params = last_query.to_query_params()
+                self.query_params = last_query
 
     @work(exclusive=True, group="update_dyn_table_info", thread=True)
     def get_dyn_table_info(self) -> None:

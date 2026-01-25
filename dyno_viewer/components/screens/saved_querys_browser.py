@@ -9,9 +9,9 @@ from textual.widgets import DataTable, Input, Markdown
 
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
-from dyno_viewer.db.utils import (
+from dyno_viewer.db.data_store import remove
+from dyno_viewer.db.queries import (
     delete_all_saved_queries,
-    delete_saved_query,
     get_saved_query,
     list_saved_queries,
 )
@@ -42,7 +42,7 @@ class SavedQueryBrowser(ModalScreen):
     """
 
     next_page = reactive(1)
-    total_pages = reactive(1)
+    at_last_page = reactive(False)
 
     class QueryHistoryResult(Message):
         def __init__(self, data) -> None:
@@ -70,19 +70,18 @@ class SavedQueryBrowser(ModalScreen):
 
     @work(exclusive=True)
     async def get_saved_query(self, search: str = ""):
-
+        if self.at_last_page:
+            return
         result = await list_saved_queries(
             self.app.db_session, page=self.next_page, search=search
         )
-        self.total_pages = result.total_pages
-        if result.total_pages > 1 and self.next_page < result.total_pages:
-            self.next_page += 1
-
+        if len(result) == 0:
+            self.at_last_page = True
+            return
         table = self.query_one(DataTable)
-        for item in result.items:
-            # this might eventually be slow with large data but for now it's ok
-            query_params = item.to_query_params()
-            boto_params = query_params.boto_params
+        self.next_page += 1
+        for row in result:
+            boto_params = row.data.boto_params
             key_condition = (
                 pretty_condition(boto_params["KeyConditionExpression"], is_key=True)
                 if boto_params.get("KeyConditionExpression")
@@ -94,19 +93,19 @@ class SavedQueryBrowser(ModalScreen):
                 else ""
             )
             table.add_row(
-                item.name,
-                item.description or "",
-                item.created_at.isoformat(sep=" ", timespec="seconds"),
-                item.scan_mode,
+                row.data.name,
+                row.data.description or "",
+                str(row.created_at),
+                row.data.scan_mode,
                 key_condition,
                 filter_conditions,
-                key=item.id,
+                key=row.key,
             )
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, message: DataTable.RowSelected) -> None:
         saved_query = await get_saved_query(self.app.db_session, message.row_key.value)
-        self.dismiss(saved_query.to_query_params() if saved_query else None)
+        self.dismiss(saved_query)
 
     @on(Input.Submitted, "#search_saved_queries")
     async def search_saved_queries(self, message: Input.Submitted) -> None:
@@ -124,7 +123,7 @@ class SavedQueryBrowser(ModalScreen):
             table = self.query_one(DataTable)
             if table.cursor_row is not None:
                 row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
-                await delete_saved_query(self.app.db_session, row_key.value)
+                await remove(self.app.db_session, row_key.value)
                 table.remove_row(row_key)
 
     @work
@@ -138,9 +137,6 @@ class SavedQueryBrowser(ModalScreen):
             table.clear()
 
     def action_next_page(self) -> None:
-        if self.next_page == 1 and self.total_pages == 1:
-            return
-        if self.next_page <= self.total_pages:
-            self.get_saved_query(
-                search=self.query_one("#search_saved_queries", Input).value
-            )
+        self.get_saved_query(
+            search=self.query_one("#search_saved_queries", Input).value
+        )
