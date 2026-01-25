@@ -117,6 +117,45 @@ async def test_query_history_screen_with_filters(data_store_db_session):
         ]
 
 
+async def test_query_history_scan_without_filters(data_store_db_session):
+    """Verify a scan without filters is displayed correctly."""
+    with time_machine.travel(datetime(2024, 1, 1, 12, 0, 0), tick=False):
+        await add_query_history(
+            data_store_db_session,
+            QueryParameters(
+                scan_mode=True,
+                primary_key_name="pk",
+                sort_key_name="sk",
+                index="table",
+                key_condition=None,
+                filter_conditions=[],
+            ),
+        )
+    
+    class TestApp(App):
+        CSS = ""
+
+        def __init__(self, db_session):
+            super().__init__()
+            self.db_session = db_session
+
+        async def on_mount(self):  # type: ignore[override]
+            self.push_screen(QueryHistoryBrowser())
+    async with TestApp(data_store_db_session).run_test() as pilot:
+        # allow background worker to complete
+        await pilot.pause(0.05)
+        screen = pilot.app.screen
+        assert isinstance(screen, QueryHistoryBrowser)
+        table = screen.query_one(DataTable)
+        assert table.row_count == 1
+        first_row = table.get_row_at(0)
+        assert first_row == [
+            "2024-01-01 12:00:00+00:00",
+            True,
+            "",
+            "",
+        ]
+
 async def test_query_history_screen_pagination(data_store_db_session):
     """Verify pagination increments next_page until total_pages is reached."""
 
