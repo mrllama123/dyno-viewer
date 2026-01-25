@@ -556,7 +556,7 @@ description = "The uncompromising code formatter."
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
-markers = "python_version >= \"3.10\" and python_version < \"3.12\" or python_version >= \"3.12\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "black-25.12.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:f85ba1ad15d446756b4ab5f3044731bf68b777f8f9ac9cdabd2425b97cd9c4e8"},
     {file = "black-25.12.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:546eecfe9a3a6b46f9d69d8a642585a6eaf348bcbbc4d87a19635570e02d9f4a"},
@@ -1856,14 +1856,14 @@ test = ["jupyter-server (>=2.0.0)", "pytest (>=7.0)", "pytest-jupyter[server] (>
 
 [[package]]
 name = "jupyterlab"
-version = "4.5.0"
+version = "4.5.3"
 description = "JupyterLab computational environment"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "jupyterlab-4.5.0-py3-none-any.whl", hash = "sha256:88e157c75c1afff64c7dc4b801ec471450b922a4eae4305211ddd40da8201c8a"},
-    {file = "jupyterlab-4.5.0.tar.gz", hash = "sha256:aec33d6d8f1225b495ee2cf20f0514f45e6df8e360bdd7ac9bace0b7ac5177ea"},
+    {file = "jupyterlab-4.5.3-py3-none-any.whl", hash = "sha256:63c9f3a48de72ba00df766ad6eed416394f5bb883829f11eeff0872302520ba7"},
+    {file = "jupyterlab-4.5.3.tar.gz", hash = "sha256:4a159f71067cb38e4a82e86a42de8e7e926f384d7f2291964f282282096d27e8"},
 ]
 
 [package.dependencies]
@@ -2147,22 +2147,23 @@ typing-extensions = {version = "*", markers = "python_version < \"3.11\""}
 
 [[package]]
 name = "moto"
-version = "5.1.18"
+version = "5.1.20"
 description = "A library that allows you to easily mock out tests based on AWS infrastructure"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "moto-5.1.18-py3-none-any.whl", hash = "sha256:b65aa8fc9032c5c574415451e14fd7da4e43fd50b8bdcb5f10289ad382c25bcf"},
-    {file = "moto-5.1.18.tar.gz", hash = "sha256:45298ef7b88561b839f6fe3e9da2a6e2ecd10283c7bf3daf43a07a97465885f9"},
+    {file = "moto-5.1.20-py3-none-any.whl", hash = "sha256:58c82c8e6b2ef659ef3a562fa415dce14da84bc7a797943245d9a338496ea0ea"},
+    {file = "moto-5.1.20.tar.gz", hash = "sha256:6d12d781e26a550d80e4b7e01d5538178e3adec6efbdec870e06e84750f13ec0"},
 ]
 
 [package.dependencies]
 antlr4-python3-runtime = {version = "*", optional = true, markers = "extra == \"all\""}
+aws-sam-translator = {version = "<=1.103.0", optional = true, markers = "extra == \"all\""}
 aws-xray-sdk = {version = ">=0.93,<0.96 || >0.96", optional = true, markers = "extra == \"all\""}
 boto3 = ">=1.9.201"
 botocore = ">=1.20.88,<1.35.45 || >1.35.45,<1.35.46 || >1.35.46"
-cfn-lint = {version = ">=0.40.0", optional = true, markers = "extra == \"all\""}
+cfn-lint = {version = ">=0.40.0,<=1.41.0", optional = true, markers = "extra == \"all\""}
 cryptography = ">=35.0.0"
 docker = {version = ">=3.0.0", optional = true, markers = "extra == \"all\""}
 graphql-core = {version = "*", optional = true, markers = "extra == \"all\""}
@@ -2173,6 +2174,7 @@ jsonschema = {version = "*", optional = true, markers = "extra == \"all\""}
 multipart = {version = "*", optional = true, markers = "extra == \"all\""}
 openapi-spec-validator = {version = ">=0.5.0", optional = true, markers = "extra == \"all\""}
 py-partiql-parser = {version = "0.6.3", optional = true, markers = "extra == \"all\""}
+pydantic = {version = "<=2.12.4", optional = true, markers = "extra == \"all\""}
 pyparsing = {version = ">=3.0.7", optional = true, markers = "extra == \"all\""}
 python-dateutil = ">=2.1,<3.0.0"
 PyYAML = {version = ">=5.1", optional = true, markers = "extra == \"all\""}
@@ -2183,24 +2185,24 @@ werkzeug = ">=0.5,<2.2.0 || >2.2.0,<2.2.1 || >2.2.1"
 xmltodict = "*"
 
 [package.extras]
-all = ["PyYAML (>=5.1)", "antlr4-python3-runtime", "aws-xray-sdk (>=0.93,!=0.96)", "cfn-lint (>=0.40.0)", "docker (>=3.0.0)", "graphql-core", "joserfc (>=0.9.0)", "jsonpath_ng", "jsonschema", "multipart", "openapi-spec-validator (>=0.5.0)", "py-partiql-parser (==0.6.3)", "pyparsing (>=3.0.7)", "setuptools"]
+all = ["PyYAML (>=5.1)", "antlr4-python3-runtime", "aws-sam-translator (<=1.103.0)", "aws-xray-sdk (>=0.93,!=0.96)", "cfn-lint (>=0.40.0,<=1.41.0)", "docker (>=3.0.0)", "graphql-core", "joserfc (>=0.9.0)", "jsonpath_ng", "jsonschema", "multipart", "openapi-spec-validator (>=0.5.0)", "py-partiql-parser (==0.6.3)", "pydantic (<=2.12.4)", "pyparsing (>=3.0.7)", "setuptools"]
 apigateway = ["PyYAML (>=5.1)", "joserfc (>=0.9.0)", "openapi-spec-validator (>=0.5.0)"]
 apigatewayv2 = ["PyYAML (>=5.1)", "openapi-spec-validator (>=0.5.0)"]
 appsync = ["graphql-core"]
 awslambda = ["docker (>=3.0.0)"]
 batch = ["docker (>=3.0.0)"]
-cloudformation = ["PyYAML (>=5.1)", "aws-xray-sdk (>=0.93,!=0.96)", "cfn-lint (>=0.40.0)", "docker (>=3.0.0)", "graphql-core", "joserfc (>=0.9.0)", "openapi-spec-validator (>=0.5.0)", "py-partiql-parser (==0.6.3)", "pyparsing (>=3.0.7)", "setuptools"]
+cloudformation = ["PyYAML (>=5.1)", "aws-xray-sdk (>=0.93,!=0.96)", "cfn-lint (>=0.40.0,<=1.41.0)", "docker (>=3.0.0)", "graphql-core", "joserfc (>=0.9.0)", "openapi-spec-validator (>=0.5.0)", "py-partiql-parser (==0.6.3)", "pyparsing (>=3.0.7)", "setuptools"]
 cognitoidp = ["joserfc (>=0.9.0)"]
 dynamodb = ["docker (>=3.0.0)", "py-partiql-parser (==0.6.3)"]
 dynamodbstreams = ["docker (>=3.0.0)", "py-partiql-parser (==0.6.3)"]
 events = ["jsonpath_ng"]
 glue = ["pyparsing (>=3.0.7)"]
-proxy = ["PyYAML (>=5.1)", "antlr4-python3-runtime", "aws-xray-sdk (>=0.93,!=0.96)", "cfn-lint (>=0.40.0)", "docker (>=2.5.1)", "graphql-core", "joserfc (>=0.9.0)", "jsonpath_ng", "multipart", "openapi-spec-validator (>=0.5.0)", "py-partiql-parser (==0.6.3)", "pyparsing (>=3.0.7)", "setuptools"]
+proxy = ["PyYAML (>=5.1)", "antlr4-python3-runtime", "aws-sam-translator (<=1.103.0)", "aws-xray-sdk (>=0.93,!=0.96)", "cfn-lint (>=0.40.0,<=1.41.0)", "docker (>=2.5.1)", "graphql-core", "joserfc (>=0.9.0)", "jsonpath_ng", "multipart", "openapi-spec-validator (>=0.5.0)", "py-partiql-parser (==0.6.3)", "pydantic (<=2.12.4)", "pyparsing (>=3.0.7)", "setuptools"]
 quicksight = ["jsonschema"]
-resourcegroupstaggingapi = ["PyYAML (>=5.1)", "cfn-lint (>=0.40.0)", "docker (>=3.0.0)", "graphql-core", "joserfc (>=0.9.0)", "openapi-spec-validator (>=0.5.0)", "py-partiql-parser (==0.6.3)", "pyparsing (>=3.0.7)"]
+resourcegroupstaggingapi = ["PyYAML (>=5.1)", "cfn-lint (>=0.40.0,<=1.41.0)", "docker (>=3.0.0)", "graphql-core", "joserfc (>=0.9.0)", "openapi-spec-validator (>=0.5.0)", "py-partiql-parser (==0.6.3)", "pyparsing (>=3.0.7)"]
 s3 = ["PyYAML (>=5.1)", "py-partiql-parser (==0.6.3)"]
 s3crc32c = ["PyYAML (>=5.1)", "crc32c", "py-partiql-parser (==0.6.3)"]
-server = ["PyYAML (>=5.1)", "antlr4-python3-runtime", "aws-xray-sdk (>=0.93,!=0.96)", "cfn-lint (>=0.40.0)", "docker (>=3.0.0)", "flask (!=2.2.0,!=2.2.1)", "flask-cors", "graphql-core", "joserfc (>=0.9.0)", "jsonpath_ng", "openapi-spec-validator (>=0.5.0)", "py-partiql-parser (==0.6.3)", "pyparsing (>=3.0.7)", "setuptools"]
+server = ["PyYAML (>=5.1)", "antlr4-python3-runtime", "aws-sam-translator (<=1.103.0)", "aws-xray-sdk (>=0.93,!=0.96)", "cfn-lint (>=0.40.0,<=1.41.0)", "docker (>=3.0.0)", "flask (!=2.2.0,!=2.2.1)", "flask-cors", "graphql-core", "joserfc (>=0.9.0)", "jsonpath_ng", "openapi-spec-validator (>=0.5.0)", "py-partiql-parser (==0.6.3)", "pydantic (<=2.12.4)", "pyparsing (>=3.0.7)", "setuptools"]
 ssm = ["PyYAML (>=5.1)"]
 stepfunctions = ["antlr4-python3-runtime", "jsonpath_ng"]
 xray = ["aws-xray-sdk (>=0.93,!=0.96)", "setuptools"]
@@ -2637,7 +2639,7 @@ description = "Fundamental package for array computing in Python"
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
-markers = "python_version >= \"3.10\" and python_version < \"3.12\" or python_version >= \"3.12\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "numpy-2.2.5-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:1f4a922da1729f4c40932b2af4fe84909c7a6e167e6e99f71838ce3a29f3fe26"},
     {file = "numpy-2.2.5-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:b6f91524d31b34f4a5fee24f5bc16dcd1491b668798b6d85585d836c1e633a6a"},
@@ -4880,7 +4882,7 @@ description = "HTTP library with thread-safe connection pooling, file post, and 
 optional = false
 python-versions = ">=3.9"
 groups = ["main", "dev"]
-markers = "python_version >= \"3.10\" and python_version < \"3.12\" or python_version >= \"3.12\""
+markers = "python_version >= \"3.10\""
 files = [
     {file = "urllib3-2.4.0-py3-none-any.whl", hash = "sha256:4e16665048960a0900c702d4a66415956a584919c03361cac9f1df5c5dd7e813"},
     {file = "urllib3-2.4.0.tar.gz", hash = "sha256:414bc6535b787febd7567804cc015fee39daab8ad86268f1310a9250697de466"},
@@ -4947,14 +4949,14 @@ test = ["websockets"]
 
 [[package]]
 name = "werkzeug"
-version = "3.1.4"
+version = "3.1.5"
 description = "The comprehensive WSGI web application library."
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "werkzeug-3.1.4-py3-none-any.whl", hash = "sha256:2ad50fb9ed09cc3af22c54698351027ace879a0b60a3b5edf5730b2f7d876905"},
-    {file = "werkzeug-3.1.4.tar.gz", hash = "sha256:cd3cd98b1b92dc3b7b3995038826c68097dcb16f9baa63abe35f20eafeb9fe5e"},
+    {file = "werkzeug-3.1.5-py3-none-any.whl", hash = "sha256:5111e36e91086ece91f93268bb39b4a35c1e6f1feac762c9c822ded0a4e322dc"},
+    {file = "werkzeug-3.1.5.tar.gz", hash = "sha256:6a548b0e88955dd07ccb25539d7d0cc97417ee9e179677d22c7041c8f078ce67"},
 ]
 
 [package.dependencies]
@@ -5207,4 +5209,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "9d07a0bd26c1b10344e1d3940f5e4bb1691225fcbcb94d14889cabca3596b1c6"
+content-hash = "abe7987e649aaaf9b30b915517f9e362b22a0f08c992f73541c6358b6c9c4213"
