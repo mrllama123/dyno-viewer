@@ -262,6 +262,75 @@ async def test_table_view_mode_pagination(
             assert row[0] == 0
 
 
+async def test_table_view_change_query_second_page(
+    ddb_table_with_data, ddb_table, data_store_db_session
+):
+    async with TableViewModeApp().run_test() as pilot:
+        pilot.app.db_session = data_store_db_session
+        await pilot.pause()
+        table_viewer: TableViewer = pilot.app.screen
+        assert isinstance(table_viewer, TableViewer)
+        table_name = ddb_table.name
+
+        # set dyn_client
+        pilot.app.dyn_client = get_ddb_client(
+            region_name=pilot.app.aws_region, profile_name=pilot.app.aws_profile
+        )
+
+        # set table name
+        table_viewer.table_name = table_name
+        table_viewer.update_table_client()
+        await pilot.pause()
+
+        assert table_viewer.table_name == table_name
+        assert table_viewer.table_client is not None
+
+        # # check table info is set
+        assert table_viewer.table_info is not None
+        assert table_viewer.table_info["tableName"] == table_name
+
+        query_data_table = table_viewer.query(DataTable)
+        data_table_manager = table_viewer.query_one(DataTableManager)
+        assert query_data_table
+        data_table = query_data_table[0]
+        # check data table is loading
+        assert (
+            data_table.loading is False
+        )  # loading should be false after data is loaded
+        assert len(data_table.columns) > 0  # columns should be set after data is loaded
+
+        scan_page_zero = [
+            data_table.get_row_at(i) for i in range(0, data_table.row_count)
+        ]
+        assert len(table_viewer.data) == 1
+        assert len(scan_page_zero) == 50
+
+        # go to next page
+        await pilot.press("]")
+        await pilot.pause()
+        assert data_table_manager.page_index == 1
+        assert len(table_viewer.data) == 2  # should have 2 pages of data now
+        scan_page_one = [
+            data_table.get_row_at(i) for i in range(0, data_table.row_count)
+        ]
+        assert len(scan_page_one) == 50
+        assert scan_page_one != scan_page_zero
+
+        table_viewer.query_params = QueryParameters(
+            primary_key_name="pk",
+            sort_key_name="sk",
+            key_condition=KeyCondition(
+                partitionKeyValue="customer#df7ebf28-b556-433f-b3a2-a396dd624aab",
+            ),
+        )
+        await pilot.pause(2)
+
+        query_page_zero = [
+            data_table.get_row_at(i) for i in range(0, data_table.row_count)
+        ]
+        assert len(query_page_zero) == 1
+
+
 async def test_run_query_from_history(
     ddb_table_with_data, ddb_table, data_store_db_session
 ):

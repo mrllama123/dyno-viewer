@@ -224,6 +224,7 @@ class TableViewer(Screen):
             table.increment_page_index()
         else:
             # If not updating existing data, clear the current data
+            table.page_index = 0
             self.data = [update_data.data]
 
         # when scan
