@@ -50,7 +50,6 @@ class DynCli(App):
             TableViewer(id=f"table_{uuid.uuid4()}"), name="default_table"
         )
         self.push_screen("default_table")
-        
 
     async def on_unmount(self) -> None:
         if self.db_session:

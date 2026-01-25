@@ -1,14 +1,13 @@
 from datetime import datetime
+from enum import Enum
 from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, field_validator
-
 
 from dyno_viewer.models import (
     QueryParameters,
     SavedQuery,
 )
-from enum import Enum
 
 
 class JsonPathNode(BaseModel):
@@ -17,8 +16,8 @@ class JsonPathNode(BaseModel):
 
 
 class RecordType(Enum):
-    SavedQuery = "SavedQuery"
-    QueryHistory = "QueryHistory"
+    SavedQuery = "SavedQuery"  # pylint: disable=invalid-name
+    QueryHistory = "QueryHistory"  # pylint: disable=invalid-name
 
 
 class ListQueryHistoryResultRow(BaseModel):

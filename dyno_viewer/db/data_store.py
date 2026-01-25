@@ -1,7 +1,7 @@
 import json
 from functools import wraps
 from pathlib import Path
-from typing import Any, AsyncGenerator, List, TypedDict
+from typing import Any, List
 
 import aiosqlite
 

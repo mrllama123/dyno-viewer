@@ -1,4 +1,3 @@
-import hashlib
 import json
 import uuid
 from datetime import datetime
@@ -87,6 +86,7 @@ async def add_saved_query_from_query_params(
         created_at=date,
     )
 
+
 async def add_saved_query(
     connection: aiosqlite.Connection, saved_query: SavedQuery
 ) -> None:
@@ -116,6 +116,7 @@ async def add_saved_query(
         record_type=RecordType.SavedQuery.value,
         created_at=date,
     )
+
 
 async def list_saved_queries(
     connection: aiosqlite.Connection,

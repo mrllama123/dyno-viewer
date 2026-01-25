@@ -1,6 +1,5 @@
 from typing import Any, List
 
-
 from dyno_viewer.db.models import (
     JsonPathNode,
 )

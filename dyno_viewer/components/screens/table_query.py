@@ -8,8 +8,8 @@ from textual.widgets import Button, Footer, Label, OptionList, Switch
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
 from dyno_viewer.components.screens.create_saved_query import CreateSavedQuery
-from dyno_viewer.models import QueryParameters, TableInfo
 from dyno_viewer.db.queries import add_saved_query
+from dyno_viewer.models import QueryParameters, TableInfo
 
 
 class TableQuery(ModalScreen):

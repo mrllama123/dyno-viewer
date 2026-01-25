@@ -9,9 +9,12 @@ from textual.widgets import DataTable, Input, Markdown
 
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
-
-from dyno_viewer.db.queries import get_saved_query, list_saved_queries, delete_all_saved_queries
 from dyno_viewer.db.data_store import remove
+from dyno_viewer.db.queries import (
+    delete_all_saved_queries,
+    get_saved_query,
+    list_saved_queries,
+)
 
 
 class SavedQueryBrowser(ModalScreen):
@@ -98,7 +101,6 @@ class SavedQueryBrowser(ModalScreen):
                 filter_conditions,
                 key=row.key,
             )
-
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, message: DataTable.RowSelected) -> None:
