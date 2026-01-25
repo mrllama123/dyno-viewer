@@ -13,7 +13,7 @@ from dyno_viewer.db.queries import list_saved_queries
 
 from tests.common import type_commands
 from dyno_viewer.components.screens.create_saved_query import CreateSavedQuery
-from dyno_viewer.models import FilterCondition, QueryParameters, TableInfo
+from dyno_viewer.models import QueryParameters, TableInfo
 
 
 @pytest.fixture
@@ -349,16 +349,7 @@ async def test_run_query_scan_key_condition_save_query(
 
         assert saved_queries
         assert len(saved_queries) == 1
-        # assert saved_queries.items[0].name == "test_query_name"
-        # assert saved_queries.items[0].description == "This is a test saved query."
 
-        # query_params = saved_queries.items[0].to_query_params()
-        # assert not query_params.scan_mode
-        # assert (
-        #     query_params.key_condition.partitionKeyValue == ddb_table_with_data[0]["pk"]
-        # )
-        # assert not query_params.key_condition.sortKey
-        # assert not query_params.filter_conditions
 
 
 async def test_run_query_scan_no_filters(screen_app, ddb_table, ddb_table_with_data):
