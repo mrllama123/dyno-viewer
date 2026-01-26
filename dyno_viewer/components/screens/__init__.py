@@ -4,7 +4,8 @@ from .error import *
 from .profile_select import *
 from .query_history_browser import *
 from .region_select import *
+from .select_session_group import *
+from .session_browser import *
 from .table_query import *
 from .table_select import *
-from .table_session_browser import *
 from .table_view import *

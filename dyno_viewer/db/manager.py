@@ -2,20 +2,30 @@ import json
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, List, Optional
+from typing import List, Optional
 from zoneinfo import ZoneInfo
 
 import aiosqlite
 
 from dyno_viewer.db.models import (
+    BatchInsertRecord,
     ListQueryHistoryResultRow,
     ListSavedQueryResultRow,
+    ListSessionGroupResultRow,
+    ListSessionResultRow,
     RecordType,
 )
 from dyno_viewer.db.utils import json_path_from_dict
-from dyno_viewer.models import QueryHistory, QueryParameters, SavedQuery
+from dyno_viewer.models import (
+    QueryHistory,
+    QueryParameters,
+    SavedQuery,
+    Session,
+    SessionGroup,
+)
 
 
+# pylint: disable=too-many-positional-arguments, too-many-public-methods
 class DatabaseManager:
     """
     Database manager class that encapsulates all database operations and manages
@@ -166,6 +176,23 @@ class DatabaseManager:
         await connection.execute(sql_statement, (values))
         await connection.commit()
 
+    async def batch_insert(self, records: list[BatchInsertRecord]) -> None:
+        """
+        Insert multiple records into the data_store table. Will by default create a utc timestamp for created_at column if not specified
+
+        :param records: List of records to insert
+        :type records: list[BatchInsertRecord]
+        """
+        connection = self._ensure_connection()
+        sql_statement = "INSERT INTO data_store (key, data, record_type, created_at) VALUES (?, ?, ?, ?)"
+
+        values = [
+            (record.key, json.dumps(record.data), record.record_type, record.created_at)
+            for record in records
+        ]
+        await connection.executemany(sql_statement, values)
+        await connection.commit()
+
     async def remove(self, key: str) -> None:
         """
         Delete a record from the data_store table by key.
@@ -180,7 +207,9 @@ class DatabaseManager:
         )
         await connection.commit()
 
-    async def update(self, key: str, data: dict) -> None:
+    async def update(
+        self, key: str, data: dict, record_type: str | None = None
+    ) -> None:
         """
         Update an existing record in the data_store table.
 
@@ -201,12 +230,17 @@ class DatabaseManager:
             + ") WHERE key = ?"
         )
 
-        params: List[Any] = []
+        if record_type:
+            sql_statement += " AND record_type = ?"
+
+        params = []
         for path_value in json_keys_for_update:
-            params.append(path_value["path"])
-            params.append(path_value["value"])
+            params.append(path_value.path)
+            params.append(path_value.value)
         params.append(key)
-        await connection.execute(sql_statement, params)
+        if record_type:
+            params.append(record_type)
+        await connection.execute(sql_statement, (tuple(params)))
         await connection.commit()
 
     async def get(self, key: str) -> dict | None:
@@ -493,5 +527,272 @@ class DatabaseManager:
         await connection.execute(
             "DELETE FROM data_store WHERE record_type = ?",
             (RecordType.SavedQuery.value,),
+        )
+        await connection.commit()
+
+    async def add_session_group(self, session_group: SessionGroup) -> None:
+        """
+        Add a session group to data store
+
+        :param workspace: SessionGroup object
+        :type workspace: SessionGroup
+        """
+        date = datetime.now(ZoneInfo("UTC")).isoformat()
+        await self.insert(
+            session_group.session_group_id,
+            session_group.model_dump(mode="json"),
+            RecordType.SessionGroup.value,
+            created_at=date,
+        )
+
+    async def add_session(self, session: Session) -> None:
+        """
+        Add a session to data store
+
+        :param workspace_session: Session object
+        :type workspace_session: Session
+        """
+        workspace = await self.get(session.session_group_id)
+        if not workspace:
+            raise ValueError(f"Workspace {session.session_group_id} does not exist")
+        date = datetime.now(ZoneInfo("UTC")).isoformat()
+        await self.insert(
+            str(session.session_id),
+            session.model_dump(mode="json"),
+            RecordType.Session.value,
+            created_at=date,
+        )
+
+    async def add_sessions(self, sessions: List[Session]) -> None:
+        """
+        Add multiple sessions to data store
+
+        :param sessions: List of Session objects
+        :type sessions: List[Session]
+        """
+
+        records = [
+            BatchInsertRecord(
+                key=session.session_id,
+                record_type=RecordType.Session.value,
+                data=session.model_dump(mode="json"),
+            )
+            for session in sessions
+        ]
+        await self.batch_insert(records)
+
+    async def list_session_group(
+        self, page: int = 1, page_size: int = 20, search_name: str = ""
+    ) -> List[ListSessionGroupResultRow]:
+        """
+        List session groups
+
+        :param page: Page number for pagination
+        :type page: int
+        :param page_size: Number of items per page
+        :type page_size: int
+        :param search_name: Search name for filtering workspaces
+        :type search_name: str
+        :return: List of workspace results
+        :rtype: List[ListWorkspaceResultRow]
+        """
+        connection = self._ensure_connection()
+        offset = (page - 1) * page_size
+        statement = "SELECT data, created_at, key FROM data_store"
+        where_clauses = (
+            f"WHERE record_type = ? AND json_extract(data, '$.name') LIKE '%{search_name}%'"
+            if search_name
+            else "WHERE record_type = ?"
+        )
+        order_limit_offset = "ORDER BY json_extract(data, '$.name') LIMIT ? OFFSET ?"
+        query = f"{statement} {where_clauses} {order_limit_offset}"
+        result = []
+        async with connection.execute(
+            query,
+            ((RecordType.SessionGroup.value, page_size, offset)),
+        ) as cursor:
+            async for row in cursor:
+                data = json.loads(row[0])
+                result.append(
+                    ListSessionGroupResultRow(
+                        data=data,
+                        created_at=row[1],
+                        key=row[2],
+                    )
+                )
+        return result
+
+    async def get_session(self, session_id: str) -> Session | None:
+        """
+        Gets a session from database and parses as its pydantic model
+
+
+        :param session_id: The session id
+        :type session_id: str
+        :return: a session or if cannot find None
+        :rtype: Session | None
+        """
+        result = await self.get(session_id)
+        if not result:
+            return
+        return Session.model_validate(result)
+
+    async def get_session_group_by_name(self, name: str) -> SessionGroup | None:
+        """
+        Gets a session group from database and parses as its pydantic model by name
+
+        :param name: The session group name
+        :type name: str
+        :return: SessionGroup pydantic model or None
+        :rtype: SessionGroup | None
+        """
+        connection = self._ensure_connection()
+        async with connection.execute(
+            "SELECT data FROM data_store WHERE record_type = ? AND json_extract(data, '$.name') = ? ORDER BY created_at DESC LIMIT 1",
+            (
+                RecordType.SessionGroup.value,
+                name,
+            ),
+        ) as cursor:
+            row = await cursor.fetchone()
+            if row:
+                data = json.loads(row[0])
+                return SessionGroup.model_validate(data)
+        return None
+
+    async def list_sessions(
+        self,
+        page: int = 1,
+        page_size: int = 20,
+        search_name: str = "",
+        session_group_id: str | None = None,
+    ) -> List[ListSessionResultRow]:
+        """
+        List workspace sessions based on the provided parameters.
+
+        :param page: Page number for pagination
+        :type page: int
+        :param page_size: Number of items per page
+        :type page_size: int
+        :param search_name: Search name for filtering workspace sessions
+        :type search_name: str
+        :param session_group_id: Session group ID for filtering workspace sessions
+        :type session_group_id: str | None
+        :return: List of workspace session results
+        :rtype: List[ListWorkspaceSessionResultRow]
+        """
+        connection = self._ensure_connection()
+        offset = (page - 1) * page_size
+        statement = "SELECT data, created_at, key FROM data_store"
+        where_clauses = "WHERE record_type = ?"
+        if search_name:
+            where_clauses += f"AND json_extract(data, '$.name') LIKE '%{search_name}%'"
+
+        if session_group_id:
+            where_clauses += "AND json_extract(data, '$.session_group_id') = ?"
+
+        order_limit_offset = "ORDER BY json_extract(data, '$.name') LIMIT ? OFFSET ?"
+        query = f"{statement} {where_clauses} {order_limit_offset}"
+        values = (
+            (RecordType.Session.value, session_group_id, page_size, offset)
+            if session_group_id
+            else (RecordType.Session.value, page_size, offset)
+        )
+        result = []
+        async with connection.execute(
+            query,
+            (values),
+        ) as cursor:
+            async for row in cursor:
+                data = json.loads(row[0])
+                result.append(
+                    ListSessionResultRow(
+                        data=data,
+                        created_at=row[1],
+                        key=row[2],
+                    )
+                )
+        return result
+
+    async def update_session_group(
+        self, session_group_id: str, name: str
+    ) -> SessionGroup:
+        """
+        Update a session group name in the database.
+
+        :param session_group_id: the ID of the session group to update
+        :type workspace_id: str
+        :param name: the new name for the session group
+        :type name: str
+        :return: the updated session group object
+        :type: SessionGroup
+        """
+        workspace = await self.get(session_group_id)
+        if not workspace:
+            raise ValueError(f"Session group with ID {session_group_id} does not exist")
+        await self.update(session_group_id, {"name": name})
+        updated_session_group = await self.get(session_group_id)
+        return updated_session_group
+
+    async def update_session(
+        self,
+        session_id: str,
+        name: str | None = None,
+        aws_profile: str | None = None,
+        table_name: str | None = None,
+        aws_region: str | None = None,
+        session_group_id: str | None = None,
+    ) -> Session:
+        """
+        Update a session in the database.
+
+        :param session_id: the ID of the session to update
+        :type session_id: str
+        :param name: the new name for the session
+        :type name: str | None
+        :param aws_profile: new AWS profile for the session
+        :type aws_profile: str | None
+        :param table_name: New table name for the session
+        :type table_name: str | None
+        :param aws_region: New AWS region for the session
+        :type aws_region: str | None
+        :param session_group_id: the ID of the session group to associate with the session
+        :type session_group_id: str | None
+        :return: the updated session
+        :rtype: Session
+        """
+        if all(
+            not param
+            for param in [name, aws_profile, table_name, aws_region, session_group_id]
+        ):
+            raise ValueError(
+                "At least one parameter must be provided to update a session"
+            )
+        update_dict = {}
+        if name:
+            update_dict["name"] = name
+        if aws_profile:
+            update_dict["aws_profile"] = aws_profile
+        if table_name:
+            update_dict["table_name"] = table_name
+        if aws_region:
+            update_dict["aws_region"] = aws_region
+        if session_group_id:
+            update_dict["session_group_id"] = session_group_id
+
+        await self.update(session_id, update_dict, RecordType.Session.value)
+        return await self.get(session_id)
+
+    async def delete_session_group(self, session_group_id: str) -> None:
+        """
+        Delete a session group from the database. With its sessions
+
+        :param session_group_id: the ID of the session group to delete
+        :type session_group_id: str
+        """
+        connection = self._ensure_connection()
+        await connection.execute(
+            "DELETE FROM data_store WHERE key = ? and json_extract(data, '$.session_group_id') = ?",
+            ((session_group_id, session_group_id)),
         )
         await connection.commit()

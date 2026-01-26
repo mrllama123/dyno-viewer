@@ -12,7 +12,7 @@ class RenameCreateSession(ModalScreen):
         ("escape", "app.pop_screen", "Close the modal"),
     ]
 
-    def __init__(self, message: str = "Create New Table Viewer Session") -> None:
+    def __init__(self, message: str = "Create Session") -> None:
         super().__init__()
         self.message = message
 

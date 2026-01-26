@@ -29,7 +29,14 @@ class TableViewModeApp(App):
     db_manager: DatabaseManager | None = reactive(None)
     app_config = reactive(None)
 
+    def __init__(self, db_manager: DatabaseManager | None = None):
+        super().__init__()
+        self.db_manager_to_add = db_manager
+
     def on_mount(self) -> None:
+        # simulates how its added in app
+        if self.db_manager_to_add:
+            self.db_manager = self.db_manager_to_add
         self.install_screen(
             TableViewer(id=f"table_{uuid.uuid4()}"), name="default_table"
         )
@@ -37,8 +44,7 @@ class TableViewModeApp(App):
 
 
 async def test_table_view_mode_initialization(db_manager):
-    async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_manager = db_manager
+    async with TableViewModeApp(db_manager).run_test() as pilot:
         await pilot.pause()
         assert isinstance(pilot.app.screen, TableViewer)
         table_viewer: TableViewer = pilot.app.screen
@@ -63,8 +69,7 @@ async def test_table_view_mode_initialization(db_manager):
 
 
 async def test_table_view_mode_set_table_name(ddb_table, db_manager):
-    async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_manager = db_manager
+    async with TableViewModeApp(db_manager).run_test() as pilot:
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -107,8 +112,8 @@ async def test_table_view_mode_set_table_name(ddb_table, db_manager):
 
 
 async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_manager):
-    async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_manager = db_manager
+    async with TableViewModeApp(db_manager).run_test() as pilot:
+        
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -152,6 +157,7 @@ async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_mana
         )
         pilot.app.screen.query_params = params
         await pilot.press("q")
+        await pilot.pause()
         assert isinstance(pilot.app.screen, TableQuery)
         await pilot.press("r")
         await pilot.pause()
@@ -178,8 +184,8 @@ async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_mana
 
 
 async def test_table_view_mode_pagination(ddb_table_with_data, ddb_table, db_manager):
-    async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_manager = db_manager
+    async with TableViewModeApp(db_manager).run_test() as pilot:
+
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -263,8 +269,8 @@ async def test_table_view_mode_pagination(ddb_table_with_data, ddb_table, db_man
 async def test_table_view_change_query_second_page(
     ddb_table_with_data, ddb_table, db_manager
 ):
-    async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_manager = db_manager
+    async with TableViewModeApp(db_manager).run_test() as pilot:
+
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -351,8 +357,7 @@ async def test_run_query_from_history(ddb_table_with_data, ddb_table, db_manager
         row = await cursor.fetchone()
         assert len(row) == 1
         assert row[0] == 1
-    async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_manager = db_manager
+    async with TableViewModeApp(db_manager).run_test() as pilot:
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)

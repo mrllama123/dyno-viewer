@@ -22,7 +22,7 @@ def json_path_from_dict(data: dict[str, Any]) -> List[JsonPathNode]:
             if isinstance(value, dict):
                 paths.extend(walk(value, current))
             else:
-                paths.append(JsonPathNode(path=current, value=current))
+                paths.append(JsonPathNode(path=current, value=value))
         return paths
 
     if not isinstance(data, dict):
