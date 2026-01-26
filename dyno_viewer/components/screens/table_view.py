@@ -23,7 +23,6 @@ from dyno_viewer.components.screens.region_select import RegionSelect
 from dyno_viewer.components.screens.saved_querys_browser import SavedQueryBrowser
 from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.db.queries import add_query_history, get_last_query_ran
 from dyno_viewer.models import OutputFormat, QueryParameters, TableInfo
 from dyno_viewer.util import save_query_results_to_csv, save_query_results_to_json
 

@@ -7,8 +7,6 @@ from textual.widgets import DataTable, Markdown
 
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
-from dyno_viewer.db.data_store import remove
-from dyno_viewer.db.models import ListQueryHistoryResultRow
 
 
 class QueryHistoryBrowser(ModalScreen):

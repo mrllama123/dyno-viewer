@@ -8,11 +8,6 @@ from dyno_viewer.db.models import RecordType
 from dyno_viewer.models import KeyCondition, QueryParameters
 from dyno_viewer.messages import ClearQueryHistory
 from dyno_viewer.models import Config
-from dyno_viewer.db.queries import (
-    remove_all_query_history,
-    add_query_history,
-    list_query_history,
-)
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import time_machine
