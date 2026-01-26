@@ -12,17 +12,15 @@ from dyno_viewer.models import (
     FilterCondition,
     SavedQuery,
 )
-from dyno_viewer.db.queries import add_saved_query, list_saved_queries
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import time_machine
 
 
-
-async def test_mount_saved_queries_screen(data_store_db_session):
+async def test_mount_saved_queries_screen(db_manager):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
-        db_session = reactive(None)
+        db_manager = reactive(None)
         params = reactive(None)
 
         @work
@@ -30,16 +28,16 @@ async def test_mount_saved_queries_screen(data_store_db_session):
             self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
 
 
-async def test_populate_saved_queries_table(data_store_db_session):
+async def test_populate_saved_queries_table(db_manager):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
-        db_session = reactive(None)
+        db_manager = reactive(None)
         params = reactive(None)
 
         @work
@@ -60,17 +58,14 @@ async def test_populate_saved_queries_table(data_store_db_session):
     with time_machine.travel(
         datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")), tick=False
     ):
-        await add_saved_query(
-            data_store_db_session,
+        await db_manager.add_saved_query(
             saved_query,
         )
 
-    assert saved_query in [
-        row.data for row in await list_saved_queries(data_store_db_session)
-    ]
+    assert saved_query in [row.data for row in await db_manager.list_saved_queries()]
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -101,10 +96,10 @@ async def test_populate_saved_queries_table(data_store_db_session):
 
 
 @pytest.mark.time_machine(datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")))
-async def test_no_saved_queries(data_store_db_session):
+async def test_no_saved_queries(db_manager):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
-        db_session = reactive(None)
+        db_manager = reactive(None)
         params = reactive(None)
 
         @work
@@ -112,7 +107,7 @@ async def test_no_saved_queries(data_store_db_session):
             self.params = await self.push_screen_wait(SavedQueryBrowser())
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -120,11 +115,10 @@ async def test_no_saved_queries(data_store_db_session):
         assert table.row_count == 0
 
 
-# @pytest.mark.time_machine(datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")))
-async def test_empty_search_results(data_store_db_session):
+async def test_empty_search_results(db_manager):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
-        db_session = reactive(None)
+        db_manager = reactive(None)
         params = reactive(None)
 
         @work
@@ -160,13 +154,13 @@ async def test_empty_search_results(data_store_db_session):
         ),
     ]
     for saved_query in saved_queries:
-        await add_saved_query(data_store_db_session, saved_query)
+        await db_manager.add_saved_query(saved_query)
     # Verify all saved queries are in the DB
     for saved_query in saved_queries:
         assert saved_query in [
-            row.data for row in await list_saved_queries(data_store_db_session)
+            row.data for row in await db_manager.list_saved_queries()
         ]
-    async with data_store_db_session.execute(
+    async with db_manager.connection.execute(
         "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.SavedQuery.value,),
     ) as cursor:
@@ -175,43 +169,7 @@ async def test_empty_search_results(data_store_db_session):
         assert row[0] == 2
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        # async with db_session.begin():
-        #     db_session.add(
-        #         SavedQuery.from_query_params(
-        #             QueryParameters(
-        #                 scan_mode=True,
-        #                 primary_key_name="pk",
-        #                 sort_key_name="sk",
-        #                 key_condition=None,
-        #                 filter_conditions=[
-        #                     FilterCondition(
-        #                         attrName="status",
-        #                         attrCondition="==",
-        #                         attrValue="active",
-        #                         attrType="string",
-        #                     )
-        #                 ],
-        #             ),
-        #             name="Active Items Query",
-        #             description="Query for active items",
-        #         )
-        #     )
-        #     db_session.add(
-        #         SavedQuery.from_query_params(
-        #             QueryParameters(
-        #                 scan_mode=False,
-        #                 primary_key_name="pk",
-        #                 sort_key_name="sk",
-        #                 key_condition=KeyCondition(
-        #                     partitionKeyValue="customer#123", sortKeyCondition=None
-        #                 ),
-        #             ),
-        #             name="Customer 123 Query",
-        #             description="Query for customer 123",
-        #         )
-        #     )
-        # await db_session.commit()
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -224,7 +182,7 @@ async def test_empty_search_results(data_store_db_session):
         assert table.row_count == 0
 
 
-async def test_select_saved_query(data_store_db_session):
+async def test_select_saved_query(db_manager):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -266,22 +224,18 @@ async def test_select_saved_query(data_store_db_session):
     with time_machine.travel(
         datetime(2024, 6, 1, 12, 0, 0, tzinfo=ZoneInfo("UTC")), tick=False
     ):
-        await add_saved_query(
-            data_store_db_session,
+        await db_manager.add_saved_query(
             saved_queries[0],
         )
-        await add_saved_query(
-            data_store_db_session,
+        await db_manager.add_saved_query(
             saved_queries[1],
         )
     # Verify all saved queries are in the DB
-    saved_queries_db = [
-        row.data for row in await list_saved_queries(data_store_db_session)
-    ]
+    saved_queries_db = [row.data for row in await db_manager.list_saved_queries()]
     for saved_query in saved_queries:
         assert saved_query in saved_queries_db
 
-    async with data_store_db_session.execute(
+    async with db_manager.connection.execute(
         "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.SavedQuery.value,),
     ) as cursor:
@@ -290,7 +244,7 @@ async def test_select_saved_query(data_store_db_session):
         assert row[0] == 2
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -330,7 +284,7 @@ async def test_select_saved_query(data_store_db_session):
         assert params == saved_queries[0]
 
 
-async def test_pagination_saved_queries(data_store_db_session):
+async def test_pagination_saved_queries(db_manager):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -354,15 +308,14 @@ async def test_pagination_saved_queries(data_store_db_session):
         for i in range(100)
     ]
     for saved_query in saved_queries:
-        await add_saved_query(data_store_db_session, saved_query)
+        await db_manager.add_saved_query(saved_query)
 
     # Verify all saved queries are in the DB
     for saved_query in saved_queries:
         assert saved_query in [
-            row.data
-            for row in await list_saved_queries(data_store_db_session, page_size=200)
+            row.data for row in await db_manager.list_saved_queries(page_size=200)
         ]
-    async with data_store_db_session.execute(
+    async with db_manager.connection.execute(
         "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.SavedQuery.value,),
     ) as cursor:
@@ -372,7 +325,7 @@ async def test_pagination_saved_queries(data_store_db_session):
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
 
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -398,7 +351,7 @@ async def test_pagination_saved_queries(data_store_db_session):
         assert table.row_count == 100  # now should have all 100 entries
 
 
-async def test_delete_saved_query(data_store_db_session):
+async def test_delete_saved_query(db_manager):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -419,12 +372,10 @@ async def test_delete_saved_query(data_store_db_session):
             sortKeyCondition=None,
         ),
     )
-    await add_saved_query(data_store_db_session, saved_query)
-    assert saved_query in [
-        row.data for row in await list_saved_queries(data_store_db_session)
-    ]
+    await db_manager.add_saved_query(saved_query)
+    assert saved_query in [row.data for row in await db_manager.list_saved_queries()]
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -443,9 +394,9 @@ async def test_delete_saved_query(data_store_db_session):
 
         # Verify all rows are deleted from the DB
         assert saved_query not in [
-            row.data for row in await list_saved_queries(data_store_db_session)
+            row.data for row in await db_manager.list_saved_queries()
         ]
-        async with data_store_db_session.execute(
+        async with db_manager.connection.execute(
             "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.SavedQuery.value,),
         ) as cursor:
@@ -454,7 +405,7 @@ async def test_delete_saved_query(data_store_db_session):
             assert row[0] == 0
 
 
-async def test_delete_all_saved_queries(data_store_db_session):
+async def test_delete_all_saved_queries(db_manager):
     class TestSavedQueriesScreenApp(App):
         BINDINGS = [("p", "push_saved_queries_screen", "Push Saved Queries Screen")]
         db_session = reactive(None)
@@ -478,10 +429,10 @@ async def test_delete_all_saved_queries(data_store_db_session):
         for i in range(5)
     ]
     for saved_query in saved_queries:
-        await add_saved_query(data_store_db_session, saved_query)
+        await db_manager.add_saved_query(saved_query)
 
     async with TestSavedQueriesScreenApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.press("p")
         await pilot.pause()
         assert isinstance(pilot.app.screen, SavedQueryBrowser)
@@ -500,9 +451,9 @@ async def test_delete_all_saved_queries(data_store_db_session):
         # Verify all rows are deleted from the DB
         for saved_query in saved_queries:
             assert saved_query not in [
-                row.data for row in await list_saved_queries(data_store_db_session)
+                row.data for row in await db_manager.list_saved_queries()
             ]
-        async with data_store_db_session.execute(
+        async with db_manager.connection.execute(
             "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.SavedQuery.value,),
         ) as cursor:

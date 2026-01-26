@@ -1,5 +1,4 @@
 import uuid
-import pytest
 from textual.app import App
 from textual.widgets import DataTable
 from textual.reactive import reactive
@@ -13,8 +12,8 @@ from dyno_viewer.components.screens.query_history_browser import QueryHistoryBro
 from dyno_viewer.components.screens.table_view import TableViewer
 from dyno_viewer.components.table import DataTableManager
 
+from dyno_viewer.db.manager import DatabaseManager
 from dyno_viewer.db.models import RecordType
-from dyno_viewer.db.queries import list_query_history, add_query_history
 from dyno_viewer.models import KeyCondition, QueryParameters, SortKeyCondition
 from dyno_viewer.models import Config
 
@@ -22,7 +21,7 @@ from dyno_viewer.models import Config
 class TableViewModeApp(App):
     aws_profile = reactive(None)
     aws_region = reactive("ap-southeast-2")
-    db_session = reactive(None)
+    db_manager: DatabaseManager | None = reactive(None)
     app_config = reactive(None)
 
     def on_mount(self) -> None:
@@ -32,9 +31,9 @@ class TableViewModeApp(App):
         self.push_screen("default_table")
 
 
-async def test_table_view_mode_initialization(data_store_db_session):
+async def test_table_view_mode_initialization(db_manager):
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.pause()
         assert isinstance(pilot.app.screen, TableViewer)
         table_viewer: TableViewer = pilot.app.screen
@@ -49,7 +48,7 @@ async def test_table_view_mode_initialization(data_store_db_session):
         assert len(data_table.columns) == 0
         assert len(data_table.rows) == 0
 
-        async with data_store_db_session.execute(
+        async with db_manager.connection.execute(
             "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.QueryHistory.value,),
         ) as cursor:
@@ -58,9 +57,9 @@ async def test_table_view_mode_initialization(data_store_db_session):
             assert row[0] == 0
 
 
-async def test_table_view_mode_set_table_name(ddb_table, data_store_db_session):
+async def test_table_view_mode_set_table_name(ddb_table, db_manager):
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -93,7 +92,7 @@ async def test_table_view_mode_set_table_name(ddb_table, data_store_db_session):
             len(data_table[0].columns) > 0
         )  # columns should be set after data is loaded
 
-        async with data_store_db_session.execute(
+        async with db_manager.connection.execute(
             "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.QueryHistory.value,),
         ) as cursor:
@@ -102,11 +101,9 @@ async def test_table_view_mode_set_table_name(ddb_table, data_store_db_session):
             assert row[0] == 0
 
 
-async def test_table_view_mode_run_query(
-    ddb_table_with_data, ddb_table, data_store_db_session
-):
+async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_manager):
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -170,18 +167,16 @@ async def test_table_view_mode_run_query(
         ]
 
         # check if query is added to history
-        list_query_history_result = await list_query_history(
-            pilot.app.db_session,
-        )
+        list_query_history_result = await db_manager.list_query_history()
         assert len(list_query_history_result) == 1
         assert list_query_history_result[0].data == params
 
 
 async def test_table_view_mode_pagination(
-    ddb_table_with_data, ddb_table, data_store_db_session
+    ddb_table_with_data, ddb_table, db_manager
 ):
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -253,7 +248,7 @@ async def test_table_view_mode_pagination(
         assert page_two != page_zero
 
         # check if query is not added to history as its a scan
-        async with data_store_db_session.execute(
+        async with db_manager.connection.execute(
             "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.QueryHistory.value,),
         ) as cursor:
@@ -263,10 +258,10 @@ async def test_table_view_mode_pagination(
 
 
 async def test_table_view_change_query_second_page(
-    ddb_table_with_data, ddb_table, data_store_db_session
+    ddb_table_with_data, ddb_table, db_manager
 ):
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -332,7 +327,7 @@ async def test_table_view_change_query_second_page(
 
 
 async def test_run_query_from_history(
-    ddb_table_with_data, ddb_table, data_store_db_session
+    ddb_table_with_data, ddb_table, db_manager
 ):
     query_param = QueryParameters(
         scan_mode=False,
@@ -345,14 +340,11 @@ async def test_run_query_from_history(
         filter_conditions=[],
     )
 
-    await add_query_history(
-        data_store_db_session,
-        query_param,
-    )
+    await db_manager.add_query_history(query_param)
     assert query_param in [
-        row.data for row in await list_query_history(data_store_db_session)
+        row.data for row in await db_manager.list_query_history()
     ]
-    async with data_store_db_session.execute(
+    async with db_manager.connection.execute(
         "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.QueryHistory.value,),
     ) as cursor:
@@ -360,7 +352,7 @@ async def test_run_query_from_history(
         assert len(row) == 1
         assert row[0] == 1
     async with TableViewModeApp().run_test() as pilot:
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.pause()
         table_viewer: TableViewer = pilot.app.screen
         assert isinstance(table_viewer, TableViewer)
@@ -437,7 +429,7 @@ async def test_table_view_mode_load_last_query_on_startup(
     ddb_table_with_data,
     ddb_table,
     user_config_dir_tmp_path,
-    data_store_db_session,
+    db_manager,
 ):
     class TableViewModeApp(App):
         aws_profile = reactive(None)
@@ -446,14 +438,13 @@ async def test_table_view_mode_load_last_query_on_startup(
         app_config = reactive(Config.load_config())
 
         def on_mount(self) -> None:
-            self.db_session = data_store_db_session
+            self.db_manager = db_manager
             self.install_screen(
                 TableViewer(id=f"table_{uuid.uuid4()}"), name="default_table"
             )
             self.push_screen("default_table")
 
-    await add_query_history(
-        data_store_db_session,
+    await db_manager.add_query_history(
         QueryParameters(
             scan_mode=False,
             table_name=ddb_table.name,
@@ -469,7 +460,7 @@ async def test_table_view_mode_load_last_query_on_startup(
         ),
     )
     # check if added to database
-    async with data_store_db_session.execute(
+    async with db_manager.connection.execute(
         "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.QueryHistory.value,),
     ) as cursor:

@@ -1,27 +1,28 @@
 from typing import AsyncGenerator
-import aiosqlite
 import pytest_asyncio
 from tests.fixtures.ddb_tables import *
 from tests.fixtures.moto import *
 from tests.fixtures.setup import *
 
 from dyno_viewer.constants import CONFIG_DIR_NAME
-from dyno_viewer.db.data_store import setup_connection
-
+import pytest
 
 
 from pathlib import Path
 
 
+from dyno_viewer.db.manager import DatabaseManager
 
 
 @pytest_asyncio.fixture
-async def data_store_db_session() -> AsyncGenerator[aiosqlite.Connection, None]:
+async def db_manager() -> AsyncGenerator[DatabaseManager, None]:
+    """Fixture for DatabaseManager"""
     try:
-        connection = await setup_connection()
-        yield connection
+        manager = DatabaseManager()
+        await manager.setup()
+        yield manager
     finally:
-        await connection.close()
+        await manager.close()
 
 
 @pytest.fixture

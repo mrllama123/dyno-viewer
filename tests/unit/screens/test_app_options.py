@@ -4,15 +4,10 @@ from textual.reactive import reactive
 from textual.widgets import Button, Input, OptionList
 
 from dyno_viewer.components.screens.app_options import AppOptions
-from dyno_viewer.db.models import  RecordType
+from dyno_viewer.db.models import RecordType
 from dyno_viewer.models import KeyCondition, QueryParameters
 from dyno_viewer.messages import ClearQueryHistory
 from dyno_viewer.models import Config
-from dyno_viewer.db.queries import (
-    remove_all_query_history,
-    add_query_history,
-    list_query_history,
-)
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import time_machine
@@ -27,14 +22,14 @@ class OptionsTestApp(App):
         ("o", "show_options", "Show Options"),
     ]
     app_config = reactive(None)
-    db_session = reactive(None)
+    db_manager = reactive(None)
 
     @work(exclusive=True, group="purge_query_history")
     async def worker_delete_query_history(self) -> None:
         """Clear all query history from the database."""
-        if not self.db_session:
+        if not self.db_manager:
             return
-        await remove_all_query_history(self.db_session)
+        await self.db_manager.remove_all_query_history()
         self.notify("Query history cleared.")
 
     @on(ClearQueryHistory)
@@ -147,7 +142,7 @@ async def test_load_last_query_switch(user_config_dir_tmp_path):
         )
 
 
-async def test_clear_query_history(data_store_db_session, user_config_dir_tmp_path):
+async def test_clear_query_history(db_manager, user_config_dir_tmp_path):
     # Build three sample QueryHistory rows
     query_params = [
         QueryParameters(
@@ -171,13 +166,13 @@ async def test_clear_query_history(data_store_db_session, user_config_dir_tmp_pa
         with time_machine.travel(
             datetime(2024, 1, 1, 12, 0, i, tzinfo=ZoneInfo("UTC")), tick=False
         ):
-            await add_query_history(data_store_db_session, query_history)
+            await db_manager.add_query_history(query_history)
 
     # Verify all query histories are in the DB
-    list_query_history_result = await list_query_history(data_store_db_session)
+    list_query_history_result = await db_manager.list_query_history()
     for param in query_params:
         assert param in [row.data for row in list_query_history_result]
-    async with data_store_db_session.execute(
+    async with db_manager.connection.execute(
         "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.QueryHistory.value,),
     ) as cursor:
@@ -187,7 +182,7 @@ async def test_clear_query_history(data_store_db_session, user_config_dir_tmp_pa
 
     async with OptionsTestApp().run_test() as pilot:
         pilot.app.app_config = Config.load_config()
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
         await pilot.press("o")
         screen = pilot.app.screen
 
@@ -197,15 +192,13 @@ async def test_clear_query_history(data_store_db_session, user_config_dir_tmp_pa
         await pilot.pause(0.5)
 
         # Verify that query history is cleared
-        list_query_history_result = await list_query_history(data_store_db_session)
+        list_query_history_result = await db_manager.list_query_history()
         for query_history in query_params:
             assert query_history not in [row.data for row in list_query_history_result]
-        async with data_store_db_session.execute(
+        async with db_manager.connection.execute(
             "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
             (RecordType.QueryHistory.value,),
         ) as cursor:
             row = await cursor.fetchone()
             assert len(row) == 1
             assert row[0] == 0
-
-

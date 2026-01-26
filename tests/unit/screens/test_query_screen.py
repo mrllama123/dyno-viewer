@@ -9,7 +9,6 @@ from dyno_viewer.aws.ddb import scan_items
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
 from dyno_viewer.components.screens.table_query import TableQuery
-from dyno_viewer.db.queries import list_saved_queries
 
 from tests.common import type_commands
 from dyno_viewer.components.screens.create_saved_query import CreateSavedQuery
@@ -22,7 +21,7 @@ def screen_app():
         BINDINGS = [
             ("q", "run_query", "Run Query"),
         ]
-        db_session = reactive(None)
+        db_manager = reactive(None)
         table_info = reactive(None)
 
         dyn_query: QueryParameters | None = reactive(None)
@@ -315,7 +314,7 @@ async def test_run_query_scan(screen_app, ddb_table, ddb_table_with_data):
 
 
 async def test_run_query_scan_key_condition_save_query(
-    screen_app, ddb_table, ddb_table_with_data, data_store_db_session
+    screen_app, ddb_table, ddb_table_with_data, db_manager
 ):
 
     async with screen_app().run_test() as pilot:
@@ -325,7 +324,7 @@ async def test_run_query_scan_key_condition_save_query(
             gsi={"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
             tableName=ddb_table.name,
         )
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
 
         await pilot.press("q")
 
@@ -345,7 +344,7 @@ async def test_run_query_scan_key_condition_save_query(
         await pilot.pause()
 
         assert isinstance(pilot.app.screen, TableQuery)
-        saved_queries = await list_saved_queries(data_store_db_session)
+        saved_queries = await db_manager.list_saved_queries()
 
         assert saved_queries
         assert len(saved_queries) == 1
@@ -383,7 +382,7 @@ async def test_run_query_scan_no_filters(screen_app, ddb_table, ddb_table_with_d
 
 
 async def test_run_query_scan_no_filters_no_save_query(
-    data_store_db_session, screen_app, ddb_table, ddb_table_with_data
+    db_manager, screen_app, ddb_table, ddb_table_with_data
 ):
 
     async with screen_app().run_test() as pilot:
@@ -393,7 +392,7 @@ async def test_run_query_scan_no_filters_no_save_query(
             gsi={"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
             tableName=ddb_table.name,
         )
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_manager = db_manager
 
         await pilot.press("q")
         assert isinstance(pilot.app.screen, TableQuery)
@@ -416,7 +415,7 @@ async def test_run_query_scan_no_filters_no_save_query(
 
 
 async def test_run_query_scan_no_key_condition_no_save_query(
-    data_store_db_session, screen_app, ddb_table, ddb_table_with_data
+    db_manager, screen_app, ddb_table, ddb_table_with_data
 ):
 
     async with screen_app().run_test() as pilot:
@@ -425,7 +424,7 @@ async def test_run_query_scan_no_key_condition_no_save_query(
             gsi={"gsi1Index": {"primaryKey": "gsipk1", "sortKey": "gsisk1"}},
             tableName=ddb_table.name,
         )
-        pilot.app.db_session = data_store_db_session
+        pilot.app.db_session = db_manager
 
         await pilot.press("q")
         assert isinstance(pilot.app.screen, TableQuery)
