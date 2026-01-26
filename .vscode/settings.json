@@ -14,5 +14,6 @@
         ".flatpak-builder/**": true,
         ".repo/**": true,
         "_build/**": true
-    }
+    },
+    "pytest.command": "poetry run pytest"
 }
