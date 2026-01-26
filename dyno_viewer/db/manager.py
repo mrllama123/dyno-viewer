@@ -13,7 +13,7 @@ from dyno_viewer.db.models import (
     RecordType,
 )
 from dyno_viewer.db.utils import json_path_from_dict
-from dyno_viewer.models import QueryParameters, SavedQuery
+from dyno_viewer.models import QueryHistory, QueryParameters, SavedQuery
 
 
 class DatabaseManager:
@@ -241,7 +241,7 @@ class DatabaseManager:
         ) as cursor:
             return [json.loads(row[0]) async for row in cursor]
 
-    async def add_query_history(self, params: QueryParameters) -> None:
+    async def add_query_history(self, params: QueryHistory) -> None:
         """
         Add a query to the history table.
 
@@ -388,16 +388,16 @@ class DatabaseManager:
                 data = json.loads(row[0])
                 query_history.append(
                     ListQueryHistoryResultRow(
-                        data=QueryParameters.model_validate(data),
+                        data=QueryHistory.model_validate(data),
                         created_at=row[1],
                         key=row[2],
                     )
                 )
         return query_history
 
-    async def get_query_history(self, key: str) -> QueryParameters | None:
+    async def get_query(self, key: str) -> QueryParameters | None:
         """
-        Retrieve a query history entry by key from the data_store table.
+        Retrieve a query history entry by key from the data_store table as QueryParameters model.
 
         :param key: Key of the query history entry
         :type key: str
@@ -430,7 +430,8 @@ class DatabaseManager:
             row = await cursor.fetchone()
             if row:
                 data = json.loads(row[0])
-                return QueryParameters.model_validate(data)
+                query_history = QueryHistory.model_validate(data)
+                return query_history.to_query_params()
         return None
 
     async def get_saved_query_by_name(self, name: str) -> SavedQuery | None:

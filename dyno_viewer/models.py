@@ -160,6 +160,22 @@ class SavedQuery(QueryParameters):
     description: str
 
 
+class QueryHistory(QueryParameters):
+    table: str | None = None
+
+    def to_query_params(self) -> QueryParameters:
+        return QueryParameters(
+            draft=self.draft,
+            filter_conditions=self.filter_conditions,
+            index=self.index,
+            key_condition=self.key_condition,
+            next_token=self.next_token,
+            primary_key_name=self.primary_key_name,
+            scan_mode=self.scan_mode,
+            sort_key_name=self.sort_key_name,
+        )
+
+
 class Config(BaseModel):
     page_size: int = 20
     theme: str = "textual-dark"

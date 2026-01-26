@@ -5,7 +5,7 @@ from zoneinfo import ZoneInfo
 from pydantic import BaseModel, field_validator
 
 from dyno_viewer.models import (
-    QueryParameters,
+    QueryHistory,
     SavedQuery,
 )
 
@@ -21,7 +21,7 @@ class RecordType(Enum):
 
 
 class ListQueryHistoryResultRow(BaseModel):
-    data: QueryParameters
+    data: QueryHistory
     created_at: datetime
     key: str
 

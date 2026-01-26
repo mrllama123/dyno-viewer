@@ -42,6 +42,7 @@ class QueryHistoryBrowser(ModalScreen):
     async def on_mount(self):
         table = self.query_exactly_one(DataTable)
         table.add_column("Time", key="time")
+        table.add_column("Table", key="table")
         table.add_column("Scan", key="scan")
         table.add_column("Key Condition", key="key_condition")
         table.add_column("Filter Conditions", key="filter_conditions")
@@ -75,6 +76,7 @@ class QueryHistoryBrowser(ModalScreen):
             )
             table.add_row(
                 str(param.created_at),
+                param.data.table,
                 param.data.scan_mode,
                 key_condition,
                 filter_conditions,
@@ -97,9 +99,7 @@ class QueryHistoryBrowser(ModalScreen):
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, message: DataTable.RowSelected) -> None:
-        query_history = await self.app.db_manager.get_query_history(
-            message.row_key.value
-        )
+        query_history = await self.app.db_manager.get_query(message.row_key.value)
         self.dismiss(query_history)
 
     async def action_next_page(self) -> None:
