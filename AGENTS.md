@@ -404,6 +404,5 @@ poetry lock  # Update lock file
 - Use `CONFIG_DIR_NAME` and related constants for app-specific paths
 
 ### Testing with Textual
-- See `docs/testing-textual.md` for testing guidelines
 - Use snapshots for UI testing
 - Test key bindings and message flows
