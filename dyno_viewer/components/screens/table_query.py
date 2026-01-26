@@ -8,7 +8,6 @@ from textual.widgets import Button, Footer, Label, OptionList, Switch
 from dyno_viewer.components.query.filter_query import FilterQuery
 from dyno_viewer.components.query.key_filter import KeyFilter
 from dyno_viewer.components.screens.create_saved_query import CreateSavedQuery
-from dyno_viewer.db.queries import add_saved_query
 from dyno_viewer.models import QueryParameters, TableInfo
 
 
@@ -160,11 +159,7 @@ class TableQuery(ModalScreen):
             CreateSavedQuery(self.generate_query_parameters())
         )
         if saved_query:
-
-            await add_saved_query(
-                self.app.db_session,
-                saved_query,
-            )
+            await self.app.db_manager.add_saved_query(saved_query)
             self.notify("Saved query created successfully.", severity="success")
 
     # on methods:

@@ -10,11 +10,7 @@ from textual.widgets import DataTable, Input, Markdown
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.db.data_store import remove
-from dyno_viewer.db.queries import (
-    delete_all_saved_queries,
-    get_saved_query,
-    list_saved_queries,
-)
+from dyno_viewer.db.models import ListSavedQueryResultRow
 
 
 class SavedQueryBrowser(ModalScreen):
@@ -72,8 +68,8 @@ class SavedQueryBrowser(ModalScreen):
     async def get_saved_query(self, search: str = ""):
         if self.at_last_page:
             return
-        result = await list_saved_queries(
-            self.app.db_session, page=self.next_page, search=search
+        result = await self.app.db_manager.list_saved_queries(
+            page=self.next_page, search=search
         )
         if len(result) == 0:
             self.at_last_page = True
@@ -104,7 +100,7 @@ class SavedQueryBrowser(ModalScreen):
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, message: DataTable.RowSelected) -> None:
-        saved_query = await get_saved_query(self.app.db_session, message.row_key.value)
+        saved_query = await self.app.db_manager.get_saved_query(message.row_key.value)
         self.dismiss(saved_query)
 
     @on(Input.Submitted, "#search_saved_queries")
@@ -123,7 +119,7 @@ class SavedQueryBrowser(ModalScreen):
             table = self.query_one(DataTable)
             if table.cursor_row is not None:
                 row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
-                await remove(self.app.db_session, row_key.value)
+                await self.app.db_manager.remove(row_key.value)
                 table.remove_row(row_key)
 
     @work
@@ -133,7 +129,7 @@ class SavedQueryBrowser(ModalScreen):
         )
         if confirm:
             table = self.query_one(DataTable)
-            await delete_all_saved_queries(self.app.db_session)
+            await self.app.db_manager.delete_all_saved_queries()
             table.clear()
 
     def action_next_page(self) -> None:

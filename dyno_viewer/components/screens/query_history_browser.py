@@ -8,11 +8,7 @@ from textual.widgets import DataTable, Markdown
 from dyno_viewer.aws.ddb import pretty_condition
 from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.db.data_store import remove
-from dyno_viewer.db.queries import (
-    get_query_history,
-    list_query_history,
-    remove_all_query_history,
-)
+from dyno_viewer.db.models import ListQueryHistoryResultRow
 
 
 class QueryHistoryBrowser(ModalScreen):
@@ -59,8 +55,8 @@ class QueryHistoryBrowser(ModalScreen):
     async def retrieve_query_history(self) -> None:
         if self.at_last_page:
             return
-        result = await list_query_history(
-            self.app.db_session, page=self.next_page, page_size=20
+        result = await self.app.db_manager.list_query_history(
+            page=self.next_page, page_size=20
         )
         if len(result) == 0:
             self.at_last_page = True
@@ -92,19 +88,19 @@ class QueryHistoryBrowser(ModalScreen):
         table = self.query_one(DataTable)
         if table.cursor_row is not None:
             row_key, _ = table.coordinate_to_cell_key(table.cursor_coordinate)
-            await remove(self.app.db_session, row_key.value)
+            await self.app.db_manager.remove(row_key.value)
             table.remove_row(row_key)
 
     @work(exclusive=True)
     async def remove_all_query_history_rows(self) -> None:
-        await remove_all_query_history(self.app.db_session)
+        await self.app.db_manager.remove_all_query_history()
         table = self.query_one(DataTable)
         table.clear()
 
     @on(DataTable.RowSelected)
     async def on_row_selected(self, message: DataTable.RowSelected) -> None:
-        query_history = await get_query_history(
-            self.app.db_session, message.row_key.value
+        query_history = await self.app.db_manager.get_query_history(
+            message.row_key.value
         )
         self.dismiss(query_history)
 
