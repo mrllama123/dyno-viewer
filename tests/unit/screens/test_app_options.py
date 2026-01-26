@@ -5,7 +5,7 @@ from textual.widgets import Button, Input, OptionList
 
 from dyno_viewer.components.screens.app_options import AppOptions
 from dyno_viewer.db.models import RecordType
-from dyno_viewer.models import KeyCondition, QueryParameters
+from dyno_viewer.models import KeyCondition, QueryHistory
 from dyno_viewer.messages import ClearQueryHistory
 from dyno_viewer.models import Config
 from datetime import datetime
@@ -145,7 +145,7 @@ async def test_load_last_query_switch(user_config_dir_tmp_path):
 async def test_clear_query_history(db_manager, user_config_dir_tmp_path):
     # Build three sample QueryHistory rows
     query_params = [
-        QueryParameters(
+        QueryHistory(
             scan_mode=False,
             primary_key_name="pk",
             sort_key_name="sk",
@@ -153,7 +153,7 @@ async def test_clear_query_history(db_manager, user_config_dir_tmp_path):
             key_condition=KeyCondition(partitionKeyValue="A"),
             filter_conditions=[],
         ),
-        QueryParameters(
+        QueryHistory(
             scan_mode=False,
             primary_key_name="pk",
             sort_key_name="sk",

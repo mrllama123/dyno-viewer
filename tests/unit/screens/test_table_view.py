@@ -14,7 +14,12 @@ from dyno_viewer.components.table import DataTableManager
 
 from dyno_viewer.db.manager import DatabaseManager
 from dyno_viewer.db.models import RecordType
-from dyno_viewer.models import KeyCondition, QueryParameters, SortKeyCondition
+from dyno_viewer.models import (
+    KeyCondition,
+    QueryParameters,
+    SortKeyCondition,
+    QueryHistory,
+)
 from dyno_viewer.models import Config
 
 
@@ -169,12 +174,10 @@ async def test_table_view_mode_run_query(ddb_table_with_data, ddb_table, db_mana
         # check if query is added to history
         list_query_history_result = await db_manager.list_query_history()
         assert len(list_query_history_result) == 1
-        assert list_query_history_result[0].data == params
+        assert list_query_history_result[0].data.to_query_params() == params
 
 
-async def test_table_view_mode_pagination(
-    ddb_table_with_data, ddb_table, db_manager
-):
+async def test_table_view_mode_pagination(ddb_table_with_data, ddb_table, db_manager):
     async with TableViewModeApp().run_test() as pilot:
         pilot.app.db_manager = db_manager
         await pilot.pause()
@@ -326,10 +329,9 @@ async def test_table_view_change_query_second_page(
         assert len(query_page_zero) == 1
 
 
-async def test_run_query_from_history(
-    ddb_table_with_data, ddb_table, db_manager
-):
-    query_param = QueryParameters(
+async def test_run_query_from_history(ddb_table_with_data, ddb_table, db_manager):
+    query_param = QueryHistory(
+        table=ddb_table.name,
         scan_mode=False,
         table_name=ddb_table.name,
         primary_key_name="pk",
@@ -341,9 +343,7 @@ async def test_run_query_from_history(
     )
 
     await db_manager.add_query_history(query_param)
-    assert query_param in [
-        row.data for row in await db_manager.list_query_history()
-    ]
+    assert query_param in [row.data for row in await db_manager.list_query_history()]
     async with db_manager.connection.execute(
         "SELECT COUNT(*) FROM data_store WHERE record_type = ?",
         (RecordType.QueryHistory.value,),

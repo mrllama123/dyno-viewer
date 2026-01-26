@@ -9,7 +9,12 @@ from dyno_viewer.components.screens.confirm_dialogue import ConfirmDialogue
 from dyno_viewer.components.screens.query_history_browser import QueryHistoryBrowser
 from dyno_viewer.db.models import RecordType
 from dyno_viewer.constants import FILTER_CONDITIONS, ATTRIBUTE_TYPES
-from dyno_viewer.models import KeyCondition, QueryParameters, FilterCondition
+from dyno_viewer.models import (
+    KeyCondition,
+    QueryParameters,
+    FilterCondition,
+    QueryHistory,
+)
 import time_machine
 
 
@@ -20,7 +25,8 @@ async def test_query_history_screen_populates_from_db(db_manager):
     # async with db_session.begin():
     with time_machine.travel(datetime(2024, 1, 1, 12, 0, 0), tick=False):
         await db_manager.add_query_history(
-            QueryParameters(
+            QueryHistory(
+                table="test",
                 scan_mode=False,
                 primary_key_name="pk",
                 sort_key_name="sk",
@@ -31,7 +37,8 @@ async def test_query_history_screen_populates_from_db(db_manager):
         )
     with time_machine.travel(datetime(2024, 1, 1, 12, 0, 2), tick=False):
         await db_manager.add_query_history(
-            QueryParameters(
+            QueryHistory(
+                table="test",
                 scan_mode=False,
                 primary_key_name="pk",
                 sort_key_name="sk",
@@ -61,8 +68,8 @@ async def test_query_history_screen_populates_from_db(db_manager):
         # Ensure ordering is newest first (created_at descending)
         first_row = table.get_row_at(0)
         last_row = table.get_row_at(1)
-        assert first_row == ["2024-01-01 12:00:02+00:00", False, "pk = 'B'", ""]
-        assert last_row == ["2024-01-01 12:00:00+00:00", False, "pk = 'A'", ""]
+        assert first_row == ["2024-01-01 12:00:02+00:00", "test", False, "pk = 'B'", ""]
+        assert last_row == ["2024-01-01 12:00:00+00:00", "test", False, "pk = 'A'", ""]
 
 
 async def test_query_history_screen_with_filters(db_manager):
@@ -70,7 +77,8 @@ async def test_query_history_screen_with_filters(db_manager):
 
     with time_machine.travel(datetime(2024, 1, 1, 12, 0, 0), tick=False):
         await db_manager.add_query_history(
-            QueryParameters(
+            QueryHistory(
+                table="test",
                 scan_mode=False,
                 primary_key_name="pk",
                 sort_key_name="sk",
@@ -107,6 +115,7 @@ async def test_query_history_screen_with_filters(db_manager):
         first_row = table.get_row_at(0)
         assert first_row == [
             "2024-01-01 12:00:00+00:00",
+            "test",
             False,
             "pk = 'A'",
             "status = 'active'",
@@ -117,7 +126,8 @@ async def test_query_history_scan_without_filters(db_manager):
     """Verify a scan without filters is displayed correctly."""
     with time_machine.travel(datetime(2024, 1, 1, 12, 0, 0), tick=False):
         await db_manager.add_query_history(
-            QueryParameters(
+            QueryHistory(
+                table="test",
                 scan_mode=True,
                 primary_key_name="pk",
                 sort_key_name="sk",
@@ -147,6 +157,7 @@ async def test_query_history_scan_without_filters(db_manager):
         first_row = table.get_row_at(0)
         assert first_row == [
             "2024-01-01 12:00:00+00:00",
+            "test",
             True,
             "",
             "",
@@ -159,7 +170,8 @@ async def test_query_history_screen_pagination(db_manager):
     for i in range(40):
         with time_machine.travel(datetime(2024, 1, 1, 12, 0, i % 60), tick=False):
             await db_manager.add_query_history(
-                QueryParameters(
+                QueryHistory(
+                    table="test",
                     scan_mode=False,
                     primary_key_name="pk",
                     sort_key_name="sk",
@@ -201,7 +213,8 @@ async def test_query_history_screen_pagination(db_manager):
 async def test_query_history_screen_row_selection(db_manager):
     """Verify selecting a row returns the correct QueryParameters."""
 
-    query_params = QueryParameters(
+    query_history = QueryHistory(
+        table="test",
         scan_mode=False,
         primary_key_name="pk",
         sort_key_name="sk",
@@ -211,7 +224,7 @@ async def test_query_history_screen_row_selection(db_manager):
     )
 
     with time_machine.travel(datetime(2024, 1, 1, 12, 0, 0), tick=False):
-        await db_manager.add_query_history(query_params)
+        await db_manager.add_query_history(query_history)
 
     class TestApp(App):
         def __init__(self, db_manager):
@@ -237,7 +250,7 @@ async def test_query_history_screen_row_selection(db_manager):
 
         # The screen should have been dismissed and returned QueryParameters
 
-        assert pilot.app.params == query_params
+        assert pilot.app.params == query_history.to_query_params()
 
 
 async def test_query_history_screen_delete_row(db_manager):
@@ -245,7 +258,8 @@ async def test_query_history_screen_delete_row(db_manager):
 
     # Insert a sample QueryHistory row
     query_params = [
-        QueryParameters(
+        QueryHistory(
+            table="test",
             scan_mode=False,
             primary_key_name="pk",
             sort_key_name="sk",
@@ -253,7 +267,8 @@ async def test_query_history_screen_delete_row(db_manager):
             key_condition=KeyCondition(partitionKeyValue="A"),
             filter_conditions=[],
         ),
-        QueryParameters(
+        QueryHistory(
+            table='test',
             scan_mode=False,
             primary_key_name="pk2",
             sort_key_name="sk2",
@@ -307,7 +322,8 @@ async def test_query_history_screen_delete_all_rows(db_manager):
     for i in range(5):
         with time_machine.travel(datetime(2024, 1, 1, 12, 0, i), tick=False):
             await db_manager.add_query_history(
-                QueryParameters(
+                QueryHistory(
+                    table='test',
                     scan_mode=False,
                     primary_key_name=f"pk{i}",
                     sort_key_name=f"sk{i}",

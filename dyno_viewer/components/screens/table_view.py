@@ -23,7 +23,7 @@ from dyno_viewer.components.screens.region_select import RegionSelect
 from dyno_viewer.components.screens.saved_querys_browser import SavedQueryBrowser
 from dyno_viewer.components.screens.table_query import TableQuery
 from dyno_viewer.components.table import DataTableManager
-from dyno_viewer.models import OutputFormat, QueryParameters, TableInfo
+from dyno_viewer.models import OutputFormat, QueryHistory, QueryParameters, TableInfo
 from dyno_viewer.util import save_query_results_to_csv, save_query_results_to_json
 
 
@@ -267,7 +267,11 @@ class TableViewer(Screen):
 
         self.query_params = new_query_param
         self.draft_query_params = None
-        await self.app.db_manager.add_query_history(new_query_param)
+        await self.app.db_manager.add_query_history(
+            QueryHistory.model_validate(
+                {"table": self.table_name, **new_query_param.model_dump()}
+            )
+        )
 
     @work
     async def action_select_table(self) -> None:
