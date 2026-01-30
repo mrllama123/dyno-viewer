@@ -70,10 +70,6 @@ class TableViewer(Screen):
 
     aws_profile = reactive(None)
     aws_region = reactive("ap-southeast-2")
-    dyn_client = reactive(
-        None,
-    )
-
     # set always_update=True because otherwise textual thinks that the client hasn't changed when it actually has :(
     table_client = reactive(None, always_update=True)
 
@@ -84,7 +80,12 @@ class TableViewer(Screen):
         yield Footer()
 
     async def on_mount(self) -> None:
-        self.on_mount_setup()
+        if not self.app.app_config:
+            return
+        if self.app.app_config.load_last_query_on_startup:
+            last_query = await self.app.db_manager.get_last_query_ran()
+            if last_query:
+                self.query_params = last_query
 
     def update_table_client(self):
         if self.table_name:
@@ -117,19 +118,6 @@ class TableViewer(Screen):
             self.table_info = None
 
     # worker methods
-
-    @work(exclusive=True, group="on_mount_setup")
-    async def on_mount_setup(self) -> None:
-        self.dyn_client = get_ddb_client(
-            region_name=self.aws_region, profile_name=self.aws_profile
-        )
-        if not self.app.app_config:
-            return
-        if self.app.app_config.load_last_query_on_startup:
-            last_query = await self.app.db_manager.get_last_query_ran()
-            if last_query:
-                self.query_params = last_query
-
     @work(exclusive=True, group="update_dyn_table_info", thread=True)
     def get_dyn_table_info(self) -> None:
         worker = get_current_worker()
@@ -276,7 +264,9 @@ class TableViewer(Screen):
     @work
     async def action_select_table(self) -> None:
         """Open the table select screen."""
-        table = await self.app.push_screen_wait(TableSelect(self.dyn_client))
+        table = await self.app.push_screen_wait(
+            TableSelect(get_ddb_client(self.aws_region, self.aws_profile))
+        )
         if table:
             self.table_name = table
             self.update_table_client()
@@ -333,18 +323,16 @@ class TableViewer(Screen):
     # watch methods
 
     async def watch_aws_profile(self, new_profile: str | None) -> None:
+        if not new_profile:
+            return
         log.info(f"App: AWS Profile changed to: {new_profile}")
-        self.dyn_client = get_ddb_client(
-            region_name=self.aws_region, profile_name=new_profile
-        )
-        self.screen.update_table_client()
+        self.update_table_client()
 
     async def watch_aws_region(self, new_region: str) -> None:
+        if not new_region:
+            return
         log.info(f"App: AWS Region changed to: {new_region}")
-        self.dyn_client = get_ddb_client(
-            region_name=new_region, profile_name=self.aws_profile
-        )
-        self.screen.update_table_client()
+        self.update_table_client()
 
     async def watch_table_client(self, new_table_client) -> None:
         """update DynTable with new table data"""
@@ -355,8 +343,10 @@ class TableViewer(Screen):
             self.run_table_query(self.query_params)
         else:
             log.info("table client changed and table not found, Clear table data")
-            self.data = []
-            self.table_info = None  # Clear table info as well
+            if self.data:
+                self.data = []
+            if self.table_info:
+                self.table_info = None  # Clear table info as well
 
     async def watch_query_params(self, new_query_params: QueryParameters) -> None:
         """Update the query parameters and run the query."""
