@@ -90,13 +90,11 @@ class TableViewer(Screen):
     def update_table_client(self):
         if self.table_name:
             # Access app's profile and region
-            app_profile = self.aws_profile
-            app_region = self.aws_region
             log.info(
-                f"updating table client for table {self.table_name} with profile {app_profile} in region {app_region}"
+                f"updating table client for table {self.table_name} with profile {self.aws_profile} in region {self.aws_region}"
             )
             new_table_client = table_client_exist(
-                self.table_name, app_region, app_profile
+                self.table_name, self.aws_region, self.aws_profile
             )
             if new_table_client:
                 self.table_client = new_table_client
@@ -106,7 +104,7 @@ class TableViewer(Screen):
                 self.data = []
                 self.table_info = None
                 self.notify(
-                    f"Table {self.table_name} not found in profile {app_profile} and region {app_region}",
+                    f"Table {self.table_name} not found in profile {self.aws_profile} and region {self.aws_region}",
                     severity="warning",
                 )
                 return  # exit early if table not found
@@ -255,11 +253,12 @@ class TableViewer(Screen):
 
         self.query_params = new_query_param
         self.draft_query_params = None
-        await self.app.db_manager.add_query_history(
-            QueryHistory.model_validate(
-                {"table": self.table_name, **new_query_param.model_dump()}
-            )
+        query_history = QueryHistory.model_validate(
+            {"table": self.table_name, **new_query_param.model_dump()}
         )
+        if await self.app.db_manager.get(self.id):
+            query_history.session_id = self.id
+        await self.app.db_manager.add_query_history(query_history)
 
     @work
     async def action_select_table(self) -> None:
@@ -269,7 +268,6 @@ class TableViewer(Screen):
         )
         if table:
             self.table_name = table
-            self.update_table_client()
         else:
             self.table_name = ""
             self.data = []
@@ -322,16 +320,22 @@ class TableViewer(Screen):
 
     # watch methods
 
-    async def watch_aws_profile(self, new_profile: str | None) -> None:
-        if not new_profile:
+    def watch_aws_profile(self, new_profile: str | None) -> None:
+        if not new_profile or not self.is_active:
             return
         log.info(f"App: AWS Profile changed to: {new_profile}")
         self.update_table_client()
 
-    async def watch_aws_region(self, new_region: str) -> None:
-        if not new_region:
+    def watch_aws_region(self, new_region: str) -> None:
+        if not new_region or not self.is_active:
             return
         log.info(f"App: AWS Region changed to: {new_region}")
+        self.update_table_client()
+
+    def watch_table_name(self, new_table_name: str):
+        if not new_table_name or not self.is_active:
+            return
+        log.info(f"App: Table name changed to {new_table_name}")
         self.update_table_client()
 
     async def watch_table_client(self, new_table_client) -> None:
@@ -347,6 +351,14 @@ class TableViewer(Screen):
                 self.data = []
             if self.table_info:
                 self.table_info = None  # Clear table info as well
+
+        if await self.app.db_manager.get(self.id):
+            await self.app.db_manager.update_session(
+                self.id,
+                aws_profile=self.aws_profile,
+                table_name=self.table_name,
+                aws_region=self.aws_region,
+            )
 
     async def watch_query_params(self, new_query_params: QueryParameters) -> None:
         """Update the query parameters and run the query."""

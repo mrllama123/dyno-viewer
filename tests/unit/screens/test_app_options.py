@@ -4,8 +4,9 @@ from textual.reactive import reactive
 from textual.widgets import Button, Input, OptionList
 
 from dyno_viewer.components.screens.app_options import AppOptions
+from dyno_viewer.db.manager import DatabaseManager
 from dyno_viewer.db.models import RecordType
-from dyno_viewer.models import KeyCondition, QueryHistory
+from dyno_viewer.models import KeyCondition, QueryHistory, SessionGroup
 from dyno_viewer.messages import ClearQueryHistory
 from dyno_viewer.models import Config
 from datetime import datetime
@@ -51,7 +52,7 @@ async def test_initial_options_display(user_config_dir_tmp_path):
         assert config_path.exists()
         assert (
             config_path.read_text()
-            == "load_last_query_on_startup: true\npage_size: 20\ntheme: textual-dark\n"
+            == "load_last_query_on_startup: true\npage_size: 20\nstartup_session_group: null\ntheme: textual-dark\n"
         )
         await pilot.press("o")
 
@@ -85,7 +86,7 @@ async def test_theme_selection_updates_app_theme(user_config_dir_tmp_path):
         config_path = user_config_dir_tmp_path / "config.yaml"
         assert (
             config_path.read_text()
-            == f"load_last_query_on_startup: true\npage_size: 20\ntheme: {option_list.highlighted_option.id}\n"
+            == f"load_last_query_on_startup: true\npage_size: 20\nstartup_session_group: null\ntheme: {option_list.highlighted_option.id}\n"
         )
 
 
@@ -116,7 +117,7 @@ async def test_exit_saves_theme_and_page_size(user_config_dir_tmp_path):
         config_path = user_config_dir_tmp_path / "config.yaml"
         assert (
             config_path.read_text()
-            == f"load_last_query_on_startup: true\npage_size: 55\ntheme: {option_list.highlighted_option.id}\n"
+            == f"load_last_query_on_startup: true\npage_size: 55\nstartup_session_group: ''\ntheme: {option_list.highlighted_option.id}\n"
         )
 
 
@@ -138,7 +139,7 @@ async def test_load_last_query_switch(user_config_dir_tmp_path):
         config_path = user_config_dir_tmp_path / "config.yaml"
         assert (
             config_path.read_text()
-            == "load_last_query_on_startup: false\npage_size: 20\ntheme: textual-dark\n"
+            == "load_last_query_on_startup: false\npage_size: 20\nstartup_session_group: ''\ntheme: textual-dark\n"
         )
 
 
@@ -202,3 +203,64 @@ async def test_clear_query_history(db_manager, user_config_dir_tmp_path):
             row = await cursor.fetchone()
             assert len(row) == 1
             assert row[0] == 0
+
+
+async def test_select_session_group_startup(
+    db_manager: DatabaseManager, user_config_dir_tmp_path
+):
+    class TestApp(App):
+        BINDINGS = [
+            ("o", "show_options", "Show Options"),
+        ]
+        db_manager = reactive(None)
+        app_config = reactive(None)
+
+        def on_mount(self):
+            self.db_manager = db_manager
+            self.app_config = Config.load_config()
+
+        def action_show_options(self):
+            self.push_screen(AppOptions())
+
+    session_group = SessionGroup(name="test")
+    await db_manager.add_session_group(session_group)
+
+    async with TestApp().run_test() as pilot:
+        await pilot.press("o")
+        assert isinstance(pilot.app.screen, AppOptions)
+        await pilot.press("tab", "tab", "tab")
+        await pilot.pause()
+        await pilot.press("t", "e", "s", "t", "escape")
+        await pilot.pause()
+        assert not isinstance(pilot.app.screen, AppOptions)
+        assert pilot.app.app_config.startup_session_group == "test"
+
+async def test_select_session_group_startup_not_found(
+    db_manager: DatabaseManager, user_config_dir_tmp_path
+):
+    class TestApp(App):
+        BINDINGS = [
+            ("o", "show_options", "Show Options"),
+        ]
+        db_manager = reactive(None)
+        app_config = reactive(None)
+
+        def on_mount(self):
+            self.db_manager = db_manager
+            self.app_config = Config.load_config()
+
+        def action_show_options(self):
+            self.push_screen(AppOptions())
+
+
+
+    async with TestApp().run_test() as pilot:
+        await pilot.press("o")
+        assert isinstance(pilot.app.screen, AppOptions)
+        await pilot.press("tab", "tab", "tab")
+        await pilot.pause()
+        await pilot.press("t", "e", "s", "t", "escape")
+        await pilot.pause()
+        assert isinstance(pilot.app.screen, AppOptions)
+        assert pilot.app.app_config.startup_session_group != "test"
+

@@ -1,3 +1,4 @@
+import uuid
 from enum import Enum
 from functools import reduce
 from operator import and_
@@ -6,7 +7,8 @@ from typing import Any, TypedDict
 
 import yaml
 from boto3.dynamodb.conditions import Attr, ConditionBase, Key
-from pydantic import BaseModel, computed_field, field_validator
+from pydantic import BaseModel, Field, computed_field, field_validator
+from textual.screen import Screen
 
 from dyno_viewer.aws.ddb import (
     convert_filter_exp_attr_cond,
@@ -162,6 +164,7 @@ class SavedQuery(QueryParameters):
 
 class QueryHistory(QueryParameters):
     table: str | None = None
+    session_id: str | None = None
 
     def to_query_params(self) -> QueryParameters:
         return QueryParameters(
@@ -177,9 +180,14 @@ class QueryHistory(QueryParameters):
 
 
 class Config(BaseModel):
-    page_size: int = 20
-    theme: str = "textual-dark"
-    load_last_query_on_startup: bool = True
+    page_size: int = Field(default=20, description="number of items per page")
+    theme: str = Field(default="textual-dark", description="theme of the application")
+    load_last_query_on_startup: bool = Field(
+        default=True, description="load the last query when the application starts"
+    )
+    startup_session_group: str | None = Field(
+        default=None, description="load a session group when the application starts"
+    )
 
     @classmethod
     def load_config(cls) -> "Config":
@@ -196,3 +204,51 @@ class Config(BaseModel):
         app_path = ensure_config_dir(CONFIG_DIR_NAME)
         config_file_path = app_path / "config.yaml"
         config_file_path.write_text(yaml.safe_dump(self.model_dump()), encoding="utf-8")
+
+
+class Session(BaseModel):
+    name: str
+    aws_profile: str | None = None
+    table_name: str
+    aws_region: str
+    session_id: str = Field(default_factory=lambda: f"table_{uuid.uuid4()}")
+    session_group_id: str
+
+    @classmethod
+    def from_table_viewer_screen(
+        cls, table_viewer: Screen, session_group_id: str, screen_name: str
+    ) -> "Session":
+        """
+        Create a new instance of the `WorkspaceSession` class based on the information from a `TableViewer` screen.
+
+        :param table_viewer: TablesViewer object (typed as base type `Screen` due to circular imports)
+        :type table_viewer: Screen
+        :param session_group_id: the ID of the session group that this session is part of
+        :type session_group_id: str
+        :param screen_name: the name of the screen
+        :type screen_name: str
+        :return: a new `WorkspaceSession` instance
+        :rtype: WorkspaceSession
+        """
+        return cls(
+            name=screen_name,
+            aws_profile=table_viewer.aws_profile,
+            table_name=table_viewer.table_name,
+            aws_region=table_viewer.aws_region,
+            session_id=table_viewer.id,
+            session_group_id=session_group_id,
+        )
+
+
+class SessionGroup(BaseModel):
+    name: str
+    session_group_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+
+
+class SelectedSessionGroup(BaseModel):
+    session_group: SessionGroup | None = None
+
+
+class SelectedScreen(BaseModel):
+
+    screen_name: str | None = None

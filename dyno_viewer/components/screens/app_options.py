@@ -13,13 +13,10 @@ class AppOptions(ModalScreen):
     DEFAULT_CSS = """
     
     #optionScreen {
-        # layout: grid;
-        # grid-size: 1;
-        # overflow-y: auto;
         margin: 1 1;
         background: $boost;
         border: heavy grey;
-        height: 35;
+        height: 38;
     }
     #themeContainer OptionList {
         height: 8;
@@ -37,6 +34,8 @@ class AppOptions(ModalScreen):
     }
     #clearQueryHistoryButton {
         margin: 1 1;
+    }#SessionGroupContainer  {
+        height: 5;
     }
     """
 
@@ -55,6 +54,9 @@ class AppOptions(ModalScreen):
                     id="loadLastQuerySwitch",
                     value=self.app.app_config.load_last_query_on_startup,
                 )
+            with Container(id="SessionGroupContainer"):
+                yield Label("Session group to load on startup:")
+                yield Input(id="sessionGroupInput")
             yield Button(
                 "Clear Query History", id="clearQueryHistoryButton", variant="error"
             )
@@ -71,23 +73,36 @@ class AppOptions(ModalScreen):
     def on_mount(self) -> None:
         theme_option_list = self.query_one("#themeOptionList", OptionList)
         page_size_input = self.query_one("#pageSizeInput", Input)
+        session_group_input = self.query_one("#sessionGroupInput", Input)
         page_size_input.value = str(
             self.app.app_config.page_size if self.app.app_config.page_size else 20
         )
+        if self.app.app_config.startup_session_group:
+            session_group_input.value = self.app.app_config.startup_session_group
         for theme_name in self.app.available_themes:
             theme_option_list.add_option(Option(theme_name, id=theme_name))
 
-    def action_exit(self) -> None:
-        if self.app.app_config:
-            theme_option_list = self.query_one("#themeOptionList", OptionList)
-            load_last_query_switch = self.query_one("#loadLastQuerySwitch", Switch)
-            page_size_input = self.query_one("#pageSizeInput", Input)
-            if selected_theme := theme_option_list.highlighted_option:
-                self.app.app_config.theme = selected_theme.id
-            if page_size_input.value.isdigit():
-                self.app.app_config.page_size = int(page_size_input.value)
-            self.app.app_config.load_last_query_on_startup = (
-                load_last_query_switch.value
+    async def action_exit(self) -> None:
+
+        theme_option_list = self.query_one("#themeOptionList", OptionList)
+        load_last_query_switch = self.query_one("#loadLastQuerySwitch", Switch)
+        page_size_input = self.query_one("#pageSizeInput", Input)
+        session_group_input = self.query_one("#sessionGroupInput", Input)
+        if selected_theme := theme_option_list.highlighted_option:
+            self.app.app_config.theme = selected_theme.id
+        if page_size_input.value.isdigit():
+            self.app.app_config.page_size = int(page_size_input.value)
+        self.app.app_config.load_last_query_on_startup = load_last_query_switch.value
+        if (
+            session_group_input.value
+            and not await self.app.db_manager.get_session_group_by_name(
+                session_group_input.value
             )
-            self.app.app_config.save_config()
+        ):
+            self.notify(
+                "cannot find session group, Please try again", severity="warning"
+            )
+            return
+        self.app.app_config.startup_session_group = session_group_input.value
+        self.app.app_config.save_config()
         self.app.pop_screen()
