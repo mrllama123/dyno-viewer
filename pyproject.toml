@@ -25,7 +25,7 @@ moto = {extras = ["all"], version = "^5.1.20"}
 pytest-aiohttp = "^1.0.4"
 pandas = ">=1.5.3,<3.0.0"
 pytest-mock = "^3.15.1"
-jupyterlab = ">=3.6.3,<5.0.0"
+jupyterlab = ">=4.5.7,<5.0.0"
 pytest-xdist = "^3.8.0"
 toml = "^0.10.2"
 poethepoet = ">=0.20,<0.38"
