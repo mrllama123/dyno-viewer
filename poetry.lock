@@ -1856,14 +1856,14 @@ test = ["jupyter-server (>=2.0.0)", "pytest (>=7.0)", "pytest-jupyter[server] (>
 
 [[package]]
 name = "jupyterlab"
-version = "4.5.3"
+version = "4.5.9"
 description = "JupyterLab computational environment"
 optional = false
 python-versions = ">=3.9"
 groups = ["dev"]
 files = [
-    {file = "jupyterlab-4.5.3-py3-none-any.whl", hash = "sha256:63c9f3a48de72ba00df766ad6eed416394f5bb883829f11eeff0872302520ba7"},
-    {file = "jupyterlab-4.5.3.tar.gz", hash = "sha256:4a159f71067cb38e4a82e86a42de8e7e926f384d7f2291964f282282096d27e8"},
+    {file = "jupyterlab-4.5.9-py3-none-any.whl", hash = "sha256:5ff0f908e8ac0afbed32b106fdef360f101c0a6654d1bf4a81e98a293ae1b336"},
+    {file = "jupyterlab-4.5.9.tar.gz", hash = "sha256:dd79a073fecae7a39066ea99e4627ed6c76269ac926e95a810e1e1df6358d865"},
 ]
 
 [package.dependencies]
@@ -1877,7 +1877,7 @@ jupyter-lsp = ">=2.0.0"
 jupyter-server = ">=2.4.0,<3"
 jupyterlab-server = ">=2.28.0,<3"
 notebook-shim = ">=0.2"
-packaging = "*"
+packaging = ">=23.2"
 setuptools = ">=41.1.0"
 tomli = {version = ">=1.2.2", markers = "python_version < \"3.11\""}
 tornado = ">=6.2.0"
@@ -5209,4 +5209,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.9"
-content-hash = "abe7987e649aaaf9b30b915517f9e362b22a0f08c992f73541c6358b6c9c4213"
+content-hash = "faffadb130fc0d3762ee6533e7b86927fc06895ff42f13285d0edc17627580c4"
