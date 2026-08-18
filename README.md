@@ -1,6 +1,9 @@
 ![screenshot](dyno-viewer-screenshot.png)
 # Dyno-viewer
 
+> [!NOTE]
+> As i am not using dynamodb anymore and don't have time to maintain it. Feel free to fork and do whatever you want with it 
+
 Dyno-viewer is dynamodb table viewer for your terminal build using [textual](https://github.com/Textualize/textual). 
 
 This came out from me being frustrated with how clunky and slow the dynamodb viewier is in the aws console and me finding no good free alternative, That works the way i want it to work. 
